@@ -15,7 +15,7 @@ import os
 app = FastAPI(
     title="Korea Working Visa API",
     description="비자 신청자 및 관리자 포털",
-    version="1.0.0"
+    version="0.2.20260305"
 )
 
 # CORS 설정

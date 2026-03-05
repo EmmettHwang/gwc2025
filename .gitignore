@@ -43,3 +43,4 @@ Thumbs.db
 # Docker (removed)
 docker-compose.yml
 Dockerfile
+CLAUDE.md
