@@ -56,6 +56,22 @@ DEFAULT_PASSWORD = "kwv2026"
 # ==================== Router ====================
 router = APIRouter(prefix="/api/kwv", tags=["KoreaWorkingVisa"])
 
+APP_VERSION = "0.2.20260305"
+
+@router.get("/version")
+async def get_version():
+    """앱 버전 정보"""
+    return {"version": APP_VERSION}
+
+@router.get("/readme")
+async def get_readme():
+    """README.md 내용 반환"""
+    readme_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "README.md")
+    if os.path.exists(readme_path):
+        with open(readme_path, 'r', encoding='utf-8') as f:
+            return {"content": f.read()}
+    return {"content": "README.md not found"}
+
 # ==================== Pydantic Models ====================
 class UserLogin(BaseModel):
     email: str
