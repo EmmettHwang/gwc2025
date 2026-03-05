@@ -1515,10 +1515,10 @@
                         </h4>
                         <div class="space-y-3">
                             <div><label class="text-xs text-gray-500">Google Maps API</label>
-                                <div class="flex gap-1 mt-1"><input type="password" id="set_google_maps_api_key" class="flex-1 input-apple text-sm" placeholder="API Key"><button onclick="testApiKey('google_maps')" class="px-2 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 whitespace-nowrap"><i class="fas fa-vial"></i> 테스트</button></div>
+                                <div class="flex gap-1 mt-1"><input type="password" id="set_google_maps_api_key" class="flex-1 input-apple text-sm" placeholder="API Key" autocomplete="new-password"><button onclick="testApiKey('google_maps')" class="px-2 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 whitespace-nowrap"><i class="fas fa-vial"></i> 테스트</button></div>
                             </div>
                             <div><label class="text-xs text-gray-500">AI API Key (Groq/Gemini)</label>
-                                <div class="flex gap-1 mt-1"><input type="password" id="set_ai_api_key" class="flex-1 input-apple text-sm" placeholder="API Key"><button onclick="testApiKey('ai')" class="px-2 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 whitespace-nowrap"><i class="fas fa-vial"></i> 테스트</button></div>
+                                <div class="flex gap-1 mt-1"><input type="password" id="set_ai_api_key" class="flex-1 input-apple text-sm" placeholder="API Key" autocomplete="new-password"><button onclick="testApiKey('ai')" class="px-2 py-1 bg-green-500 text-white text-xs rounded-lg hover:bg-green-600 whitespace-nowrap"><i class="fas fa-vial"></i> 테스트</button></div>
                             </div>
                             <label class="flex items-center justify-between p-3 bg-gray-50 rounded-xl cursor-pointer"><span class="text-sm text-gray-700">AI 이상감지 활성화</span><input type="checkbox" id="set_ai_anomaly_enabled" class="w-5 h-5 accent-[#007AFF]"></label>
                         </div>
@@ -8915,16 +8915,16 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">${t('currentPassword')}</label>
-                                <input type="password" id="currentPassword" class="w-full input-apple" required>
+                                <input type="password" id="currentPassword" class="w-full input-apple" required autocomplete="current-password">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">${t('newPassword')}</label>
-                                <input type="password" id="newPassword" class="w-full input-apple" minlength="8" required>
+                                <input type="password" id="newPassword" class="w-full input-apple" minlength="8" required autocomplete="new-password">
                                 <p class="text-xs text-gray-400 mt-1">${t('passwordHint')}</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">${t('confirmPassword')}</label>
-                                <input type="password" id="confirmPassword" class="w-full input-apple" required>
+                                <input type="password" id="confirmPassword" class="w-full input-apple" required autocomplete="new-password">
                             </div>
                         </div>
                         <div class="flex space-x-3 mt-8">
