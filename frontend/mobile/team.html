@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>팀 활동일지 - 바이오헬스교육관리</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+        .activity-card {
+            transition: all 0.3s ease;
+        }
+        .activity-card:active {
+            transform: scale(0.98);
+        }
+        .photo-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+    
+        /* Toast animations */
+        @keyframes fadeInScale {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOutScale {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+        }
+        .toast-enter {
+            animation: fadeInScale 0.3s ease-out forwards;
+        }
+        .toast-exit {
+            animation: fadeOutScale 0.2s ease-in forwards;
+        }
+        
+        /* Confirm Dialog Animation */
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .animate-scale-in {
+            animation: scaleIn 0.2s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-pink-500 to-rose-600 text-white sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <button onclick="goBack()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h1 class="text-xl font-bold">팀 활동일지</h1>
+            <button onclick="showActivityModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                <i class="fas fa-plus text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Team Filter -->
+    <div class="container mx-auto px-4 py-4">
+        <div class="bg-white rounded-xl shadow-md p-4">
+            <!-- Filter Toggle Button -->
+            <button onclick="toggleFilters()" class="w-full flex items-center justify-between bg-gray-100 hover:bg-gray-200 px-4 py-3 rounded-lg transition-all">
+                <span class="font-semibold text-gray-700">
+                    <i class="fas fa-filter mr-2 text-pink-500"></i>필터
+                </span>
+                <i class="fas fa-chevron-down text-gray-500" id="filterToggleIcon"></i>
+            </button>
+            
+            <!-- Filter Options (Hidden by default) -->
+            <div id="filterOptions" class="mt-3 space-y-3 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-2">과정 선택</label>
+                    <select id="courseFilter" onchange="handleCourseChange()" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                        <option value="">전체 과정</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 mb-2">팀 선택</label>
+                    <select id="projectFilter" onchange="filterActivities()" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                        <option value="">전체 팀</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">년도</label>
+                        <select id="yearFilter" onchange="filterActivities()" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                            <option value="">전체</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">월</label>
+                        <select id="monthFilter" onchange="filterActivities()" 
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-pink-500">
+                            <option value="">전체</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity List -->
+    <main class="container mx-auto px-4 pb-20">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mb-4"></div>
+            <p class="text-gray-500 font-semibold">활동일지를 불러오는 중...</p>
+        </div>
+        
+        <div id="activityList" class="space-y-3 hidden">
+            <!-- Activity items will be loaded here -->
+        </div>
+        
+        <div id="emptyState" class="text-center py-20 hidden">
+            <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">등록된 활동일지가 없습니다</p>
+            <button onclick="showActivityModal()" 
+                    class="mt-4 bg-gradient-to-r from-pink-500 to-rose-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                <i class="fas fa-plus mr-2"></i>첫 활동일지 작성하기
+            </button>
+        </div>
+    </main>
+
+    <!-- Activity Modal -->
+    <div id="activityModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gradient-to-r from-pink-500 to-rose-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold" id="modalTitle">팀 활동일지 작성</h2>
+                    <button onclick="closeModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="activityForm" class="p-6 space-y-4">
+                <input type="hidden" id="activityId">
+                
+                <!-- Project Selection -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-users mr-2 text-pink-500"></i>팀 선택
+                    </label>
+                    <select id="projectSelect" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500">
+                        <option value="">-- 팀 선택 --</option>
+                    </select>
+                </div>
+                
+                <!-- Activity Date -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-calendar mr-2 text-pink-500"></i>활동 날짜
+                    </label>
+                    <input type="date" id="activityDate" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500">
+                </div>
+                
+                <!-- Activity Type -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-tag mr-2 text-pink-500"></i>활동 유형
+                    </label>
+                    <select id="activityType" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500">
+                        <option value="팀미팅">팀미팅</option>
+                        <option value="프로젝트">프로젝트</option>
+                        <option value="발표">발표</option>
+                        <option value="워크샵">워크샵</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                
+                <!-- Content -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-edit mr-2 text-pink-500"></i>활동 내용
+                    </label>
+                    <div class="relative">
+                        <textarea id="activityContent" rows="4" required
+                                  class="w-full px-4 py-3 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                                  placeholder="활동 내용을 입력하세요..."></textarea>
+                        <button type="button" id="voiceBtn1" onclick="toggleVoice('activityContent', 1)"
+                                class="absolute bottom-3 right-3 bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-all shadow-lg">
+                            <i class="fas fa-microphone text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Achievements -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-trophy mr-2 text-pink-500"></i>성과
+                    </label>
+                    <div class="relative">
+                        <textarea id="activityAchievements" rows="3"
+                                  class="w-full px-4 py-3 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                                  placeholder="활동 성과를 입력하세요..."></textarea>
+                        <button type="button" id="voiceBtn2" onclick="toggleVoice('activityAchievements', 2)"
+                                class="absolute bottom-3 right-3 bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-all shadow-lg">
+                            <i class="fas fa-microphone text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Next Plan -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-tasks mr-2 text-pink-500"></i>다음 계획
+                    </label>
+                    <div class="relative">
+                        <textarea id="activityNextPlan" rows="2"
+                                  class="w-full px-4 py-3 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                                  placeholder="다음 계획을 입력하세요..."></textarea>
+                        <button type="button" id="voiceBtn3" onclick="toggleVoice('activityNextPlan', 3)"
+                                class="absolute bottom-3 right-3 bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-all shadow-lg">
+                            <i class="fas fa-microphone text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Notes -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-sticky-note mr-2 text-pink-500"></i>비고
+                    </label>
+                    <div class="relative">
+                        <textarea id="activityNotes" rows="2"
+                                  class="w-full px-4 py-3 pr-14 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500"
+                                  placeholder="비고 사항을 입력하세요..."></textarea>
+                        <button type="button" id="voiceBtn4" onclick="toggleVoice('activityNotes', 4)"
+                                class="absolute bottom-3 right-3 bg-green-500 hover:bg-green-600 text-white p-2 rounded-full transition-all shadow-lg">
+                            <i class="fas fa-microphone text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Photo Upload -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-camera mr-2 text-pink-500"></i>사진 첨부
+                    </label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                        <input type="file" id="photoCameraInput" accept="image/*" capture="environment" class="hidden" onchange="handlePhotoSelect(event)">
+                        <input type="file" id="photoFileInput" accept="image/*" multiple class="hidden" onchange="handlePhotoSelect(event)">
+                        <div class="flex justify-center gap-2">
+                            <button type="button" onclick="document.getElementById('photoCameraInput').click()"
+                                    class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded-lg transition-all">
+                                <i class="fas fa-camera mr-2"></i>사진 촬영
+                            </button>
+                            <button type="button" onclick="document.getElementById('photoFileInput').click()"
+                                    class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-all">
+                                <i class="fas fa-folder mr-2"></i>파일 선택
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">최대 5장까지 업로드 가능</p>
+                    </div>
+                    <div id="photoPreviewContainer" class="grid grid-cols-3 gap-2 mt-3"></div>
+                </div>
+                
+                <!-- Buttons -->
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" onclick="closeModal()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-xl font-semibold transition-all">
+                        취소
+                    </button>
+                    <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-pink-500 to-rose-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                        저장
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="fixed inset-0 bg-black bg-opacity-90 z-[60] hidden items-center justify-center p-4">
+        <button onclick="closePhotoModal()" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="photoModalImg" src="" alt="Photo" class="max-w-full max-h-full object-contain">
+    </div>
+
+    <!-- Confirm Dialog -->
+    <div id="confirmDialog" class="fixed inset-0 bg-black bg-opacity-50 z-[70] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 overflow-hidden animate-scale-in">
+            <div class="bg-gradient-to-r from-pink-500 to-rose-600 p-6 text-center">
+                <i class="fas fa-exclamation-circle text-white text-5xl mb-3"></i>
+                <h3 class="text-xl font-bold text-white" id="confirmTitle">확인</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-700 text-center mb-6" id="confirmMessage">이 작업을 진행하시겠습니까?</p>
+                <div class="flex gap-3">
+                    <button onclick="resolveConfirm(false)" 
+                            class="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-xl transition-all">
+                        취소
+                    </button>
+                    <button onclick="resolveConfirm(true)" 
+                            class="flex-1 px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white font-semibold rounded-xl transition-all shadow-lg">
+                        확인
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm mx-4 text-center">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-pink-500 mb-4"></div>
+            <p id="loadingText" class="text-lg font-semibold text-gray-800 mb-2">처리 중...</p>
+            <p id="loadingSubtext" class="text-sm text-gray-600">잠시만 기다려주세요</p>
+        </div>
+    </div>
+    
+    <!-- Toast Message Container -->
+    <div id="toastContainer" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[200] flex flex-col gap-3 pointer-events-none">
+        <!-- Toasts will be added here dynamically -->
+    </div>
+
+    <script>
+        // Loading overlay functions
+        function showLoading(text = "처리 중...", subtext = "잠시만 기다려주세요") {
+            document.getElementById("loadingText").textContent = text;
+            document.getElementById("loadingSubtext").textContent = subtext;
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.remove("hidden");
+            overlay.classList.add("flex");
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.add("hidden");
+            overlay.classList.remove("flex");
+        }
+
+        // Toast Message System
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-enter pointer-events-auto';
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <div class="${colors[type]} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[280px] max-w-[90vw]">
+                    <i class="fas ${icons[type]} text-2xl"></i>
+                    <span class="flex-1 font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200 ml-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto remove after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.classList.remove('toast-enter');
+                    toast.classList.add('toast-exit');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+        
+        // Custom Confirm Dialog
+        let confirmResolve = null;
+        
+        function showConfirm(message, title = '확인') {
+            return new Promise((resolve) => {
+                confirmResolve = resolve;
+                document.getElementById('confirmTitle').textContent = title;
+                document.getElementById('confirmMessage').textContent = message;
+                const dialog = document.getElementById('confirmDialog');
+                dialog.classList.remove('hidden');
+                dialog.classList.add('flex');
+            });
+        }
+        
+        function resolveConfirm(result) {
+            const dialog = document.getElementById('confirmDialog');
+            dialog.classList.add('hidden');
+            dialog.classList.remove('flex');
+            if (confirmResolve) {
+                confirmResolve(result);
+                confirmResolve = null;
+            }
+        }
+        
+        const API_BASE_URL = '';
+        
+        let currentUser = null;
+        let userType = null;
+        let allActivities = [];
+        let projects = [];
+        let courses = [];
+        let instructors = [];
+        let selectedPhotos = [];
+        let existingPhotoUrls = [];
+        let filtersExpanded = false;
+        
+        // Convert FTP URL to HTTP proxy URL
+        function convertFtpUrl(url) {
+            if (!url || typeof url !== 'string') return url;
+            if (url && url.startsWith('ftp://')) {
+                return `${API_BASE_URL}/api/proxy-image?url=${encodeURIComponent(url)}`;
+            }
+            return url;
+        }
+        
+        // Back button handler
+        function goBack() {
+            sessionStorage.setItem('returnToMenu', 'true');
+            window.location.href = 'index.html';
+        }
+        
+        // Initialize
+        async function init() {
+            const userStr = sessionStorage.getItem('user');
+            userType = sessionStorage.getItem('user_type');
+            
+            if (!userStr || !userType) {
+                showToast('로그인이 필요합니다', 'error');
+                setTimeout(() => window.location.href = 'login.html', 1500);
+                return;
+            }
+
+            currentUser = JSON.parse(userStr);
+            
+            await loadData();
+        }
+        
+        // Load data
+        async function loadData() {
+            try {
+                showLoading('데이터 로딩 중...', '팀 및 활동일지 정보를 불러오고 있습니다');
+                
+                const timestamp = new Date().getTime(); // 캐시 방지
+                const [projectsRes, logsRes, instructorsRes] = await Promise.all([
+                    axios.get(`${API_BASE_URL}/api/projects?_t=${timestamp}`),
+                    axios.get(`${API_BASE_URL}/api/team-activity-logs?_t=${timestamp}`),
+                    axios.get(`${API_BASE_URL}/api/instructors?_t=${timestamp}`)
+                ]);
+                
+                projects = projectsRes.data || [];
+                allActivities = logsRes.data || [];
+                instructors = instructorsRes.data || [];
+                
+                // Populate filters
+                populateFilters();
+                
+                // Show all activities initially
+                filterActivities();
+                
+                hideLoading();
+            } catch (error) {
+                console.error('Failed to load data:', error);
+                hideLoading();
+                showToast('데이터 로딩 실패', 'error');
+            }
+        }
+        
+        // Toggle filters
+        function toggleFilters() {
+            const filterOptions = document.getElementById('filterOptions');
+            const filterIcon = document.getElementById('filterToggleIcon');
+            
+            filtersExpanded = !filtersExpanded;
+            
+            if (filtersExpanded) {
+                filterOptions.classList.remove('hidden');
+                filterIcon.classList.remove('fa-chevron-down');
+                filterIcon.classList.add('fa-chevron-up');
+            } else {
+                filterOptions.classList.add('hidden');
+                filterIcon.classList.remove('fa-chevron-up');
+                filterIcon.classList.add('fa-chevron-down');
+            }
+        }
+        
+        // Populate filters
+        function populateFilters() {
+            const courseFilter = document.getElementById('courseFilter');
+            const projectFilter = document.getElementById('projectFilter');
+            const projectSelect = document.getElementById('projectSelect');
+            const yearFilter = document.getElementById('yearFilter');
+            const monthFilter = document.getElementById('monthFilter');
+            
+            // Course filter - selected 속성 사용하지 않음 (onchange 트리거 방지)
+            courseFilter.innerHTML = '<option value="">전체 과정</option>' +
+                courses.map(c => `<option value="${c.code}">${c.name} (${c.code})</option>`).join('');
+            
+            // C-001을 기본값으로 설정 (.value로 직접 설정하면 onchange 트리거 안됨)
+            courseFilter.value = 'C-001';
+            
+            // Project filter - 과정별로 필터링
+            updateProjectFilter();
+            
+            // Modal project select
+            const allProjectOptions = projects.map(p => 
+                `<option value="${p.id}">${p.name} (${p.code})</option>`
+            ).join('');
+            projectSelect.innerHTML = '<option value="">-- 팀 선택 --</option>' + allProjectOptions;
+            
+            // Year filter
+            const currentYear = new Date().getFullYear();
+            yearFilter.innerHTML = '<option value="">전체</option>' +
+                `<option value="${currentYear}">${currentYear}</option>` +
+                `<option value="${currentYear - 1}">${currentYear - 1}</option>`;
+            yearFilter.value = ''; // 전체 선택
+            
+            // Month filter
+            monthFilter.innerHTML = '<option value="">전체</option>' +
+                Array.from({length: 12}, (_, i) => i + 1)
+                    .map(m => `<option value="${m}">${m}월</option>`).join('');
+            monthFilter.value = ''; // 전체 선택
+        }
+        
+        // Handle course change
+        function handleCourseChange() {
+            updateProjectFilter();
+            filterActivities();
+        }
+        
+        // Update project filter based on course
+        function updateProjectFilter() {
+            const courseCode = document.getElementById('courseFilter').value;
+            const projectFilter = document.getElementById('projectFilter');
+            
+            let filteredProjects = projects;
+            if (courseCode) {
+                filteredProjects = projects.filter(p => p.course_code === courseCode);
+            }
+            
+            const projectOptions = filteredProjects.map(p => 
+                `<option value="${p.id}">${p.name} (${p.code})</option>`
+            ).join('');
+            
+            projectFilter.innerHTML = '<option value="">전체 팀</option>' + projectOptions;
+            projectFilter.value = '';
+        }
+        
+        // Filter activities
+        function filterActivities() {
+            const projectId = document.getElementById('projectFilter').value;
+            
+            let filtered = allActivities;
+            
+            if (projectId) {
+                filtered = filtered.filter(a => a.project_id === parseInt(projectId));
+            }
+            
+            // Sort by date descending
+            filtered.sort((a, b) => new Date(b.activity_date) - new Date(a.activity_date));
+            
+            // Add project names
+            filtered = filtered.map(a => {
+                const project = projects.find(p => p.id === a.project_id);
+                return { ...a, project_name: project?.name || '팀명 없음' };
+            });
+            
+            renderActivities(filtered);
+        }
+        
+        // Render activities
+        function renderActivities(activities) {
+            const container = document.getElementById('activityList');
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            
+            loadingState.classList.add('hidden');
+            
+            if (!activities || activities.length === 0) {
+                container.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            
+            emptyState.classList.add('hidden');
+            container.classList.remove('hidden');
+            
+            const typeColors = {
+                '팀미팅': 'bg-blue-100 text-blue-700',
+                '프로젝트': 'bg-green-100 text-green-700',
+                '발표': 'bg-purple-100 text-purple-700',
+                '워크샵': 'bg-yellow-100 text-yellow-700',
+                '기타': 'bg-gray-100 text-gray-700'
+            };
+            
+            container.innerHTML = activities.map(activity => {
+                const instructor = instructors.find(i => i.code === activity.instructor_code);
+                const photos = activity.photo_urls ? JSON.parse(activity.photo_urls) : [];
+                
+                return `
+                    <div class="activity-card bg-white rounded-xl shadow-md p-4 cursor-pointer hover:shadow-lg"
+                         onclick="editActivity(${activity.id})">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2 flex-wrap gap-2">
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-pink-100 text-pink-700">
+                                        ${activity.project_name}
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full text-xs font-semibold ${typeColors[activity.activity_type] || typeColors['기타']}">
+                                        ${activity.activity_type || '팀 활동'}
+                                    </span>
+                                    ${photos.length > 0 ? `
+                                        <span class="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
+                                            <i class="fas fa-camera mr-1"></i>${photos.length}
+                                        </span>
+                                    ` : ''}
+                                </div>
+                                <div class="flex items-center text-sm text-gray-600 mb-1">
+                                    <i class="fas fa-calendar mr-1 text-pink-600"></i>
+                                    <span class="mr-3">${activity.activity_date}</span>
+                                    ${instructor ? `
+                                        <i class="fas fa-user-tie mr-1 text-orange-600"></i>
+                                        <span>${instructor.name}</span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteActivity(${activity.id})" 
+                                    class="text-red-600 hover:text-red-800 p-2">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="border-t pt-3">
+                            <p class="text-sm text-gray-800 mb-2 font-semibold">활동 내용</p>
+                            <p class="text-sm text-gray-600 line-clamp-3">${activity.content}</p>
+                            ${activity.achievements ? `
+                                <p class="text-sm text-gray-800 mt-2 font-semibold">성과</p>
+                                <p class="text-sm text-gray-600 line-clamp-2">${activity.achievements}</p>
+                            ` : ''}
+                            ${photos.length > 0 ? `
+                                <div class="flex space-x-2 mt-3 overflow-x-auto">
+                                    ${photos.slice(0, 3).map(url => {
+                                        const safeUrl = convertFtpUrl(url);
+                                        return `<img src="${safeUrl}" class="photo-thumbnail cursor-pointer" onclick="event.stopPropagation(); showPhotoModal('${safeUrl}')">`;
+                                    }).join('')}
+                                    ${photos.length > 3 ? `<div class="photo-thumbnail bg-gray-200 flex items-center justify-center text-gray-600 font-semibold">+${photos.length - 3}</div>` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Show activity modal
+        function showActivityModal(activityId = null) {
+            if (activityId) {
+                // Edit mode
+                const activity = allActivities.find(a => a.id === activityId);
+                if (!activity) return;
+                
+                document.getElementById('modalTitle').textContent = '팀 활동일지 수정';
+                document.getElementById('activityId').value = activity.id;
+                document.getElementById('projectSelect').value = activity.project_id;
+                document.getElementById('activityDate').value = activity.activity_date;
+                document.getElementById('activityType').value = activity.activity_type || '팀미팅';
+                document.getElementById('activityContent').value = activity.content || '';
+                document.getElementById('activityAchievements').value = activity.achievements || '';
+                document.getElementById('activityNextPlan').value = activity.next_plan || '';
+                document.getElementById('activityNotes').value = activity.notes || '';
+                
+                existingPhotoUrls = activity.photo_urls ? JSON.parse(activity.photo_urls) : [];
+            } else {
+                // Create mode
+                document.getElementById('modalTitle').textContent = '팀 활동일지 작성';
+                document.getElementById('activityForm').reset();
+                document.getElementById('activityId').value = '';
+                document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
+                existingPhotoUrls = [];
+            }
+            
+            selectedPhotos = [];
+            renderPhotoPreview();
+            
+            document.getElementById('activityModal').classList.remove('hidden');
+            document.getElementById('activityModal').classList.add('flex');
+        }
+        
+        // Edit activity
+        function editActivity(activityId) {
+            showActivityModal(activityId);
+        }
+        
+        // Delete activity
+        async function deleteActivity(activityId) {
+            const confirmed = await showConfirm('이 활동일지를 삭제하시겠습니까?', '활동일지 삭제');
+            if (!confirmed) return;
+            
+            try {
+                showLoading('삭제 중...', '활동일지를 삭제하고 있습니다');
+                await axios.delete(`${API_BASE_URL}/api/team-activity-logs/${activityId}`);
+                await loadData();
+                hideLoading();
+                showToast('활동일지가 삭제되었습니다', 'success');
+            } catch (error) {
+                console.error('Delete error:', error);
+                hideLoading();
+                showToast('삭제 중 오류가 발생했습니다', 'error');
+            }
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('activityModal').classList.add('hidden');
+            document.getElementById('activityModal').classList.remove('flex');
+        }
+        
+        // Handle photo selection
+        function handlePhotoSelect(event) {
+            const files = Array.from(event.target.files);
+            const totalPhotos = selectedPhotos.length + existingPhotoUrls.length;
+            
+            if (totalPhotos + files.length > 5) {
+                showToast('최대 5장까지만 업로드할 수 있습니다', 'warning');
+                return;
+            }
+
+            selectedPhotos.push(...files);
+            renderPhotoPreview();
+        }
+
+        // Render photo preview
+        function renderPhotoPreview() {
+            const container = document.getElementById('photoPreviewContainer');
+            
+            const existingHtml = existingPhotoUrls.map((url, index) => {
+                const convertedUrl = convertFtpUrl(url);
+                return `
+                    <div class="relative">
+                        <img src="${convertedUrl}" 
+                             class="w-full h-20 object-cover rounded-lg cursor-pointer" 
+                             onclick="showPhotoModal('${convertedUrl}')">
+                        <button type="button" onclick="removeExistingPhoto(${index})"
+                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            const newHtml = selectedPhotos.map((file, index) => {
+                const url = URL.createObjectURL(file);
+                return `
+                    <div class="relative">
+                        <img src="${url}" 
+                             class="w-full h-20 object-cover rounded-lg cursor-pointer" 
+                             onclick="showPhotoModal('${url}')">
+                        <button type="button" onclick="removeNewPhoto(${index})"
+                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = existingHtml + newHtml;
+        }
+
+        // Remove existing photo
+        function removeExistingPhoto(index) {
+            existingPhotoUrls.splice(index, 1);
+            renderPhotoPreview();
+        }
+
+        // Remove new photo
+        function removeNewPhoto(index) {
+            selectedPhotos.splice(index, 1);
+            renderPhotoPreview();
+        }
+
+        // Show photo modal
+        function showPhotoModal(url) {
+            document.getElementById('photoModalImg').src = url;
+            document.getElementById('photoModal').classList.remove('hidden');
+            document.getElementById('photoModal').classList.add('flex');
+        }
+
+        // Close photo modal
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.add('hidden');
+            document.getElementById('photoModal').classList.remove('flex');
+        }
+        
+        // Handle form submission
+        document.getElementById('activityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const activityId = document.getElementById('activityId').value;
+            const projectId = document.getElementById('projectSelect').value;
+            const activityDate = document.getElementById('activityDate').value;
+            const activityType = document.getElementById('activityType').value;
+            const content = document.getElementById('activityContent').value;
+            const achievements = document.getElementById('activityAchievements').value;
+            const nextPlan = document.getElementById('activityNextPlan').value;
+            const notes = document.getElementById('activityNotes').value;
+            
+            try {
+                showLoading('저장 중...', '활동일지를 저장하고 있습니다');
+                
+                // Upload new photos
+                let uploadedUrls = [];
+                if (selectedPhotos.length > 0) {
+                    uploadedUrls = await Promise.all(
+                        selectedPhotos.map(file => uploadPhoto(file))
+                    );
+                }
+                
+                // Combine existing and new photo URLs
+                const allPhotoUrls = [...existingPhotoUrls, ...uploadedUrls];
+                
+                const activityData = {
+                    project_id: projectId,
+                    instructor_code: userType === 'instructor' ? currentUser.code : null,
+                    activity_date: activityDate,
+                    activity_type: activityType,
+                    content: content,
+                    achievements: achievements || null,
+                    next_plan: nextPlan || null,
+                    notes: notes || null,
+                    photo_urls: JSON.stringify(allPhotoUrls)
+                };
+                
+                if (activityId) {
+                    // Update
+                    await axios.put(`${API_BASE_URL}/api/team-activity-logs/${activityId}`, activityData);
+                } else {
+                    // Create
+                    await axios.post(`${API_BASE_URL}/api/team-activity-logs`, activityData);
+                }
+                
+                closeModal();
+                await loadData();
+                hideLoading();
+                showToast(activityId ? '활동일지가 수정되었습니다' : '활동일지가 저장되었습니다', 'success');
+            } catch (error) {
+                console.error('Save error:', error);
+                hideLoading();
+                showToast('저장 중 오류가 발생했습니다', 'error');
+            }
+        });
+
+        // Show photo modal
+        function showPhotoModal(url) {
+            document.getElementById('photoModalImg').src = url;
+            document.getElementById('photoModal').classList.remove('hidden');
+            document.getElementById('photoModal').classList.add('flex');
+        }
+
+        // Close photo modal
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.add('hidden');
+            document.getElementById('photoModal').classList.remove('flex');
+        }
+        
+        // Handle form submission
+        document.getElementById('activityForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const activityId = document.getElementById('activityId').value;
+            const projectId = document.getElementById('projectSelect').value;
+            const activityDate = document.getElementById('activityDate').value;
+            const activityType = document.getElementById('activityType').value;
+            const content = document.getElementById('activityContent').value;
+            const achievements = document.getElementById('activityAchievements').value;
+            const nextPlan = document.getElementById('activityNextPlan').value;
+            const notes = document.getElementById('activityNotes').value;
+            
+            try {
+                showLoading('저장 중...', '활동일지를 저장하고 있습니다');
+                
+                // Upload new photos
+                let uploadedUrls = [];
+                if (selectedPhotos.length > 0) {
+                    uploadedUrls = await Promise.all(
+                        selectedPhotos.map(file => uploadPhoto(file))
+                    );
+                }
+                
+                // Combine existing and new photo URLs
+                const allPhotoUrls = [...existingPhotoUrls, ...uploadedUrls];
+                
+                const activityData = {
+                    project_id: projectId,
+                    instructor_code: userType === 'instructor' ? currentUser.code : null,
+                    activity_date: activityDate,
+                    activity_type: activityType,
+                    content: content,
+                    achievements: achievements || null,
+                    next_plan: nextPlan || null,
+                    notes: notes || null,
+                    photo_urls: JSON.stringify(allPhotoUrls)
+                };
+                
+                if (activityId) {
+                    // Update
+                    await axios.put(`${API_BASE_URL}/api/team-activity-logs/${activityId}`, activityData);
+                } else {
+                    // Create
+                    await axios.post(`${API_BASE_URL}/api/team-activity-logs`, activityData);
+                }
+                
+                closeModal();
+                await loadData();
+                hideLoading();
+                showToast(activityId ? '활동일지가 수정되었습니다' : '활동일지가 저장되었습니다', 'success');
+            } catch (error) {
+                console.error('Save error:', error);
+                hideLoading();
+                showToast('저장 중 오류가 발생했습니다', 'error');
+            }
+        });
+        
+        // Upload photo
+        async function uploadPhoto(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const img = new Image();
+                        img.onload = async () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            const MAX_HEIGHT = 800;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            canvas.toBlob(async (blob) => {
+                                const formData = new FormData();
+                                formData.append('file', blob, file.name);
+                                formData.append('category', 'team-activity');
+
+                                const response = await axios.post(`${API_BASE_URL}/api/upload`, formData, {
+                                    headers: { 'Content-Type': 'multipart/form-data' }
+                                });
+
+                                resolve(response.data.url);
+                            }, 'image/jpeg', 0.7);
+                        };
+                        img.src = e.target.result;
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        // Voice recognition for team activity
+        let currentRecognition = null;
+        let currentTargetField = null;
+        let currentBtnId = null;
+        
+        function toggleVoice(fieldId, btnNum) {
+            if (!window.isSecureContext) {
+                showToast('HTTPS 환경에서만 음성 인식을 사용할 수 있습니다', 'error');
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast('이 브라우저는 음성 인식을 지원하지 않습니다', 'error');
+                return;
+            }
+            
+            // 이미 녹음 중이면 중지
+            if (currentRecognition) {
+                currentRecognition.stop();
+                return;
+            }
+            
+            // 새로운 음성 인식 시작
+            currentTargetField = fieldId;
+            currentBtnId = btnNum;
+            currentRecognition = new SpeechRecognition();
+            currentRecognition.lang = 'ko-KR';
+            currentRecognition.continuous = true;
+            currentRecognition.interimResults = true;
+            
+            const btn = document.getElementById('voiceBtn' + btnNum);
+            const textarea = document.getElementById(fieldId);
+            
+            currentRecognition.onstart = function() {
+                showToast('음성 인식 시작', 'info');
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                btn.classList.add('bg-red-500', 'hover:bg-red-600');
+                btn.innerHTML = '<i class="fas fa-circle text-sm animate-pulse"></i>';
+            };
+            
+            currentRecognition.onend = function() {
+                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                btn.innerHTML = '<i class="fas fa-microphone text-sm"></i>';
+                showToast('음성 인식 중지', 'info');
+                currentRecognition = null;
+                currentTargetField = null;
+                currentBtnId = null;
+            };
+            
+            currentRecognition.onresult = function(event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                if (finalTranscript) {
+                    textarea.value += finalTranscript;
+                }
+            };
+            
+            currentRecognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'no-speech') {
+                    showToast('음성이 감지되지 않았습니다', 'warning');
+                } else if (event.error === 'not-allowed') {
+                    showToast('마이크 권한이 필요합니다', 'error');
+                } else {
+                    showToast('음성 인식 오류: ' + event.error, 'error');
+                }
+                btn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600');
+                btn.innerHTML = '<i class="fas fa-microphone text-sm"></i>';
+                currentRecognition = null;
+            };
+            
+            currentRecognition.start();
+        }
+        
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

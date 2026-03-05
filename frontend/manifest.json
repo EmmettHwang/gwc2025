@@ -1,0 +1,16 @@
+{
+  "name": "바이오헬스 교육관리 시스템",
+  "short_name": "BH2025",
+  "description": "학급 기반의 강사, 학생, 상담, 훈련일지를 통합 관리하는 스마트 교육관리 플랫폼",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#667eea",
+  "icons": [
+    {
+      "src": "/woosong-logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

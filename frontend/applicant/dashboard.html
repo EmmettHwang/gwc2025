@@ -1,0 +1,2482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>근로자 - 대한민국 계절 근로자 통합 관리</title>
+    <meta name="description" content="대한민국 계절 근로자 통합 관리 - 근로자 대시보드">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="근로자 - 대한민국 계절 근로자 통합 관리">
+    <meta property="og:description" content="비자신청, 출퇴근, 활동일지, 포인트를 확인하세요.">
+    <meta property="og:image" content="/static/og-kwv.svg">
+    <meta property="og:site_name" content="대한민국 계절 근로자 통합 관리">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127472;&#127479;</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #f5f5f7; }
+        .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); }
+        .card { background: white; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .tab-btn { transition: all 0.2s; }
+        .tab-btn.active { color: #007AFF; border-bottom: 2px solid #007AFF; }
+        /* 활동 드롭다운 메뉴 */
+        .tab-dropdown { position: relative; display: inline-flex; flex-shrink: 0; }
+        .tab-dropdown-btn { cursor: pointer; }
+        .tab-dropdown-menu {
+            display: none; position: absolute; top: 100%; left: 0; z-index: 50;
+            background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+            min-width: 160px; overflow: hidden; border: 1px solid #e5e7eb;
+        }
+        .tab-dropdown:hover .tab-dropdown-menu { display: block; }
+        .tab-dropdown-menu a {
+            display: flex; align-items: center; padding: 10px 16px;
+            font-size: 13px; color: #374151; text-decoration: none; transition: background 0.15s;
+        }
+        .tab-dropdown-menu a:hover { background: #f3f4f6; }
+        .tab-dropdown-menu a i { margin-right: 8px; width: 16px; text-align: center; }
+        .tab-dropdown-menu a.sub-active { background: #EFF6FF; color: #2563EB; font-weight: 600; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .status-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-processing { background: #DBEAFE; color: #1E40AF; }
+        .status-approved { background: #D1FAE5; color: #065F46; }
+        .status-rejected { background: #FEE2E2; color: #991B1B; }
+        .timeline-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; }
+        .timeline-dot.done { background: #10B981; border-color: #10B981; }
+        .timeline-dot.current { background: #3B82F6; border-color: #3B82F6; animation: pulse 2s infinite; }
+        .timeline-dot.pending { background: #E5E7EB; border-color: #D1D5DB; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); } 50% { box-shadow: 0 0 0 8px rgba(59,130,246,0); } }
+        .quick-action { transition: all 0.2s; }
+        .quick-action:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+        .quick-action:active { transform: scale(0.97); }
+        /* 모바일 최적화 */
+        @media (max-width: 768px) {
+            .desktop-only { display: none !important; }
+            .mobile-only { display: block !important; }
+            .mobile-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+            .mobile-tabs::-webkit-scrollbar { display: none; }
+        }
+        @media (min-width: 769px) {
+            .mobile-only { display: none !important; }
+        }
+
+        /* 모바일 레이아웃 */
+        #mobileLayout { overflow: hidden; }
+
+        /* 모바일 스와이프 컨테이너 */
+        #mobileSwipeContainer {
+            display: flex;
+            width: 200%;
+            transition: transform 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+            min-height: calc(100vh - 52px);
+        }
+        .mobile-page { width: 50%; min-height: calc(100vh - 52px); overflow-y: auto; }
+
+        /* 모바일 페이드인 애니메이션 */
+        @keyframes mobileFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .mobile-fade-in {
+            animation: mobileFadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* 모바일 메뉴 카드 */
+        .mobile-menu-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .mobile-menu-card:active {
+            transform: scale(0.95) !important;
+        }
+
+        /* 페이지 인디케이터 */
+        .mobile-page-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #d1d5db;
+            transition: all 0.3s ease;
+        }
+        .mobile-page-dot.active {
+            width: 24px;
+            border-radius: 4px;
+            background: #007AFF;
+        }
+
+        /* 스와이프 힌트 */
+        @keyframes swipeHint {
+            0%, 100% { transform: translateX(0); opacity: 0.7; }
+            50% { transform: translateX(-10px); opacity: 1; }
+        }
+        .swipe-hint { animation: swipeHint 2s ease-in-out infinite; }
+
+        /* 모바일 통계 카드 그라데이션 */
+        .mobile-stat-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .mobile-stat-green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .mobile-stat-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .mobile-stat-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+
+        /* 모바일 메뉴 그라데이션 */
+        .mobile-menu-blue { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+        .mobile-menu-green { background: linear-gradient(135deg, #22c55e, #15803d); }
+        .mobile-menu-purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+        .mobile-menu-orange { background: linear-gradient(135deg, #f97316, #c2410c); }
+        .mobile-menu-indigo { background: linear-gradient(135deg, #6366f1, #4338ca); }
+        .mobile-menu-pink { background: linear-gradient(135deg, #ec4899, #be185d); }
+        .mobile-menu-teal { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+
+        /* 모바일 헤더 */
+        .mobile-header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: saturate(180%) blur(20px);
+            -webkit-backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        /* 모바일 탭 콘텐츠 */
+        #mobileTabContent {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            min-height: 60vh;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+<!-- 인증 가드 -->
+<script>
+    (function() {
+        const loggedIn = sessionStorage.getItem('kwv_logged_in');
+        const user = sessionStorage.getItem('kwv_user');
+        if (loggedIn !== 'true' || !user) {
+            window.location.replace('/kwv-login.html');
+            return;
+        }
+        try {
+            const u = JSON.parse(user);
+            if (u.user_type === 'admin') {
+                window.location.replace('/kwv-dashboard.html');
+            }
+        } catch(e) {}
+    })();
+</script>
+
+<!-- 헤더 -->
+<header class="glass sticky top-0 z-50 border-b border-gray-200/50 desktop-only">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+            <div id="headerLogoWrap" class="w-[100px] h-[100px] rounded-xl flex items-center justify-center bg-white shadow-md">
+                <i class="fas fa-passport text-blue-600 text-4xl" id="headerLogoIcon"></i>
+                <img id="headerLogoImg" src="" class="w-[90px] h-[90px] rounded-xl object-contain hidden">
+            </div>
+            <span class="font-bold text-gray-900 text-sm" id="headerSiteTitle">Korea Working Visa</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <select id="langSelector" onchange="changeLanguage(this.value)" class="text-xs border rounded-lg px-2 py-1 bg-white">
+                <option value="en">EN</option>
+                <option value="ko">한국어</option>
+                <option value="vi">Tiếng Việt</option>
+                <option value="th">ไทย</option>
+                <option value="tl">Pilipino</option>
+            </select>
+            <button onclick="showTab('notifications')" class="relative p-2 text-gray-500 hover:text-gray-700">
+                <i class="fas fa-bell"></i>
+                <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] rounded-full flex items-center justify-center">2</span>
+            </button>
+            <div class="relative">
+                <button onclick="toggleUserMenu()" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-xs"></i>
+                    </div>
+                    <span id="headerUserName" class="text-sm font-medium text-gray-700 hidden md:inline"></span>
+                </button>
+                <div id="userMenu" class="hidden absolute right-0 top-12 bg-white rounded-xl shadow-xl border py-2 min-w-[160px] z-50">
+                    <div class="px-4 py-2 border-b">
+                        <p class="text-xs text-gray-400" data-i18n="loggedInAs">Logged in as</p>
+                        <p id="menuUserName" class="font-medium text-gray-800 text-sm"></p>
+                    </div>
+                    <button onclick="showTab('profile')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"><i class="fas fa-user-edit mr-2 text-gray-400"></i> <span data-i18n="myProfile">My Profile</span></button>
+                    <button onclick="logout()" class="w-full px-4 py-2 text-left text-sm text-red-500 hover:bg-red-50"><i class="fas fa-sign-out-alt mr-2"></i> <span data-i18n="logoutBtn">Logout</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- 탭 네비게이션 -->
+<nav class="glass border-b border-gray-200/50 sticky top-[57px] z-40 desktop-only">
+    <div class="max-w-5xl mx-auto">
+        <div class="mobile-tabs flex">
+            <button onclick="showTab('home')" class="tab-btn active flex-shrink-0 px-4 py-3 text-sm font-medium text-blue-600 border-b-2 border-blue-600" data-tab="home">
+                <i class="fas fa-home mr-1"></i> <span data-i18n="tabHome">Home</span>
+            </button>
+            <button onclick="showTab('visa')" class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-tab="visa">
+                <i class="fas fa-passport mr-1"></i> <span data-i18n="tabVisa">Visa</span>
+            </button>
+            <button onclick="showTab('documents')" class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-tab="documents">
+                <i class="fas fa-folder mr-1"></i> <span data-i18n="tabDocs">Documents</span>
+            </button>
+            <button onclick="showTab('jobs')" class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-tab="jobs">
+                <i class="fas fa-briefcase mr-1"></i> <span data-i18n="tabJobs">Jobs</span>
+            </button>
+            <button onclick="showTab('consulting')" class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-tab="consulting">
+                <i class="fas fa-headset mr-1"></i> <span data-i18n="tabConsulting">Consulting</span>
+            </button>
+            <button onclick="showTab('guide')" class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-tab="guide">
+                <i class="fas fa-book mr-1"></i> <span data-i18n="tabGuide">Guide</span>
+            </button>
+            <div class="tab-dropdown">
+                <div class="tab-dropdown-btn tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" id="activityGroupBtn">
+                    <i class="fas fa-clipboard-list mr-1"></i> <span data-i18n="tabActivity">Activity</span> <i class="fas fa-chevron-down ml-1 text-[10px]"></i>
+                </div>
+                <div class="tab-dropdown-menu">
+                    <a href="#" onclick="showTab('attendance');return false;" data-tab="attendance"><i class="fas fa-clock text-blue-500"></i> Attendance</a>
+                    <a href="#" onclick="showTab('activities');return false;" data-tab="activities"><i class="fas fa-book text-purple-500"></i> Activity Log</a>
+                    <a href="#" onclick="showTab('points');return false;" data-tab="points"><i class="fas fa-star text-yellow-500"></i> Points</a>
+                </div>
+            </div>
+            <button onclick="showTab('profile')" class="tab-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-tab="profile">
+                <i class="fas fa-user-cog mr-1"></i> <span data-i18n="tabProfile">Profile</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- 메인 컨텐츠 -->
+<main class="max-w-5xl mx-auto px-4 py-6 desktop-only">
+
+    <!-- ==================== 홈 탭 ==================== -->
+    <div id="tab-home" class="tab-content active">
+        <!-- 환영 카드 -->
+        <div class="card p-6 mb-6 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white">
+            <p class="text-blue-100 text-sm" id="todayDate"></p>
+            <h2 id="welcomeMsg" class="text-xl md:text-2xl font-bold mt-1"></h2>
+            <p class="text-white/80 text-sm mt-2" data-i18n="welcomeDesc">Check your visa status and manage your application.</p>
+        </div>
+
+        <!-- 신청 상태 요약 -->
+        <div class="card p-5 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-800"><i class="fas fa-chart-line mr-2 text-blue-500"></i> <span data-i18n="applicationOverview">Application Overview</span></h3>
+                <span class="status-badge status-processing"><i class="fas fa-spinner fa-spin mr-1"></i> <span data-i18n="statusProcessing">Processing</span></span>
+            </div>
+            <!-- 타임라인 -->
+            <div class="flex items-center justify-between mt-4 px-2">
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot done"></div>
+                    <span class="text-[10px] text-gray-500 mt-1" data-i18n="stepSubmitted">Submitted</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-green-400 mx-1"></div>
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot done"></div>
+                    <span class="text-[10px] text-gray-500 mt-1" data-i18n="stepReceived">Received</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-green-400 mx-1"></div>
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot current"></div>
+                    <span class="text-[10px] text-blue-600 font-medium mt-1" data-i18n="stepReview">Under Review</span>
+                </div>
+                <div class="flex-1 h-0.5 bg-gray-200 mx-1"></div>
+                <div class="flex flex-col items-center">
+                    <div class="timeline-dot pending"></div>
+                    <span class="text-[10px] text-gray-400 mt-1" data-i18n="stepDecision">Decision</span>
+                </div>
+            </div>
+            <div class="mt-4 p-3 bg-blue-50 rounded-xl text-sm text-blue-700">
+                <i class="fas fa-info-circle mr-1"></i> <span data-i18n="reviewMsg">Your application is currently under review. Expected processing time: 2-3 weeks.</span>
+            </div>
+        </div>
+
+        <!-- 빠른 액션 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div onclick="showTab('visa')" class="quick-action card p-4 text-center cursor-pointer">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-file-alt text-blue-500 text-xl"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700" data-i18n="qVisa">Application</p>
+            </div>
+            <div onclick="showTab('documents')" class="quick-action card p-4 text-center cursor-pointer">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-file-upload text-green-500 text-xl"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700" data-i18n="qDocs">Upload Docs</p>
+            </div>
+            <div onclick="showTab('jobs')" class="quick-action card p-4 text-center cursor-pointer">
+                <div class="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-search text-orange-500 text-xl"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700" data-i18n="qJobs">Find Jobs</p>
+            </div>
+            <div onclick="showTab('consulting')" class="quick-action card p-4 text-center cursor-pointer">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <i class="fas fa-calendar-check text-purple-500 text-xl"></i>
+                </div>
+                <p class="text-xs font-medium text-gray-700" data-i18n="qConsult">Book Consult</p>
+            </div>
+        </div>
+
+        <!-- 최근 알림 -->
+        <div class="card p-5">
+            <h3 class="font-semibold text-gray-800 mb-3"><i class="fas fa-bell mr-2 text-orange-500"></i> <span data-i18n="recentNotifs">Recent Notifications</span></h3>
+            <div class="space-y-3">
+                <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-xl">
+                    <div class="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-file-alt text-blue-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800" data-i18n="notif1Title">Document Verified</p>
+                        <p class="text-xs text-gray-500" data-i18n="notif1Desc">Your passport copy has been verified successfully.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">2 hours ago</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-3 p-3 bg-green-50 rounded-xl">
+                    <div class="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i class="fas fa-check text-green-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800" data-i18n="notif2Title">Application Received</p>
+                        <p class="text-xs text-gray-500" data-i18n="notif2Desc">Your E-8 visa application has been received and is being processed.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">1 day ago</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 가입신청 탭 ==================== -->
+    <div id="tab-visa" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-file-alt mr-2 text-blue-500"></i> <span data-i18n="visaTitle">Application</span></h2>
+        </div>
+
+        <!-- 현재 신청 상태 -->
+        <div class="card p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold text-gray-800" data-i18n="currentApp">Current Application</h3>
+                <span class="status-badge status-processing"><i class="fas fa-spinner fa-spin mr-1"></i> Processing</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <p class="text-gray-500 text-xs" data-i18n="visaType">Visa Type</p>
+                    <p class="font-medium text-gray-800">E-8 (Seasonal)</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs" data-i18n="appDate">Applied Date</p>
+                    <p class="font-medium text-gray-800">2026-01-28</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs" data-i18n="nationality">Nationality</p>
+                    <p class="font-medium text-gray-800">Vietnam</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-xs" data-i18n="passportNo">Passport No.</p>
+                    <p class="font-medium text-gray-800">B•••••89</p>
+                </div>
+            </div>
+
+            <!-- 상세 타임라인 -->
+            <div class="mt-6 space-y-4">
+                <h4 class="text-sm font-semibold text-gray-700" data-i18n="timeline">Timeline</h4>
+                <div class="relative pl-6 border-l-2 border-green-400 space-y-6">
+                    <div class="relative">
+                        <div class="absolute -left-[25px] w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                        <p class="text-sm font-medium text-gray-800" data-i18n="tl1">Application Submitted</p>
+                        <p class="text-xs text-gray-500">2026-01-28 14:30</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[25px] w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+                        <p class="text-sm font-medium text-gray-800" data-i18n="tl2">Documents Verified</p>
+                        <p class="text-xs text-gray-500">2026-02-01 09:15</p>
+                    </div>
+                    <div class="relative">
+                        <div class="absolute -left-[25px] w-4 h-4 bg-blue-500 rounded-full border-2 border-white animate-pulse"></div>
+                        <p class="text-sm font-medium text-blue-700" data-i18n="tl3">Under Government Review</p>
+                        <p class="text-xs text-gray-500" data-i18n="tl3Desc">Estimated completion: 2026-02-20</p>
+                    </div>
+                </div>
+                <div class="relative pl-6 border-l-2 border-dashed border-gray-300 space-y-6">
+                    <div class="relative">
+                        <div class="absolute -left-[25px] w-4 h-4 bg-gray-200 rounded-full border-2 border-white"></div>
+                        <p class="text-sm text-gray-400" data-i18n="tl4">Final Decision</p>
+                        <p class="text-xs text-gray-400" data-i18n="tl4Desc">Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 비자 유형 안내 -->
+        <div class="card p-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-info-circle text-blue-500 mr-2"></i> <span data-i18n="visaTypes">Visa Types</span></h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 rounded-xl bg-blue-50 border border-blue-200">
+                    <h4 class="font-bold text-blue-700 mb-1">E-8</h4>
+                    <p class="text-xs text-gray-600" data-i18n="e8Desc">Seasonal Worker visa for agriculture, fishery, etc. Valid for 3-8 months.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-green-50 border border-green-200">
+                    <h4 class="font-bold text-green-700 mb-1">E-9</h4>
+                    <p class="text-xs text-gray-600" data-i18n="e9Desc">Non-professional employment visa for manufacturing, construction. Valid up to 3 years.</p>
+                </div>
+                <div class="p-4 rounded-xl bg-purple-50 border border-purple-200">
+                    <h4 class="font-bold text-purple-700 mb-1">H-2</h4>
+                    <p class="text-xs text-gray-600" data-i18n="h2Desc">Working Visit visa for ethnic Koreans from specific countries. Valid up to 3 years.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 서류 관리 탭 ==================== -->
+    <div id="tab-documents" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-folder-open mr-2 text-green-500"></i> <span data-i18n="docsTitle">Documents</span></h2>
+            <button onclick="openDocUploadModal()" class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">
+                <i class="fas fa-upload mr-1"></i> <span data-i18n="uploadBtn">Upload</span>
+            </button>
+        </div>
+
+        <!-- 필수 서류 체크리스트 -->
+        <div class="card p-5 mb-4">
+            <h3 class="font-semibold text-gray-800 mb-3"><i class="fas fa-clipboard-check text-blue-500 mr-2"></i> <span data-i18n="requiredDocs">Required Documents</span></h3>
+            <div id="docChecklist" class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <!-- JS에서 렌더링 -->
+            </div>
+        </div>
+
+        <!-- 업로드된 서류 목록 -->
+        <div id="uploadedDocsList" class="space-y-3">
+            <div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i> Loading...</div>
+        </div>
+
+        <div class="mt-4 p-4 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span data-i18n="docWarning">Please upload all required documents to proceed with your visa application. Missing documents may delay processing.</span>
+        </div>
+    </div>
+
+    <!-- 서류 업로드 모달 -->
+    <div id="docUploadModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-800"><i class="fas fa-upload mr-2 text-blue-500"></i> <span data-i18n="uploadDoc">Upload Document</span></h3>
+                <button onclick="closeDocUploadModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="docCategory">Category</label>
+                    <select id="docCategorySelect" class="w-full px-3 py-2 border rounded-lg text-sm">
+                        <option value="passport_copy">Passport Copy</option>
+                        <option value="resume">Resume / CV</option>
+                        <option value="health_cert">Health Certificate</option>
+                        <option value="criminal_record">Criminal Record Check</option>
+                        <option value="id_photo">ID Photo</option>
+                        <option value="visa_copy">Visa Copy</option>
+                        <option value="contract">Employment Contract</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="selectFile">Select File</label>
+                    <div id="docDropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-blue-400 transition" onclick="document.getElementById('docFileInput').click()">
+                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 mb-2"></i>
+                        <p class="text-sm text-gray-500" data-i18n="dropFile">Click or drag file here</p>
+                        <p class="text-xs text-gray-400 mt-1">JPG, PNG, PDF (max 10MB)</p>
+                        <div id="docFilePreview" class="mt-2 hidden">
+                            <p class="text-sm font-medium text-blue-600" id="docFileName"></p>
+                            <p class="text-xs text-gray-400" id="docFileSize"></p>
+                        </div>
+                    </div>
+                    <input type="file" id="docFileInput" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf" class="hidden" onchange="handleDocFileSelect(this)">
+                </div>
+                <button onclick="submitDocUpload()" id="docUploadBtn" class="w-full py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="fas fa-upload mr-1"></i> <span data-i18n="uploadBtn">Upload</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 구인 탭 ==================== -->
+    <div id="tab-jobs" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-briefcase mr-2 text-orange-500"></i> <span data-i18n="jobsTitle">Job Listings</span></h2>
+        </div>
+
+        <!-- 검색 -->
+        <div class="card p-4 mb-6">
+            <div class="flex flex-col md:flex-row gap-3">
+                <input type="text" id="jobSearchInput" placeholder="Search jobs..." class="flex-1 px-4 py-2.5 border rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" data-i18n-placeholder="searchJobs" oninput="filterApplicantJobs()">
+                <select id="jobVisaFilter" class="px-4 py-2.5 border rounded-xl text-sm bg-white" onchange="filterApplicantJobs()">
+                    <option value="">All Visa Types</option>
+                    <option value="E-8">E-8</option>
+                    <option value="E-9">E-9</option>
+                    <option value="H-2">H-2</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 구인 목록 (API에서 로드) -->
+        <div id="applicantJobsList" class="space-y-3">
+            <div class="text-center text-gray-400 py-8"><i class="fas fa-spinner fa-spin mr-2"></i> Loading...</div>
+        </div>
+    </div>
+
+    <!-- ==================== 상담 예약 탭 ==================== -->
+    <div id="tab-consulting" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-headset mr-2 text-purple-500"></i> <span data-i18n="consultTitle">Consulting</span></h2>
+            <button onclick="alert('Booking feature coming soon (prototype)')" class="px-4 py-2 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition">
+                <i class="fas fa-plus mr-1"></i> <span data-i18n="newBooking">New Booking</span>
+            </button>
+        </div>
+
+        <!-- 다가오는 상담 -->
+        <div class="card p-6 mb-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-calendar-check text-green-500 mr-2"></i> <span data-i18n="upcoming">Upcoming</span></h3>
+            <div class="p-4 bg-purple-50 rounded-xl border border-purple-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-gray-800" data-i18n="consultType1">Visa Extension Consultation</p>
+                        <p class="text-sm text-gray-500 mt-1"><i class="fas fa-user-tie mr-1"></i> Kim Consultant</p>
+                        <p class="text-sm text-purple-600 mt-1"><i class="fas fa-clock mr-1"></i> 2026-02-15 10:00 AM</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="status-badge status-approved">Confirmed</span>
+                        <p class="text-xs text-gray-400 mt-2"><i class="fas fa-video mr-1"></i> Online</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 상담 유형 -->
+        <div class="card p-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-th-list text-blue-500 mr-2"></i> <span data-i18n="consultTypes">Consultation Types</span></h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 cursor-pointer hover:shadow-md transition" onclick="alert('Booking feature (prototype)')">
+                    <div class="w-10 h-10 bg-blue-200 rounded-xl flex items-center justify-center mb-3">
+                        <i class="fas fa-passport text-blue-600"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 text-sm" data-i18n="ctVisa">Visa Consultation</h4>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="ctVisaDesc">Application, extension, status change</p>
+                    <p class="text-xs text-blue-600 font-medium mt-2" data-i18n="free">Free</p>
+                </div>
+                <div class="p-4 rounded-xl bg-green-50 border border-green-200 cursor-pointer hover:shadow-md transition" onclick="alert('Booking feature (prototype)')">
+                    <div class="w-10 h-10 bg-green-200 rounded-xl flex items-center justify-center mb-3">
+                        <i class="fas fa-briefcase text-green-600"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 text-sm" data-i18n="ctJob">Employment Consultation</h4>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="ctJobDesc">Job search, workplace issues, contracts</p>
+                    <p class="text-xs text-blue-600 font-medium mt-2" data-i18n="free">Free</p>
+                </div>
+                <div class="p-4 rounded-xl bg-red-50 border border-red-200 cursor-pointer hover:shadow-md transition" onclick="alert('Booking feature (prototype)')">
+                    <div class="w-10 h-10 bg-red-200 rounded-xl flex items-center justify-center mb-3">
+                        <i class="fas fa-gavel text-red-600"></i>
+                    </div>
+                    <h4 class="font-semibold text-gray-800 text-sm" data-i18n="ctLegal">Legal Consultation</h4>
+                    <p class="text-xs text-gray-500 mt-1" data-i18n="ctLegalDesc">Labor rights, disputes, legal advice</p>
+                    <p class="text-xs text-blue-600 font-medium mt-2" data-i18n="free">Free</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 긴급 연락처 -->
+        <div class="card p-6 mt-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-phone-alt text-red-500 mr-2"></i> <span data-i18n="emergency">Emergency Contacts</span></h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="p-3 bg-red-50 rounded-xl flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-red-200 rounded-full flex items-center justify-center">
+                        <i class="fas fa-phone text-red-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800" data-i18n="hotline">Immigration Hotline</p>
+                        <p class="text-sm text-blue-600 font-bold">1345</p>
+                    </div>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-xl flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-blue-200 rounded-full flex items-center justify-center">
+                        <i class="fas fa-hands-helping text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-800" data-i18n="laborHelp">Labor Rights Center</p>
+                        <p class="text-sm text-blue-600 font-bold">1350</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 비자 가이드 탭 ==================== -->
+    <div id="tab-guide" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-book mr-2 text-indigo-500"></i> <span data-i18n="guideTitle">Visa Guide</span></h2>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card p-6 mb-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-question-circle text-blue-500 mr-2"></i> <span data-i18n="faq">FAQ</span></h3>
+            <div class="space-y-3">
+                <details class="bg-gray-50 rounded-xl p-4 cursor-pointer">
+                    <summary class="font-medium text-gray-800 text-sm" data-i18n="fq1">What documents do I need for E-8 visa?</summary>
+                    <p class="text-sm text-gray-600 mt-2" data-i18n="fa1">You need: passport, application form, ID photo, employment contract, health certificate, criminal record check, and proof of qualification from your home country.</p>
+                </details>
+                <details class="bg-gray-50 rounded-xl p-4 cursor-pointer">
+                    <summary class="font-medium text-gray-800 text-sm" data-i18n="fq2">How long does visa processing take?</summary>
+                    <p class="text-sm text-gray-600 mt-2" data-i18n="fa2">E-8 visa typically takes 2-4 weeks. E-9 visa may take 1-3 months depending on the bilateral agreement between countries.</p>
+                </details>
+                <details class="bg-gray-50 rounded-xl p-4 cursor-pointer">
+                    <summary class="font-medium text-gray-800 text-sm" data-i18n="fq3">Can I change my employer?</summary>
+                    <p class="text-sm text-gray-600 mt-2" data-i18n="fa3">Under E-9 visa, workplace change is allowed under certain conditions such as unfair treatment, company closure, or with approval from the Employment Permit System.</p>
+                </details>
+                <details class="bg-gray-50 rounded-xl p-4 cursor-pointer">
+                    <summary class="font-medium text-gray-800 text-sm" data-i18n="fq4">How to extend my visa?</summary>
+                    <p class="text-sm text-gray-600 mt-2" data-i18n="fa4">Apply at the local immigration office at least 1 month before expiry. You need employer confirmation, updated health certificate, and extension application form.</p>
+                </details>
+            </div>
+        </div>
+
+        <!-- 필요 서류 체크리스트 -->
+        <div class="card p-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-clipboard-list text-green-500 mr-2"></i> <span data-i18n="checklist">Required Documents Checklist</span></h3>
+            <div class="space-y-2">
+                <label class="flex items-center p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition">
+                    <input type="checkbox" checked disabled class="w-4 h-4 accent-green-500 mr-3"> <span class="text-sm text-gray-700" data-i18n="cl1">Valid Passport (6+ months remaining)</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition">
+                    <input type="checkbox" checked disabled class="w-4 h-4 accent-green-500 mr-3"> <span class="text-sm text-gray-700" data-i18n="cl2">Passport-size Photo (3.5x4.5cm)</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition">
+                    <input type="checkbox" checked disabled class="w-4 h-4 accent-green-500 mr-3"> <span class="text-sm text-gray-700" data-i18n="cl3">Resume / CV</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition">
+                    <input type="checkbox" disabled class="w-4 h-4 accent-green-500 mr-3"> <span class="text-sm text-gray-700" data-i18n="cl4">Health Certificate</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition">
+                    <input type="checkbox" disabled class="w-4 h-4 accent-green-500 mr-3"> <span class="text-sm text-gray-700" data-i18n="cl5">Criminal Record Check</span>
+                </label>
+                <label class="flex items-center p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition">
+                    <input type="checkbox" disabled class="w-4 h-4 accent-green-500 mr-3"> <span class="text-sm text-gray-700" data-i18n="cl6">Employment Contract</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 알림 탭 ==================== -->
+    <div id="tab-notifications" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-bell mr-2 text-orange-500"></i> <span data-i18n="notifsTitle">Notifications</span></h2>
+            <button class="text-sm text-blue-600 font-medium" data-i18n="markAllRead">Mark all as read</button>
+        </div>
+        <div class="space-y-3">
+            <div class="card p-4 border-l-4 border-blue-500">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-file-alt text-blue-500 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800" data-i18n="n1">Document Verified: Passport Copy</p>
+                        <p class="text-xs text-gray-500 mt-1" data-i18n="n1d">Your passport copy has been verified and approved.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">2 hours ago</p>
+                    </div>
+                    <span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></span>
+                </div>
+            </div>
+            <div class="card p-4 border-l-4 border-green-500">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-check-circle text-green-500 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800" data-i18n="n2">Application Status Update</p>
+                        <p class="text-xs text-gray-500 mt-1" data-i18n="n2d">Your application has moved to "Under Review" stage.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">1 day ago</p>
+                    </div>
+                    <span class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2"></span>
+                </div>
+            </div>
+            <div class="card p-4 border-l-4 border-purple-500">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-calendar text-purple-500 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800" data-i18n="n3">Consultation Confirmed</p>
+                        <p class="text-xs text-gray-500 mt-1" data-i18n="n3d">Your visa extension consultation is confirmed for Feb 15, 10:00 AM.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">2 days ago</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-4 border-l-4 border-orange-500">
+                <div class="flex items-start space-x-3">
+                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-orange-500 text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-800" data-i18n="n4">Document Required</p>
+                        <p class="text-xs text-gray-500 mt-1" data-i18n="n4d">Please upload your criminal record check to complete your application.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">3 days ago</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 프로필 탭 ==================== -->
+    <div id="tab-profile" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-user-cog mr-2 text-gray-600"></i> <span data-i18n="profileTitle">My Profile</span></h2>
+        </div>
+
+        <div class="card p-6 mb-6">
+            <div class="flex items-center space-x-4 mb-6">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white text-2xl"></i>
+                </div>
+                <div>
+                    <p id="profileName" class="text-lg font-bold text-gray-800"></p>
+                    <p id="profileEmail" class="text-sm text-gray-500"></p>
+                    <span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full mt-1 inline-block" data-i18n="applicantBadge">Visa Applicant</span>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="pfName">Full Name</label>
+                        <input type="text" id="pfNameInput" class="w-full px-4 py-2.5 border rounded-xl text-sm" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="pfEmail">Email</label>
+                        <input type="email" id="pfEmailInput" class="w-full px-4 py-2.5 border rounded-xl text-sm bg-gray-50" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="pfPhone">Phone</label>
+                        <input type="tel" id="pfPhoneInput" class="w-full px-4 py-2.5 border rounded-xl text-sm" placeholder="+82-10-XXXX-XXXX" disabled>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="pfLang">Preferred Language</label>
+                        <select id="pfLangInput" class="w-full px-4 py-2.5 border rounded-xl text-sm bg-white" disabled>
+                            <option value="en">English</option>
+                            <option value="ko">한국어</option>
+                            <option value="vi">Tiếng Việt</option>
+                            <option value="th">ภาษาไทย</option>
+                            <option value="tl">Pilipino</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="toggleProfileEdit()" id="editProfileBtn" class="px-4 py-2 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-edit mr-1"></i> <span data-i18n="editBtn">Edit</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 비밀번호 변경 -->
+        <div class="card p-6 mb-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-key text-orange-500 mr-2"></i> <span data-i18n="changePw">Change Password</span></h3>
+            <div class="space-y-3 max-w-md">
+                <input type="password" placeholder="Current password" class="w-full px-4 py-2.5 border rounded-xl text-sm">
+                <input type="password" placeholder="New password" class="w-full px-4 py-2.5 border rounded-xl text-sm">
+                <input type="password" placeholder="Confirm new password" class="w-full px-4 py-2.5 border rounded-xl text-sm">
+                <button onclick="alert('Password change feature (prototype)')" class="px-4 py-2 bg-orange-500 text-white text-sm rounded-lg hover:bg-orange-600 transition">
+                    <i class="fas fa-save mr-1"></i> <span data-i18n="updatePw">Update Password</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 계정 관리 -->
+        <div class="card p-6">
+            <h3 class="font-semibold text-gray-800 mb-4"><i class="fas fa-cog text-gray-500 mr-2"></i> <span data-i18n="accountSettings">Account Settings</span></h3>
+            <div class="space-y-3">
+                <button onclick="logout()" class="w-full flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition">
+                    <div class="flex items-center"><i class="fas fa-sign-out-alt text-gray-400 mr-3"></i><span class="text-sm text-gray-700" data-i18n="logoutBtn">Logout</span></div>
+                    <i class="fas fa-chevron-right text-gray-300"></i>
+                </button>
+                <button onclick="if(confirm('Are you sure?')) alert('Account deletion (prototype)')" class="w-full flex items-center justify-between p-3 bg-red-50 rounded-xl hover:bg-red-100 transition">
+                    <div class="flex items-center"><i class="fas fa-trash text-red-400 mr-3"></i><span class="text-sm text-red-600" data-i18n="deleteAccount">Delete Account</span></div>
+                    <i class="fas fa-chevron-right text-red-300"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 출퇴근 탭 ==================== -->
+    <div id="tab-attendance" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-clock mr-2 text-blue-500"></i> <span data-i18n="attTitle">My Attendance</span></h2>
+        </div>
+
+        <!-- 이번 달 요약 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div class="card p-4 text-center">
+                <p class="text-2xl font-bold text-green-600" id="myAttWorkdays">0</p>
+                <p class="text-xs text-gray-500" data-i18n="attWorkdays">Work Days</p>
+            </div>
+            <div class="card p-4 text-center">
+                <p class="text-2xl font-bold text-blue-600" id="myAttPresent">0</p>
+                <p class="text-xs text-gray-500" data-i18n="attPresent">Present</p>
+            </div>
+            <div class="card p-4 text-center">
+                <p class="text-2xl font-bold text-orange-500" id="myAttLate">0</p>
+                <p class="text-xs text-gray-500" data-i18n="attLate">Late</p>
+            </div>
+            <div class="card p-4 text-center">
+                <p class="text-2xl font-bold text-red-500" id="myAttAbsent">0</p>
+                <p class="text-xs text-gray-500" data-i18n="attAbsent">Absent</p>
+            </div>
+        </div>
+
+        <!-- 달력 뷰 -->
+        <div class="card p-5 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <button onclick="changeAttMonth(-1)" class="px-3 py-1 text-gray-500 hover:text-gray-700"><i class="fas fa-chevron-left"></i></button>
+                <h3 class="font-semibold text-gray-800" id="attCalendarMonth"></h3>
+                <button onclick="changeAttMonth(1)" class="px-3 py-1 text-gray-500 hover:text-gray-700"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs mb-2">
+                <div class="font-semibold text-red-400">Sun</div>
+                <div class="font-semibold text-gray-500">Mon</div>
+                <div class="font-semibold text-gray-500">Tue</div>
+                <div class="font-semibold text-gray-500">Wed</div>
+                <div class="font-semibold text-gray-500">Thu</div>
+                <div class="font-semibold text-gray-500">Fri</div>
+                <div class="font-semibold text-blue-400">Sat</div>
+            </div>
+            <div class="grid grid-cols-7 gap-1" id="attCalendarGrid"></div>
+        </div>
+
+        <!-- 최근 출퇴근 기록 -->
+        <div class="card overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="attDate">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="attType">Type</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="attTime">Time</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="attMethod">Method</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="attStatus">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="myAttendanceBody">
+                    <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400" data-i18n="attNoRecords">No attendance records yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ==================== 활동일지 탭 ==================== -->
+    <div id="tab-activities" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-book mr-2 text-purple-500"></i> <span data-i18n="actTitle">My Activities</span></h2>
+            <button onclick="openActivityModal()" class="px-4 py-2 bg-purple-500 text-white text-sm rounded-xl hover:bg-purple-600 transition">
+                <i class="fas fa-plus mr-1"></i> <span data-i18n="actWrite">Write</span>
+            </button>
+        </div>
+
+        <!-- 활동일지 목록 -->
+        <div id="myActivitiesList" class="space-y-3">
+            <div class="text-center text-gray-400 py-8"><i class="fas fa-folder-open text-4xl mb-3"></i><p class="text-sm" data-i18n="actNoRecords">No activity logs yet.</p></div>
+        </div>
+    </div>
+
+    <!-- 활동일지 작성 모달 -->
+    <div id="activityModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style="display:none;">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center p-6 border-b">
+                <h3 class="font-bold text-lg text-gray-800" data-i18n="actWriteTitle">Write Activity Log</h3>
+                <button onclick="closeActivityModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="text-sm text-gray-600 mb-1 block" data-i18n="actDateLabel">Date</label>
+                    <input type="date" id="actDate" class="w-full px-4 py-2.5 border rounded-xl text-sm">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-600 mb-1 block" data-i18n="actTypeLabel">Activity Type</label>
+                    <select id="actType" class="w-full px-4 py-2.5 border rounded-xl text-sm">
+                        <option value="work">Work</option>
+                        <option value="training">Training</option>
+                        <option value="community">Community Service</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm text-gray-600 mb-1 block" data-i18n="actTitleLabel">Title</label>
+                    <input type="text" id="actTitleInput" class="w-full px-4 py-2.5 border rounded-xl text-sm" placeholder="Activity title">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-600 mb-1 block" data-i18n="actContentLabel">Content</label>
+                    <textarea id="actContent" rows="4" class="w-full px-4 py-2.5 border rounded-xl text-sm" placeholder="Describe your activity..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-sm text-gray-600 mb-1 block" data-i18n="actHoursLabel">Hours</label>
+                        <input type="number" id="actHours" class="w-full px-4 py-2.5 border rounded-xl text-sm" value="8" min="0" max="24" step="0.5">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 p-6 border-t">
+                <button onclick="closeActivityModal()" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm hover:bg-gray-200">Cancel</button>
+                <button onclick="submitActivity()" class="px-6 py-2 bg-purple-500 text-white rounded-xl text-sm hover:bg-purple-600">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 포인트 탭 ==================== -->
+    <div id="tab-points" class="tab-content">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-star mr-2 text-yellow-500"></i> <span data-i18n="ptsTitle">My Points</span></h2>
+        </div>
+
+        <!-- 포인트 요약 -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+            <div class="card p-5 text-center bg-gradient-to-br from-yellow-50 to-orange-50">
+                <p class="text-3xl font-bold text-yellow-600" id="myTotalPoints">0</p>
+                <p class="text-xs text-gray-500" data-i18n="ptsTotalPoints">Total Points</p>
+            </div>
+            <div class="card p-5 text-center">
+                <p class="text-2xl font-bold text-blue-600" id="myMonthPoints">0</p>
+                <p class="text-xs text-gray-500" data-i18n="ptsThisMonth">This Month</p>
+            </div>
+            <div class="card p-5 text-center">
+                <p class="text-2xl font-bold text-purple-600" id="myPointsRank">-</p>
+                <p class="text-xs text-gray-500" data-i18n="ptsRank">My Rank</p>
+            </div>
+        </div>
+
+        <!-- 포인트 규칙 안내 -->
+        <div class="card p-5 mb-6">
+            <h3 class="font-semibold text-gray-800 mb-3"><i class="fas fa-info-circle text-blue-500 mr-2"></i> <span data-i18n="ptsRulesTitle">Point Rules</span></h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2" id="myPointRules">
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                    <span class="text-sm text-gray-700">On-time Check-in</span>
+                    <span class="text-sm font-bold text-green-600">+10</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                    <span class="text-sm text-gray-700">Activity Log Submitted</span>
+                    <span class="text-sm font-bold text-green-600">+5</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                    <span class="text-sm text-gray-700">Training Completion</span>
+                    <span class="text-sm font-bold text-green-600">+20</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl">
+                    <span class="text-sm text-gray-700">Late Check-in</span>
+                    <span class="text-sm font-bold text-red-500">-5</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-red-50 rounded-xl">
+                    <span class="text-sm text-gray-700">Absent</span>
+                    <span class="text-sm font-bold text-red-500">-10</span>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+                    <span class="text-sm text-gray-700">Community Service</span>
+                    <span class="text-sm font-bold text-green-600">+15</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 포인트 내역 -->
+        <div class="card overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="ptsDate">Date</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="ptsPoints">Points</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="ptsType">Type</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500" data-i18n="ptsDesc">Description</th>
+                    </tr>
+                </thead>
+                <tbody id="myPointsBody">
+                    <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400" data-i18n="ptsNoRecords">No point records yet.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<!-- 푸터 -->
+<footer class="text-center py-6 text-gray-400 text-xs desktop-only">
+    &copy; 2026 Korea Working Visa. All rights reserved.
+</footer>
+
+<!-- ==================== 모바일 전용 레이아웃 ==================== -->
+<div id="mobileLayout" class="mobile-only">
+    <!-- 모바일 헤더 -->
+    <div class="mobile-header sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div id="mobileLogoWrap" class="w-[80px] h-[80px] rounded-lg flex items-center justify-center bg-white shadow-md">
+                <i class="fas fa-passport text-blue-600 text-3xl" id="mobileLogoIcon"></i>
+                <img id="mobileLogoImg" src="" class="w-[70px] h-[70px] rounded-lg object-contain hidden">
+            </div>
+            <span class="font-bold text-gray-900 text-sm" id="mobileSiteTitle">Korea Working Visa</span>
+        </div>
+        <div class="flex items-center space-x-2">
+            <select id="mobileLangSelector" onchange="changeLanguage(this.value)" class="text-[10px] border rounded-lg px-1.5 py-1 bg-white">
+                <option value="en">EN</option>
+                <option value="ko">한국어</option>
+                <option value="vi">Tiếng Việt</option>
+                <option value="th">ไทย</option>
+                <option value="tl">Pilipino</option>
+            </select>
+            <button onclick="toggleMobileNotification()" class="relative p-2 text-gray-500">
+                <i class="fas fa-bell text-lg"></i>
+                <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center">2</span>
+            </button>
+            <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center cursor-pointer" onclick="toggleMobileUserMenu()">
+                <i class="fas fa-user text-white text-xs"></i>
+            </div>
+        </div>
+    </div>
+    <!-- 모바일 알림 패널 -->
+    <div id="mobileNotifPanel" class="hidden absolute right-4 top-14 bg-white rounded-2xl shadow-xl border border-gray-100 w-72 max-h-80 overflow-hidden z-[70]">
+        <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+            <h4 class="font-semibold text-gray-800 text-sm" data-i18n="recentNotifs">Notifications</h4>
+            <button onclick="document.getElementById('mobileNotifPanel').classList.add('hidden')" class="text-xs text-blue-500" data-i18n="closeBtn">Close</button>
+        </div>
+        <div class="overflow-y-auto max-h-60 p-2 space-y-2" id="mobileNotifList"></div>
+    </div>
+    <!-- 모바일 사용자 메뉴 -->
+    <div id="mobileLayoutUserMenu" class="hidden absolute right-4 top-14 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 min-w-[160px] z-[70]">
+        <div class="px-4 py-2 border-b border-gray-100">
+            <p class="text-xs text-gray-400" data-i18n="loggedInAs">Logged in as</p>
+            <p id="mobileLayoutUserMenuName" class="font-medium text-gray-800 text-sm">User</p>
+        </div>
+        <button onclick="showTab('profile');handleMobileMenuClick('profile')" class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center">
+            <i class="fas fa-user-edit mr-3 text-gray-400"></i> <span data-i18n="myProfile">My Profile</span>
+        </button>
+        <button onclick="logout()" class="w-full px-4 py-3 text-left text-red-500 hover:bg-red-50 transition flex items-center">
+            <i class="fas fa-sign-out-alt mr-3"></i> <span data-i18n="logoutBtn">Logout</span>
+        </button>
+    </div>
+    <!-- 스와이프 컨테이너 -->
+    <div id="mobileSwipeContainer" style="overflow:hidden;">
+        <!-- 페이지 1: 대시보드 -->
+        <div class="mobile-page" id="mobilePage1" style="padding:0 0 80px 0;">
+            <div id="mobileDashboardContent" class="px-4 pt-4"></div>
+            <div id="mobileSwipeHint" class="swipe-hint fixed bottom-20 right-4 bg-black/60 text-white text-xs px-3 py-2 rounded-full z-50">
+                <i class="fas fa-chevron-left mr-1"></i> <span data-i18n="mobileMenu">Menu</span>
+            </div>
+        </div>
+        <!-- 페이지 2: 메뉴 -->
+        <div class="mobile-page" id="mobilePage2" style="padding:0 0 80px 0;background:#f5f5f7;">
+            <div class="bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-3 flex items-center">
+                <button onclick="switchMobilePage(0)" class="mr-3 p-2 text-gray-500"><i class="fas fa-chevron-left"></i></button>
+                <span class="font-bold text-gray-900" data-i18n="mobileMenu">Menu</span>
+            </div>
+            <div id="mobileMenuGrid" class="grid grid-cols-2 gap-3 p-4"></div>
+            <div id="mobileTabContent" class="px-4 pb-4" style="display:none;"></div>
+        </div>
+    </div>
+    <!-- 페이지 인디케이터 -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-50">
+        <div class="mobile-page-dot active" data-page="0"></div>
+        <div class="mobile-page-dot" data-page="1"></div>
+    </div>
+</div>
+
+<script>
+    const API_BASE = '/api/kwv';
+    let currentLang = localStorage.getItem('kwv_language') || 'en';
+    let currentUser = null;
+
+    // ==================== 다국어 ====================
+    const translations = {
+        en: {
+            tabHome: 'Home', tabVisa: 'Application', tabDocs: 'Documents', tabJobs: 'Jobs',
+            tabConsulting: 'Consulting', tabGuide: 'Guide', tabProfile: 'Profile',
+            welcomePrefix: 'Hello, ', welcomeSuffix: '!',
+            welcomeDesc: 'Check your visa status and manage your application.',
+            logoutBtn: 'Logout', myProfile: 'My Profile', loggedInAs: 'Logged in as',
+            applicationOverview: 'Application Overview', statusProcessing: 'Processing',
+            stepSubmitted: 'Submitted', stepReceived: 'Received', stepReview: 'Under Review', stepDecision: 'Decision',
+            reviewMsg: 'Your application is currently under review. Expected processing time: 2-3 weeks.',
+            qVisa: 'Application', qDocs: 'Upload Docs', qJobs: 'Job Listings', qConsult: 'Book Consult',
+            recentNotifs: 'Recent Notifications',
+            notif1Title: 'Document Verified', notif1Desc: 'Your passport copy has been verified successfully.',
+            notif2Title: 'Application Received', notif2Desc: 'Your E-8 visa application has been received and is being processed.',
+            visaTitle: 'Application', currentApp: 'Current Application',
+            visaType: 'Visa Type', appDate: 'Applied Date', nationality: 'Nationality', passportNo: 'Passport No.',
+            timeline: 'Timeline', tl1: 'Application Submitted', tl2: 'Documents Verified',
+            tl3: 'Under Government Review', tl3Desc: 'Estimated completion: 2026-02-20',
+            tl4: 'Final Decision', tl4Desc: 'Pending',
+            visaTypes: 'Visa Types',
+            e8Desc: 'Seasonal Worker visa for agriculture, fishery, etc. Valid for 3-8 months.',
+            e9Desc: 'Non-professional employment visa for manufacturing, construction. Valid up to 3 years.',
+            h2Desc: 'Working Visit visa for ethnic Koreans from specific countries. Valid up to 3 years.',
+            docsTitle: 'Documents', uploadBtn: 'Upload',
+            docPassport: 'Passport Copy', docResume: 'Resume / CV', docHealth: 'Health Certificate',
+            docCriminal: 'Criminal Record Check', docPhoto: 'ID Photo (3.5x4.5cm)',
+            verified: 'Verified', reviewing: 'Reviewing', notUploaded: 'Not uploaded yet', upload: 'Upload',
+            docWarning: 'Please upload all required documents to proceed with your visa application. Missing documents may delay processing.',
+            jobsTitle: 'Job Board',
+            consultTitle: 'Consulting', newBooking: 'New Booking', upcoming: 'Upcoming',
+            consultType1: 'Visa Extension Consultation',
+            consultTypes: 'Consultation Types',
+            ctVisa: 'Visa Consultation', ctVisaDesc: 'Application, extension, status change',
+            ctJob: 'Employment Consultation', ctJobDesc: 'Job search, workplace issues, contracts',
+            ctLegal: 'Legal Consultation', ctLegalDesc: 'Labor rights, disputes, legal advice',
+            free: 'Free',
+            emergency: 'Emergency Contacts', hotline: 'Immigration Hotline', laborHelp: 'Labor Rights Center',
+            guideTitle: 'Visa Guide',
+            faq: 'FAQ',
+            fq1: 'What documents do I need for E-8 visa?',
+            fa1: 'You need: passport, application form, ID photo, employment contract, health certificate, criminal record check, and proof of qualification from your home country.',
+            fq2: 'How long does visa processing take?',
+            fa2: 'E-8 visa typically takes 2-4 weeks. E-9 visa may take 1-3 months depending on the bilateral agreement between countries.',
+            fq3: 'Can I change my employer?',
+            fa3: 'Under E-9 visa, workplace change is allowed under certain conditions such as unfair treatment, company closure, or with approval from the Employment Permit System.',
+            fq4: 'How to extend my visa?',
+            fa4: 'Apply at the local immigration office at least 1 month before expiry. You need employer confirmation, updated health certificate, and extension application form.',
+            checklist: 'Required Documents Checklist',
+            cl1: 'Valid Passport (6+ months remaining)', cl2: 'Passport-size Photo (3.5x4.5cm)',
+            cl3: 'Resume / CV', cl4: 'Health Certificate', cl5: 'Criminal Record Check', cl6: 'Employment Contract',
+            notifsTitle: 'Notifications', markAllRead: 'Mark all as read',
+            n1: 'Document Verified: Passport Copy', n1d: 'Your passport copy has been verified and approved.',
+            n2: 'Application Status Update', n2d: 'Your application has moved to "Under Review" stage.',
+            n3: 'Consultation Confirmed', n3d: 'Your visa extension consultation is confirmed for Feb 15, 10:00 AM.',
+            n4: 'Document Required', n4d: 'Please upload your criminal record check to complete your application.',
+            profileTitle: 'My Profile', applicantBadge: 'Visa Applicant',
+            pfName: 'Full Name', pfEmail: 'Email', pfPhone: 'Phone', pfLang: 'Preferred Language',
+            editBtn: 'Edit', changePw: 'Change Password', updatePw: 'Update Password',
+            accountSettings: 'Account Settings', deleteAccount: 'Delete Account',
+            mobileMenu: 'Menu', closeBtn: 'Close',
+            mobileHome: 'Home', mobileHomeDesc: 'Dashboard overview',
+            mobileVisaDesc: 'Status & apply', mobileDocsDesc: 'Manage files',
+            mobileJobsDesc: 'Find work', mobileConsultDesc: 'Book session',
+            mobileGuideDesc: 'Info & FAQ', mobileProfileDesc: 'My settings',
+            mobileNotifsDesc: 'Alerts',
+            mStatusOverview: 'Application Status', mQuickActions: 'Quick Actions',
+            searchJobs: 'Search jobs...', allRegions: 'All Regions', allTypes: 'All Types',
+            agriculture: 'Agriculture', manufacturing: 'Manufacturing', fishery: 'Fishery'
+        },
+        ko: {
+            tabHome: '홈', tabVisa: '가입신청', tabDocs: '서류 관리', tabJobs: '구인',
+            tabConsulting: '상담 예약', tabGuide: '가이드', tabProfile: '내 정보',
+            welcomePrefix: '안녕하세요, ', welcomeSuffix: '님!',
+            welcomeDesc: '비자 상태를 확인하고 신청을 관리하세요.',
+            logoutBtn: '로그아웃', myProfile: '내 프로필', loggedInAs: '로그인 계정',
+            applicationOverview: '신청 현황', statusProcessing: '심사 중',
+            stepSubmitted: '접수', stepReceived: '서류확인', stepReview: '심사 중', stepDecision: '결정',
+            reviewMsg: '신청서가 현재 심사 중입니다. 예상 처리 기간: 2-3주.',
+            qVisa: '가입신청', qDocs: '서류 업로드', qJobs: '구인 목록', qConsult: '상담 예약',
+            recentNotifs: '최근 알림',
+            notif1Title: '서류 확인 완료', notif1Desc: '여권 사본이 성공적으로 확인되었습니다.',
+            notif2Title: '신청 접수 완료', notif2Desc: 'E-8 비자 신청이 접수되어 처리 중입니다.',
+            visaTitle: '가입신청', currentApp: '현재 신청',
+            visaType: '비자 유형', appDate: '신청일', nationality: '국적', passportNo: '여권번호',
+            timeline: '진행 상황', tl1: '신청서 제출', tl2: '서류 확인 완료',
+            tl3: '정부 심사 중', tl3Desc: '예상 완료일: 2026-02-20',
+            tl4: '최종 결정', tl4Desc: '대기 중',
+            visaTypes: '비자 유형 안내',
+            e8Desc: '농업, 어업 등을 위한 계절근로 비자. 유효기간 3-8개월.',
+            e9Desc: '제조업, 건설업 등 비전문직 취업 비자. 최대 3년 유효.',
+            h2Desc: '특정 국가 재외동포를 위한 방문취업 비자. 최대 3년 유효.',
+            docsTitle: '서류 관리', uploadBtn: '업로드',
+            docPassport: '여권 사본', docResume: '이력서', docHealth: '건강검진서',
+            docCriminal: '범죄경력증명서', docPhoto: '증명사진 (3.5x4.5cm)',
+            verified: '확인됨', reviewing: '검토 중', notUploaded: '미업로드', upload: '업로드',
+            docWarning: '비자 신청을 진행하려면 모든 필수 서류를 업로드해주세요. 누락된 서류는 처리 지연의 원인이 될 수 있습니다.',
+            jobsTitle: '구인 목록',
+            consultTitle: '상담 예약', newBooking: '새 예약', upcoming: '다가오는 상담',
+            consultType1: '비자 연장 상담',
+            consultTypes: '상담 유형',
+            ctVisa: '비자 상담', ctVisaDesc: '신청, 연장, 자격 변경',
+            ctJob: '취업 상담', ctJobDesc: '일자리 찾기, 직장 문제, 계약 관련',
+            ctLegal: '법률 상담', ctLegalDesc: '노동 권리, 분쟁, 법적 조언',
+            free: '무료',
+            emergency: '긴급 연락처', hotline: '외국인 상담전화', laborHelp: '노동인권 상담',
+            guideTitle: '비자 가이드',
+            faq: '자주 묻는 질문',
+            fq1: 'E-8 비자에 필요한 서류는 무엇인가요?',
+            fa1: '여권, 신청서, 증명사진, 고용계약서, 건강검진서, 범죄경력증명서, 본국 자격 증명서가 필요합니다.',
+            fq2: '비자 처리 기간은 얼마나 걸리나요?',
+            fa2: 'E-8 비자는 보통 2-4주 소요됩니다. E-9 비자는 국가 간 협정에 따라 1-3개월 걸릴 수 있습니다.',
+            fq3: '고용주를 변경할 수 있나요?',
+            fa3: 'E-9 비자의 경우 부당한 대우, 사업장 폐업, 고용허가제 승인 등 특정 조건에서 사업장 변경이 가능합니다.',
+            fq4: '비자를 연장하려면 어떻게 하나요?',
+            fa4: '만료 최소 1개월 전에 관할 출입국관리사무소에 신청하세요. 고용주 확인서, 최신 건강검진서, 연장 신청서가 필요합니다.',
+            checklist: '필요 서류 체크리스트',
+            cl1: '유효 여권 (잔여기간 6개월 이상)', cl2: '증명사진 (3.5x4.5cm)',
+            cl3: '이력서', cl4: '건강검진서', cl5: '범죄경력증명서', cl6: '고용계약서',
+            notifsTitle: '알림', markAllRead: '모두 읽음',
+            n1: '서류 확인: 여권 사본', n1d: '여권 사본이 확인 및 승인되었습니다.',
+            n2: '신청 상태 업데이트', n2d: '신청이 "심사 중" 단계로 이동했습니다.',
+            n3: '상담 확정', n3d: '비자 연장 상담이 2월 15일 오전 10시로 확정되었습니다.',
+            n4: '서류 필요', n4d: '신청을 완료하려면 범죄경력증명서를 업로드해주세요.',
+            profileTitle: '내 정보', applicantBadge: '비자 신청자',
+            pfName: '이름', pfEmail: '이메일', pfPhone: '전화번호', pfLang: '선호 언어',
+            editBtn: '수정', changePw: '비밀번호 변경', updatePw: '비밀번호 변경',
+            accountSettings: '계정 관리', deleteAccount: '계정 삭제',
+            mobileMenu: '메뉴', closeBtn: '닫기',
+            mobileHome: '홈', mobileHomeDesc: '대시보드 요약',
+            mobileVisaDesc: '현황 및 신청', mobileDocsDesc: '서류 관리',
+            mobileJobsDesc: '일자리 찾기', mobileConsultDesc: '상담 예약',
+            mobileGuideDesc: '안내 및 FAQ', mobileProfileDesc: '내 설정',
+            mobileNotifsDesc: '알림',
+            mStatusOverview: '신청 현황', mQuickActions: '바로가기',
+            searchJobs: '일자리 검색...', allRegions: '전체 지역', allTypes: '전체 유형',
+            agriculture: '농업', manufacturing: '제조업', fishery: '어업'
+        },
+        vi: {
+            tabHome: 'Trang chủ', tabVisa: 'Đăng ký', tabDocs: 'Tài liệu', tabJobs: 'Tuyển dụng',
+            tabConsulting: 'Tư vấn', tabGuide: 'Hướng dẫn', tabProfile: 'Hồ sơ',
+            welcomePrefix: 'Xin chào, ', welcomeSuffix: '!',
+            welcomeDesc: 'Kiểm tra tình trạng visa và quản lý hồ sơ của bạn.',
+            logoutBtn: 'Đăng xuất', myProfile: 'Hồ sơ của tôi', loggedInAs: 'Đăng nhập với',
+            applicationOverview: 'Tổng quan đơn', statusProcessing: 'Đang xử lý',
+            stepSubmitted: 'Đã nộp', stepReceived: 'Đã nhận', stepReview: 'Đang xem xét', stepDecision: 'Quyết định',
+            reviewMsg: 'Đơn của bạn đang được xem xét. Thời gian xử lý dự kiến: 2-3 tuần.',
+            qVisa: 'Tình trạng Visa', qDocs: 'Tải tài liệu', qJobs: 'Tìm việc', qConsult: 'Đặt tư vấn',
+            recentNotifs: 'Thông báo gần đây',
+            notif1Title: 'Tài liệu đã xác minh', notif1Desc: 'Bản sao hộ chiếu đã được xác minh thành công.',
+            notif2Title: 'Đơn đã được nhận', notif2Desc: 'Đơn xin visa E-8 đã được nhận và đang xử lý.',
+            visaTitle: 'Đơn xin Visa', currentApp: 'Đơn hiện tại',
+            visaType: 'Loại Visa', appDate: 'Ngày nộp', nationality: 'Quốc tịch', passportNo: 'Số hộ chiếu',
+            timeline: 'Tiến trình', tl1: 'Đã nộp đơn', tl2: 'Tài liệu đã xác minh',
+            tl3: 'Đang xem xét', tl3Desc: 'Dự kiến hoàn thành: 20/02/2026',
+            tl4: 'Quyết định cuối', tl4Desc: 'Đang chờ',
+            visaTypes: 'Các loại Visa',
+            e8Desc: 'Visa lao động thời vụ cho nông nghiệp, thủy sản. Hiệu lực 3-8 tháng.',
+            e9Desc: 'Visa việc làm phi chuyên nghiệp cho sản xuất, xây dựng. Hiệu lực đến 3 năm.',
+            h2Desc: 'Visa thăm việc cho người Hàn từ các nước cụ thể. Hiệu lực đến 3 năm.',
+            docsTitle: 'Tài liệu', uploadBtn: 'Tải lên',
+            docPassport: 'Bản sao hộ chiếu', docResume: 'Sơ yếu lý lịch', docHealth: 'Giấy khám sức khỏe',
+            docCriminal: 'Lý lịch tư pháp', docPhoto: 'Ảnh thẻ (3.5x4.5cm)',
+            verified: 'Đã xác minh', reviewing: 'Đang xem xét', notUploaded: 'Chưa tải lên', upload: 'Tải lên',
+            docWarning: 'Vui lòng tải lên tất cả tài liệu cần thiết. Thiếu tài liệu có thể làm chậm quá trình xử lý.',
+            jobsTitle: 'Việc làm',
+            consultTitle: 'Tư vấn', newBooking: 'Đặt mới', upcoming: 'Sắp tới',
+            consultType1: 'Tư vấn gia hạn visa',
+            consultTypes: 'Loại tư vấn',
+            ctVisa: 'Tư vấn Visa', ctVisaDesc: 'Nộp đơn, gia hạn, thay đổi tình trạng',
+            ctJob: 'Tư vấn việc làm', ctJobDesc: 'Tìm việc, vấn đề nơi làm việc',
+            ctLegal: 'Tư vấn pháp lý', ctLegalDesc: 'Quyền lao động, tranh chấp',
+            free: 'Miễn phí',
+            emergency: 'Liên hệ khẩn cấp', hotline: 'Đường dây nhập cư', laborHelp: 'Trung tâm quyền lao động',
+            guideTitle: 'Hướng dẫn Visa',
+            faq: 'Câu hỏi thường gặp',
+            fq1: 'Cần những tài liệu gì cho visa E-8?',
+            fa1: 'Bạn cần: hộ chiếu, đơn đăng ký, ảnh thẻ, hợp đồng lao động, giấy khám sức khỏe, lý lịch tư pháp và chứng nhận từ nước bạn.',
+            fq2: 'Thời gian xử lý visa mất bao lâu?',
+            fa2: 'Visa E-8 thường mất 2-4 tuần. Visa E-9 có thể mất 1-3 tháng tùy hiệp định giữa các nước.',
+            fq3: 'Tôi có thể thay đổi chủ sử dụng lao động không?',
+            fa3: 'Với visa E-9, cho phép thay đổi nơi làm việc trong điều kiện bị đối xử bất công, công ty đóng cửa hoặc được phê duyệt.',
+            fq4: 'Làm thế nào để gia hạn visa?',
+            fa4: 'Nộp đơn tại văn phòng nhập cư ít nhất 1 tháng trước khi hết hạn. Cần xác nhận của chủ lao động và giấy khám sức khỏe.',
+            checklist: 'Danh sách tài liệu cần thiết',
+            cl1: 'Hộ chiếu còn hạn (trên 6 tháng)', cl2: 'Ảnh thẻ (3.5x4.5cm)',
+            cl3: 'Sơ yếu lý lịch', cl4: 'Giấy khám sức khỏe', cl5: 'Lý lịch tư pháp', cl6: 'Hợp đồng lao động',
+            notifsTitle: 'Thông báo', markAllRead: 'Đánh dấu đã đọc',
+            n1: 'Tài liệu đã xác minh: Hộ chiếu', n1d: 'Bản sao hộ chiếu đã được xác minh và phê duyệt.',
+            n2: 'Cập nhật tình trạng', n2d: 'Đơn đã chuyển sang giai đoạn "Đang xem xét".',
+            n3: 'Tư vấn đã xác nhận', n3d: 'Tư vấn gia hạn visa đã được xác nhận ngày 15/02, 10:00.',
+            n4: 'Cần tài liệu', n4d: 'Vui lòng tải lên lý lịch tư pháp để hoàn thành đơn.',
+            profileTitle: 'Hồ sơ của tôi', applicantBadge: 'Người xin Visa',
+            pfName: 'Họ tên', pfEmail: 'Email', pfPhone: 'Điện thoại', pfLang: 'Ngôn ngữ',
+            editBtn: 'Sửa', changePw: 'Đổi mật khẩu', updatePw: 'Cập nhật mật khẩu',
+            accountSettings: 'Cài đặt tài khoản', deleteAccount: 'Xóa tài khoản',
+            mobileMenu: 'Menu', closeBtn: 'Đóng',
+            mobileHome: 'Trang chủ', mobileHomeDesc: 'Tổng quan',
+            mobileVisaDesc: 'Tình trạng & nộp đơn', mobileDocsDesc: 'Quản lý tài liệu',
+            mobileJobsDesc: 'Tìm việc', mobileConsultDesc: 'Đặt lịch tư vấn',
+            mobileGuideDesc: 'Thông tin & FAQ', mobileProfileDesc: 'Cài đặt',
+            mobileNotifsDesc: 'Thông báo',
+            mStatusOverview: 'Tình trạng đơn', mQuickActions: 'Truy cập nhanh',
+            searchJobs: 'Tìm việc...', allRegions: 'Tất cả khu vực', allTypes: 'Tất cả loại',
+            agriculture: 'Nông nghiệp', manufacturing: 'Sản xuất', fishery: 'Thủy sản'
+        },
+        th: {
+            tabHome: 'หน้าแรก', tabVisa: 'สมัคร', tabDocs: 'เอกสาร', tabJobs: 'รับสมัคร',
+            tabConsulting: 'ปรึกษา', tabGuide: 'คู่มือ', tabProfile: 'โปรไฟล์',
+            welcomePrefix: 'สวัสดี, ', welcomeSuffix: '!',
+            welcomeDesc: 'ตรวจสอบสถานะวีซ่าและจัดการใบสมัครของคุณ',
+            logoutBtn: 'ออกจากระบบ', myProfile: 'โปรไฟล์ของฉัน', loggedInAs: 'เข้าสู่ระบบเป็น',
+            applicationOverview: 'ภาพรวมใบสมัคร', statusProcessing: 'กำลังดำเนินการ',
+            stepSubmitted: 'ส่งแล้ว', stepReceived: 'รับแล้ว', stepReview: 'กำลังตรวจสอบ', stepDecision: 'ผลการพิจารณา',
+            reviewMsg: 'ใบสมัครของคุณกำลังอยู่ระหว่างการตรวจสอบ ระยะเวลาดำเนินการ: 2-3 สัปดาห์',
+            qVisa: 'สถานะวีซ่า', qDocs: 'อัปโหลดเอกสาร', qJobs: 'หางาน', qConsult: 'จองปรึกษา',
+            recentNotifs: 'การแจ้งเตือนล่าสุด',
+            notif1Title: 'เอกสารได้รับการยืนยัน', notif1Desc: 'สำเนาหนังสือเดินทางได้รับการยืนยันแล้ว',
+            notif2Title: 'รับใบสมัครแล้ว', notif2Desc: 'ใบสมัครวีซ่า E-8 ได้รับแล้วและกำลังดำเนินการ',
+            visaTitle: 'สมัครวีซ่า', currentApp: 'ใบสมัครปัจจุบัน',
+            visaType: 'ประเภทวีซ่า', appDate: 'วันที่สมัคร', nationality: 'สัญชาติ', passportNo: 'เลขหนังสือเดินทาง',
+            timeline: 'ไทม์ไลน์', tl1: 'ส่งใบสมัครแล้ว', tl2: 'เอกสารได้รับการยืนยัน',
+            tl3: 'อยู่ระหว่างการพิจารณา', tl3Desc: 'คาดว่าจะเสร็จ: 20/02/2026',
+            tl4: 'ผลการพิจารณา', tl4Desc: 'รอดำเนินการ',
+            visaTypes: 'ประเภทวีซ่า',
+            e8Desc: 'วีซ่าแรงงานตามฤดูกาลสำหรับเกษตรกรรม ประมง มีอายุ 3-8 เดือน',
+            e9Desc: 'วีซ่าจ้างงานทั่วไปสำหรับการผลิต ก่อสร้าง มีอายุสูงสุด 3 ปี',
+            h2Desc: 'วีซ่าเยี่ยมเยือนทำงานสำหรับชาวเกาหลีจากประเทศที่กำหนด มีอายุสูงสุด 3 ปี',
+            docsTitle: 'เอกสาร', uploadBtn: 'อัปโหลด',
+            docPassport: 'สำเนาหนังสือเดินทาง', docResume: 'ประวัติย่อ', docHealth: 'ใบรับรองแพทย์',
+            docCriminal: 'ใบตรวจสอบประวัติอาชญากรรม', docPhoto: 'รูปถ่าย (3.5x4.5ซม.)',
+            verified: 'ยืนยันแล้ว', reviewing: 'กำลังตรวจสอบ', notUploaded: 'ยังไม่ได้อัปโหลด', upload: 'อัปโหลด',
+            docWarning: 'กรุณาอัปโหลดเอกสารที่จำเป็นทั้งหมด เอกสารที่ขาดหายอาจทำให้การดำเนินการล่าช้า',
+            jobsTitle: 'หางาน',
+            consultTitle: 'ปรึกษา', newBooking: 'จองใหม่', upcoming: 'กำลังจะมาถึง',
+            consultType1: 'ปรึกษาต่ออายุวีซ่า',
+            consultTypes: 'ประเภทการปรึกษา',
+            ctVisa: 'ปรึกษาวีซ่า', ctVisaDesc: 'สมัคร ต่ออายุ เปลี่ยนสถานะ',
+            ctJob: 'ปรึกษาการจ้างงาน', ctJobDesc: 'หางาน ปัญหาที่ทำงาน สัญญา',
+            ctLegal: 'ปรึกษากฎหมาย', ctLegalDesc: 'สิทธิแรงงาน ข้อพิพาท คำแนะนำทางกฎหมาย',
+            free: 'ฟรี',
+            emergency: 'ติดต่อฉุกเฉิน', hotline: 'สายด่วนตรวจคนเข้าเมือง', laborHelp: 'ศูนย์สิทธิแรงงาน',
+            guideTitle: 'คู่มือวีซ่า',
+            faq: 'คำถามที่พบบ่อย',
+            fq1: 'ต้องใช้เอกสารอะไรบ้างสำหรับวีซ่า E-8?',
+            fa1: 'คุณต้องมี: หนังสือเดินทาง แบบฟอร์มสมัคร รูปถ่าย สัญญาจ้างงาน ใบรับรองแพทย์ ใบตรวจประวัติอาชญากรรม และหลักฐานคุณสมบัติ',
+            fq2: 'การดำเนินการวีซ่าใช้เวลานานเท่าไร?',
+            fa2: 'วีซ่า E-8 ใช้เวลา 2-4 สัปดาห์ วีซ่า E-9 อาจใช้เวลา 1-3 เดือนขึ้นอยู่กับข้อตกลงระหว่างประเทศ',
+            fq3: 'สามารถเปลี่ยนนายจ้างได้หรือไม่?',
+            fa3: 'วีซ่า E-9 อนุญาตให้เปลี่ยนสถานที่ทำงานได้ในกรณีถูกปฏิบัติอย่างไม่เป็นธรรม บริษัทปิดกิจการ หรือได้รับอนุมัติ',
+            fq4: 'ต่ออายุวีซ่าอย่างไร?',
+            fa4: 'ยื่นคำร้องที่สำนักงานตรวจคนเข้าเมืองอย่างน้อย 1 เดือนก่อนหมดอายุ ต้องมีหนังสือยืนยันจากนายจ้างและใบรับรองแพทย์',
+            checklist: 'รายการเอกสารที่ต้องใช้',
+            cl1: 'หนังสือเดินทางที่ยังไม่หมดอายุ (เหลืออายุ 6 เดือนขึ้นไป)', cl2: 'รูปถ่าย (3.5x4.5ซม.)',
+            cl3: 'ประวัติย่อ', cl4: 'ใบรับรองแพทย์', cl5: 'ใบตรวจประวัติอาชญากรรม', cl6: 'สัญญาจ้างงาน',
+            notifsTitle: 'การแจ้งเตือน', markAllRead: 'อ่านทั้งหมด',
+            n1: 'เอกสารยืนยัน: สำเนาหนังสือเดินทาง', n1d: 'สำเนาหนังสือเดินทางได้รับการยืนยันและอนุมัติแล้ว',
+            n2: 'อัปเดตสถานะใบสมัคร', n2d: 'ใบสมัครของคุณได้ย้ายไปยังขั้นตอน "กำลังตรวจสอบ"',
+            n3: 'ยืนยันการปรึกษา', n3d: 'การปรึกษาต่ออายุวีซ่าได้รับการยืนยันวันที่ 15 ก.พ. เวลา 10:00 น.',
+            n4: 'ต้องการเอกสาร', n4d: 'กรุณาอัปโหลดใบตรวจประวัติอาชญากรรมเพื่อดำเนินการต่อ',
+            profileTitle: 'โปรไฟล์ของฉัน', applicantBadge: 'ผู้สมัครวีซ่า',
+            pfName: 'ชื่อ-นามสกุล', pfEmail: 'อีเมล', pfPhone: 'โทรศัพท์', pfLang: 'ภาษาที่ต้องการ',
+            editBtn: 'แก้ไข', changePw: 'เปลี่ยนรหัสผ่าน', updatePw: 'อัปเดตรหัสผ่าน',
+            accountSettings: 'ตั้งค่าบัญชี', deleteAccount: 'ลบบัญชี',
+            mobileMenu: 'เมนู', closeBtn: 'ปิด',
+            mobileHome: 'หน้าแรก', mobileHomeDesc: 'ภาพรวม',
+            mobileVisaDesc: 'สถานะและสมัคร', mobileDocsDesc: 'จัดการเอกสาร',
+            mobileJobsDesc: 'หางาน', mobileConsultDesc: 'จองปรึกษา',
+            mobileGuideDesc: 'ข้อมูลและ FAQ', mobileProfileDesc: 'การตั้งค่า',
+            mobileNotifsDesc: 'การแจ้งเตือน',
+            mStatusOverview: 'สถานะใบสมัคร', mQuickActions: 'ทางลัด',
+            searchJobs: 'ค้นหางาน...', allRegions: 'ทุกภูมิภาค', allTypes: 'ทุกประเภท',
+            agriculture: 'เกษตรกรรม', manufacturing: 'การผลิต', fishery: 'ประมง'
+        },
+        tl: {
+            tabHome: 'Home', tabVisa: 'Aplikasyon', tabDocs: 'Dokumento', tabJobs: 'Hiring',
+            tabConsulting: 'Konsulta', tabGuide: 'Gabay', tabProfile: 'Profile',
+            welcomePrefix: 'Kumusta, ', welcomeSuffix: '!',
+            welcomeDesc: 'Suriin ang status ng visa at pamahalaan ang iyong aplikasyon.',
+            logoutBtn: 'Mag-logout', myProfile: 'Aking Profile', loggedInAs: 'Naka-login bilang',
+            applicationOverview: 'Buod ng Aplikasyon', statusProcessing: 'Pinoproseso',
+            stepSubmitted: 'Naisumite', stepReceived: 'Natanggap', stepReview: 'Sinusuri', stepDecision: 'Desisyon',
+            reviewMsg: 'Ang iyong aplikasyon ay kasalukuyang sinusuri. Inaasahang oras ng pagproseso: 2-3 linggo.',
+            qVisa: 'Status ng Visa', qDocs: 'I-upload ang Docs', qJobs: 'Maghanap ng Trabaho', qConsult: 'Mag-book ng Konsulta',
+            recentNotifs: 'Mga Kamakailang Notipikasyon',
+            notif1Title: 'Na-verify ang Dokumento', notif1Desc: 'Ang kopya ng pasaporte ay matagumpay na na-verify.',
+            notif2Title: 'Natanggap ang Aplikasyon', notif2Desc: 'Ang iyong E-8 visa application ay natanggap at pinoproseso na.',
+            visaTitle: 'Aplikasyon sa Visa', currentApp: 'Kasalukuyang Aplikasyon',
+            visaType: 'Uri ng Visa', appDate: 'Petsa ng Pag-apply', nationality: 'Nasyonalidad', passportNo: 'Passport No.',
+            timeline: 'Timeline', tl1: 'Naisumite ang Aplikasyon', tl2: 'Na-verify ang mga Dokumento',
+            tl3: 'Sinusuri ng Gobyerno', tl3Desc: 'Inaasahang matapos: 2026-02-20',
+            tl4: 'Panghuling Desisyon', tl4Desc: 'Naghihintay',
+            visaTypes: 'Mga Uri ng Visa',
+            e8Desc: 'Seasonal Worker visa para sa agrikultura, pangingisda, atbp. May bisa ng 3-8 buwan.',
+            e9Desc: 'Non-professional employment visa para sa manufacturing, construction. May bisa hanggang 3 taon.',
+            h2Desc: 'Working Visit visa para sa mga etnikong Koreano mula sa mga tiyak na bansa. May bisa hanggang 3 taon.',
+            docsTitle: 'Mga Dokumento', uploadBtn: 'I-upload',
+            docPassport: 'Kopya ng Pasaporte', docResume: 'Resume / CV', docHealth: 'Health Certificate',
+            docCriminal: 'Criminal Record Check', docPhoto: 'ID Photo (3.5x4.5cm)',
+            verified: 'Na-verify', reviewing: 'Sinusuri', notUploaded: 'Hindi pa nai-upload', upload: 'I-upload',
+            docWarning: 'Mangyaring i-upload ang lahat ng kinakailangang dokumento. Ang mga nawawalang dokumento ay maaaring makapagpaliban ng pagproseso.',
+            jobsTitle: 'Mga Trabaho',
+            consultTitle: 'Konsultasyon', newBooking: 'Bagong Booking', upcoming: 'Paparating',
+            consultType1: 'Konsultasyon sa Visa Extension',
+            consultTypes: 'Mga Uri ng Konsultasyon',
+            ctVisa: 'Konsulta sa Visa', ctVisaDesc: 'Aplikasyon, extension, pagbabago ng status',
+            ctJob: 'Konsulta sa Trabaho', ctJobDesc: 'Paghahanap ng trabaho, isyu sa trabaho',
+            ctLegal: 'Legal na Konsulta', ctLegalDesc: 'Mga karapatan sa paggawa, dispute',
+            free: 'Libre',
+            emergency: 'Emergency Contacts', hotline: 'Immigration Hotline', laborHelp: 'Labor Rights Center',
+            guideTitle: 'Gabay sa Visa',
+            faq: 'Mga Madalas Itanong',
+            fq1: 'Anong mga dokumento ang kailangan para sa E-8 visa?',
+            fa1: 'Kailangan mo: pasaporte, application form, ID photo, employment contract, health certificate, criminal record check, at proof of qualification.',
+            fq2: 'Gaano katagal ang pagproseso ng visa?',
+            fa2: 'Ang E-8 visa ay karaniwang tumatagal ng 2-4 na linggo. Ang E-9 visa ay maaaring tumagal ng 1-3 buwan.',
+            fq3: 'Maaari ko bang palitan ang employer?',
+            fa3: 'Sa E-9 visa, pinapayagan ang pagpapalit ng trabaho sa ilalim ng mga kondisyon tulad ng hindi patas na pagtrato o pagsasara ng kumpanya.',
+            fq4: 'Paano i-extend ang visa?',
+            fa4: 'Mag-apply sa local immigration office hindi bababa sa 1 buwan bago mag-expire. Kailangan ang employer confirmation at health certificate.',
+            checklist: 'Listahan ng Kinakailangang Dokumento',
+            cl1: 'Valid na Pasaporte (6+ buwan na natitira)', cl2: 'Passport-size Photo (3.5x4.5cm)',
+            cl3: 'Resume / CV', cl4: 'Health Certificate', cl5: 'Criminal Record Check', cl6: 'Employment Contract',
+            notifsTitle: 'Mga Notipikasyon', markAllRead: 'Markahan lahat bilang nabasa',
+            n1: 'Na-verify ang Dokumento: Pasaporte', n1d: 'Ang kopya ng pasaporte ay na-verify at na-approve.',
+            n2: 'Update sa Status ng Aplikasyon', n2d: 'Ang aplikasyon ay lumipat sa "Sinusuri" na yugto.',
+            n3: 'Na-confirm ang Konsultasyon', n3d: 'Ang konsultasyon sa visa extension ay nakumpirma para sa Feb 15, 10:00 AM.',
+            n4: 'Kailangan ng Dokumento', n4d: 'Mangyaring i-upload ang criminal record check para makumpleto ang aplikasyon.',
+            profileTitle: 'Aking Profile', applicantBadge: 'Visa Applicant',
+            pfName: 'Buong Pangalan', pfEmail: 'Email', pfPhone: 'Telepono', pfLang: 'Gustong Wika',
+            editBtn: 'I-edit', changePw: 'Palitan ang Password', updatePw: 'I-update ang Password',
+            accountSettings: 'Mga Setting ng Account', deleteAccount: 'Burahin ang Account',
+            mobileMenu: 'Menu', closeBtn: 'Isara',
+            mobileHome: 'Home', mobileHomeDesc: 'Buod ng dashboard',
+            mobileVisaDesc: 'Status at mag-apply', mobileDocsDesc: 'Pamahalaan ang mga file',
+            mobileJobsDesc: 'Maghanap ng trabaho', mobileConsultDesc: 'Mag-book ng session',
+            mobileGuideDesc: 'Impormasyon at FAQ', mobileProfileDesc: 'Mga setting',
+            mobileNotifsDesc: 'Mga alerto',
+            mStatusOverview: 'Status ng Aplikasyon', mQuickActions: 'Mabilis na Aksyon',
+            searchJobs: 'Maghanap ng trabaho...', allRegions: 'Lahat ng Rehiyon', allTypes: 'Lahat ng Uri',
+            agriculture: 'Agrikultura', manufacturing: 'Manufacturing', fishery: 'Pangingisda'
+        }
+    };
+
+    function t(key) {
+        return (translations[currentLang] || translations.en)[key] || (translations.en[key] || '');
+    }
+
+    window.changeLanguage = function(lang) {
+        currentLang = lang;
+        localStorage.setItem('kwv_language', lang);
+        applyTranslations();
+
+        // 모바일 동적 콘텐츠 다시 렌더링
+        if (isMobileView()) {
+            renderMobileDashboard();
+            renderMobileMenuGrid();
+            renderMobileNotifications();
+            // 열려있는 탭 콘텐츠도 다시 렌더링
+            const tc = document.getElementById('mobileTabContent');
+            if (tc && tc.style.display !== 'none') {
+                const activeTab = document.querySelector('.tab-content.active');
+                if (activeTab) {
+                    tc.innerHTML = `
+                        <button onclick="closeMobileTab()" class="mb-3 text-sm text-blue-600 font-medium"><i class="fas fa-arrow-left mr-1"></i> ${t('mobileMenu') || 'Menu'}</button>
+                        <div>${activeTab.innerHTML}</div>
+                    `;
+                }
+            }
+        }
+
+        // 데스크톱 동적 콘텐츠 업데이트
+        const userStr = sessionStorage.getItem('kwv_user');
+        if (userStr) {
+            try {
+                const u = JSON.parse(userStr);
+                const name = u.name || u.email || 'User';
+                const tr = translations[currentLang] || translations.en;
+                const welcomeMsg = document.getElementById('welcomeMsg');
+                if (welcomeMsg) welcomeMsg.textContent = (tr.welcomePrefix || 'Hello, ') + name + (tr.welcomeSuffix || '!');
+            } catch(e) {}
+        }
+        const today = new Date();
+        const dateEl = document.getElementById('todayDate');
+        if (dateEl) {
+            if (currentLang === 'ko') {
+                dateEl.textContent = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+            } else {
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                dateEl.textContent = `${months[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+            }
+        }
+    }
+
+    function applyTranslations() {
+        const tr = translations[currentLang] || translations.en;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (tr[key]) el.textContent = tr[key];
+        });
+        const ls = document.getElementById('langSelector');
+        if (ls) ls.value = currentLang;
+        const mls = document.getElementById('mobileLangSelector');
+        if (mls) mls.value = currentLang;
+    }
+
+    // ==================== 출퇴근 ====================
+    let attCalYear, attCalMonth;
+    (function() {
+        const now = new Date();
+        attCalYear = now.getFullYear();
+        attCalMonth = now.getMonth();
+    })();
+
+    function changeAttMonth(delta) {
+        attCalMonth += delta;
+        if (attCalMonth > 11) { attCalMonth = 0; attCalYear++; }
+        if (attCalMonth < 0) { attCalMonth = 11; attCalYear--; }
+        loadMyAttendance();
+    }
+
+    async function loadMyAttendance() {
+        const token = sessionStorage.getItem('kwv_token');
+        if (!token) return;
+
+        // 달력 제목
+        const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const monthEl = document.getElementById('attCalendarMonth');
+        if (monthEl) monthEl.textContent = `${months[attCalMonth]} ${attCalYear}`;
+
+        try {
+            const res = await fetch(`${API_BASE}/attendance/my?year=${attCalYear}&month=${attCalMonth+1}`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            const records = Array.isArray(data) ? data : (data.records || []);
+
+            // 요약 업데이트
+            const summary = data.summary || {};
+            const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+            el('myAttWorkdays', summary.workdays || records.length || 0);
+            el('myAttPresent', summary.present || 0);
+            el('myAttLate', summary.late || 0);
+            el('myAttAbsent', summary.absent || 0);
+
+            // 달력 렌더링
+            renderAttCalendar(records);
+
+            // 테이블 렌더링
+            const tbody = document.getElementById('myAttendanceBody');
+            if (tbody) {
+                if (records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">No attendance records yet.</td></tr>';
+                } else {
+                    tbody.innerHTML = records.slice(0, 30).map(r => {
+                        const typeLabel = r.check_type === 'check_in' ? '<span class="text-green-600">Check In</span>' : '<span class="text-blue-600">Check Out</span>';
+                        const statusBadge = r.is_valid !== false
+                            ? '<span class="status-badge status-approved">Valid</span>'
+                            : '<span class="status-badge status-rejected">Invalid</span>';
+                        return `<tr class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-700">${r.check_date || r.created_at?.substring(0,10) || '-'}</td>
+                            <td class="px-4 py-3">${typeLabel}</td>
+                            <td class="px-4 py-3 text-gray-600">${r.check_time || r.created_at?.substring(11,19) || '-'}</td>
+                            <td class="px-4 py-3 text-gray-500">${r.method || 'GPS'}</td>
+                            <td class="px-4 py-3">${statusBadge}</td>
+                        </tr>`;
+                    }).join('');
+                }
+            }
+        } catch(e) {
+            console.warn('loadMyAttendance error:', e);
+        }
+    }
+
+    function renderAttCalendar(records) {
+        const grid = document.getElementById('attCalendarGrid');
+        if (!grid) return;
+        const firstDay = new Date(attCalYear, attCalMonth, 1).getDay();
+        const daysInMonth = new Date(attCalYear, attCalMonth + 1, 0).getDate();
+        const today = new Date();
+
+        // Build attendance map
+        const attMap = {};
+        (records || []).forEach(r => {
+            const d = r.check_date || r.created_at?.substring(0,10);
+            if (d) {
+                const day = parseInt(d.substring(8,10));
+                if (!attMap[day]) attMap[day] = [];
+                attMap[day].push(r.check_type);
+            }
+        });
+
+        let html = '';
+        for (let i = 0; i < firstDay; i++) html += '<div class="p-2"></div>';
+        for (let d = 1; d <= daysInMonth; d++) {
+            const isToday = (d === today.getDate() && attCalMonth === today.getMonth() && attCalYear === today.getFullYear());
+            const att = attMap[d];
+            let bg = 'bg-gray-50';
+            let dot = '';
+            if (att) {
+                bg = 'bg-green-100';
+                dot = '<div class="w-1.5 h-1.5 bg-green-500 rounded-full mx-auto mt-0.5"></div>';
+            }
+            if (isToday) bg = 'bg-blue-100 ring-2 ring-blue-400';
+            html += `<div class="p-2 rounded-lg text-center ${bg}">
+                <span class="text-xs ${isToday ? 'font-bold text-blue-600' : 'text-gray-700'}">${d}</span>
+                ${dot}
+            </div>`;
+        }
+        grid.innerHTML = html;
+    }
+
+    // ==================== 활동일지 ====================
+    function openActivityModal() {
+        const modal = document.getElementById('activityModal');
+        if (modal) modal.style.display = 'flex';
+        const dateInput = document.getElementById('actDate');
+        if (dateInput) dateInput.value = new Date().toISOString().substring(0,10);
+    }
+
+    function closeActivityModal() {
+        const modal = document.getElementById('activityModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    async function loadMyActivities() {
+        const token = sessionStorage.getItem('kwv_token');
+        if (!token) return;
+        const container = document.getElementById('myActivitiesList');
+        if (!container) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/activities/my`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            const activities = Array.isArray(data) ? data : (data.activities || []);
+
+            if (activities.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-folder-open text-4xl mb-3"></i><p class="text-sm">No activity logs yet.</p></div>';
+                return;
+            }
+
+            container.innerHTML = activities.map(a => {
+                const statusColors = { submitted: 'status-processing', approved: 'status-approved', rejected: 'status-rejected' };
+                const statusLabels = { submitted: 'Submitted', approved: 'Approved', rejected: 'Rejected' };
+                const typeIcons = { work: 'fa-hammer', training: 'fa-graduation-cap', community: 'fa-hands-helping', other: 'fa-file-alt' };
+                return `<div class="card p-4">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas ${typeIcons[a.activity_type] || 'fa-file-alt'} text-purple-500"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">${a.title || 'Activity'}</p>
+                                <p class="text-xs text-gray-500">${a.activity_date || ''} · ${a.hours || 0}h · ${a.activity_type || ''}</p>
+                                <p class="text-sm text-gray-600 mt-1">${a.content || ''}</p>
+                            </div>
+                        </div>
+                        <span class="status-badge ${statusColors[a.status] || 'status-pending'}">${statusLabels[a.status] || a.status || 'Pending'}</span>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            console.warn('loadMyActivities error:', e);
+            container.innerHTML = '<div class="text-center text-red-400 py-8"><i class="fas fa-exclamation-circle mr-2"></i> Failed to load activities</div>';
+        }
+    }
+
+    async function submitActivity() {
+        const token = sessionStorage.getItem('kwv_token');
+        if (!token) return;
+
+        const body = {
+            activity_date: document.getElementById('actDate')?.value,
+            activity_type: document.getElementById('actType')?.value,
+            title: document.getElementById('actTitleInput')?.value,
+            content: document.getElementById('actContent')?.value,
+            hours: parseFloat(document.getElementById('actHours')?.value) || 8
+        };
+
+        if (!body.title || !body.activity_date) {
+            alert('Please fill in the date and title.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/activities`, {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) {
+                closeActivityModal();
+                loadMyActivities();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                alert(err.detail || 'Failed to submit activity.');
+            }
+        } catch(e) {
+            alert('Network error. Please try again.');
+        }
+    }
+
+    // ==================== 포인트 ====================
+    async function loadMyPoints() {
+        const token = sessionStorage.getItem('kwv_token');
+        if (!token) return;
+
+        try {
+            const res = await fetch(`${API_BASE}/points/my`, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+
+            const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };
+            el('myTotalPoints', data.total_points || 0);
+            el('myMonthPoints', data.month_points || 0);
+            el('myPointsRank', data.rank ? `#${data.rank}` : '-');
+
+            const records = data.records || data.history || [];
+            const tbody = document.getElementById('myPointsBody');
+            if (tbody) {
+                if (records.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">No point records yet.</td></tr>';
+                } else {
+                    tbody.innerHTML = records.map(r => {
+                        const pts = r.points || 0;
+                        const ptsClass = pts >= 0 ? 'text-green-600' : 'text-red-500';
+                        const ptsStr = pts >= 0 ? `+${pts}` : `${pts}`;
+                        return `<tr class="border-b border-gray-50 hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-700">${r.created_at?.substring(0,10) || r.date || '-'}</td>
+                            <td class="px-4 py-3 font-bold ${ptsClass}">${ptsStr}</td>
+                            <td class="px-4 py-3 text-gray-500">${r.reason_type || r.type || '-'}</td>
+                            <td class="px-4 py-3 text-gray-600">${r.description || r.reason || '-'}</td>
+                        </tr>`;
+                    }).join('');
+                }
+            }
+        } catch(e) {
+            console.warn('loadMyPoints error:', e);
+        }
+    }
+
+    // ==================== UI ====================
+    const activityTabs = ['attendance', 'activities', 'points'];
+
+    function showTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('active', 'text-blue-600');
+            el.classList.add('text-gray-500');
+            el.style.borderBottomColor = 'transparent';
+        });
+        document.querySelectorAll('.tab-dropdown-menu a').forEach(el => el.classList.remove('sub-active'));
+
+        const tab = document.getElementById('tab-' + tabName);
+        if (tab) tab.classList.add('active');
+
+        // 활동 그룹 드롭다운 하이라이트
+        if (activityTabs.includes(tabName)) {
+            const groupBtn = document.getElementById('activityGroupBtn');
+            if (groupBtn) {
+                groupBtn.classList.add('active', 'text-blue-600');
+                groupBtn.classList.remove('text-gray-500');
+                groupBtn.style.borderBottomColor = '#007AFF';
+            }
+            const subLink = document.querySelector(`.tab-dropdown-menu a[data-tab="${tabName}"]`);
+            if (subLink) subLink.classList.add('sub-active');
+        } else {
+            const btn = document.querySelector(`button[data-tab="${tabName}"]`);
+            if (btn) {
+                btn.classList.add('active', 'text-blue-600');
+                btn.classList.remove('text-gray-500');
+                btn.style.borderBottomColor = '#007AFF';
+            }
+        }
+        if (tabName === 'documents') loadMyDocuments();
+        if (tabName === 'jobs') loadApplicantJobs();
+        if (tabName === 'attendance') loadMyAttendance();
+        if (tabName === 'activities') loadMyActivities();
+        if (tabName === 'points') loadMyPoints();
+    }
+
+    // ==================== 서류 관리 ====================
+    const API_BASE = '/api/kwv';
+    let _selectedDocFile = null;
+
+    const DOC_CATEGORIES = {
+        passport_copy: { icon: 'fa-passport', color: 'green', label: 'Passport Copy' },
+        resume: { icon: 'fa-file-alt', color: 'blue', label: 'Resume / CV' },
+        health_cert: { icon: 'fa-heartbeat', color: 'orange', label: 'Health Certificate' },
+        criminal_record: { icon: 'fa-shield-alt', color: 'purple', label: 'Criminal Record Check' },
+        id_photo: { icon: 'fa-camera', color: 'cyan', label: 'ID Photo' },
+        visa_copy: { icon: 'fa-id-card', color: 'indigo', label: 'Visa Copy' },
+        contract: { icon: 'fa-file-contract', color: 'teal', label: 'Employment Contract' },
+        other: { icon: 'fa-file', color: 'gray', label: 'Other' }
+    };
+
+    async function loadMyDocuments() {
+        const token = sessionStorage.getItem('kwv_token');
+        const container = document.getElementById('uploadedDocsList');
+        const checklist = document.getElementById('docChecklist');
+        if (!token || !container) return;
+
+        try {
+            const res = await fetch(API_BASE + '/my/docs', { headers: { 'Authorization': 'Bearer ' + token } });
+            const docs = await res.json();
+            const uploadedCats = new Set((Array.isArray(docs) ? docs : []).map(d => d.file_category));
+
+            // 체크리스트 렌더링
+            if (checklist) {
+                const required = ['passport_copy', 'resume', 'health_cert', 'criminal_record', 'id_photo'];
+                checklist.innerHTML = required.map(cat => {
+                    const info = DOC_CATEGORIES[cat] || DOC_CATEGORIES.other;
+                    const done = uploadedCats.has(cat);
+                    return `<div class="flex items-center space-x-2 p-2 rounded-lg ${done ? 'bg-green-50' : 'bg-gray-50'}">
+                        <i class="fas ${done ? 'fa-check-circle text-green-500' : 'fa-circle text-gray-300'}"></i>
+                        <span class="text-sm ${done ? 'text-green-700' : 'text-gray-500'}">${info.label}</span>
+                        ${!done ? `<button onclick="openDocUploadModal('${cat}')" class="ml-auto text-xs text-blue-500 hover:text-blue-700"><i class="fas fa-upload"></i></button>` : ''}
+                    </div>`;
+                }).join('');
+            }
+
+            // 업로드된 파일 목록
+            if (!Array.isArray(docs) || docs.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-folder-open text-4xl mb-3"></i><p class="text-sm">No documents uploaded yet</p></div>';
+                return;
+            }
+
+            container.innerHTML = docs.map(doc => {
+                const info = DOC_CATEGORIES[doc.file_category] || DOC_CATEGORIES.other;
+                const dateStr = doc.created_at ? new Date(doc.created_at).toLocaleDateString() : '';
+                return `<div class="card p-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-${info.color}-100 rounded-xl flex items-center justify-center">
+                            <i class="fas ${info.icon} text-${info.color}-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">${info.label}</p>
+                            <p class="text-xs text-gray-500">${doc.file_name || 'file'} · ${dateStr}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="${doc.file_path}" target="_blank" class="px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded"><i class="fas fa-eye"></i></a>
+                        <button onclick="deleteMyDoc(${doc.id})" class="px-2 py-1 text-xs text-red-500 hover:bg-red-50 rounded"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch (e) {
+            container.innerHTML = '<div class="text-center text-red-400 py-8"><i class="fas fa-exclamation-circle mr-2"></i> Failed to load documents</div>';
+        }
+    }
+
+    function openDocUploadModal(presetCategory) {
+        _selectedDocFile = null;
+        const modal = document.getElementById('docUploadModal');
+        modal.classList.remove('hidden');
+        document.getElementById('docFilePreview').classList.add('hidden');
+        document.getElementById('docUploadBtn').disabled = true;
+        if (presetCategory) document.getElementById('docCategorySelect').value = presetCategory;
+    }
+
+    function closeDocUploadModal() {
+        document.getElementById('docUploadModal').classList.add('hidden');
+        document.getElementById('docFileInput').value = '';
+        _selectedDocFile = null;
+    }
+
+    function handleDocFileSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+        _selectedDocFile = file;
+        document.getElementById('docFileName').textContent = file.name;
+        document.getElementById('docFileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        document.getElementById('docFilePreview').classList.remove('hidden');
+        document.getElementById('docUploadBtn').disabled = false;
+    }
+
+    async function submitDocUpload() {
+        if (!_selectedDocFile) return;
+        const token = sessionStorage.getItem('kwv_token');
+        if (!token) return alert('Please login first');
+
+        const btn = document.getElementById('docUploadBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Uploading...';
+
+        const category = document.getElementById('docCategorySelect').value;
+        const formData = new FormData();
+        formData.append('file', _selectedDocFile);
+        formData.append('category', category);
+
+        try {
+            const res = await fetch(API_BASE + '/my/docs/upload', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Upload failed');
+            }
+            closeDocUploadModal();
+            loadMyDocuments();
+        } catch (e) {
+            alert(e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-upload mr-1"></i> Upload';
+        }
+    }
+
+    async function deleteMyDoc(docId) {
+        if (!confirm('Delete this document?')) return;
+        const token = sessionStorage.getItem('kwv_token');
+        try {
+            await fetch(API_BASE + '/my/docs/' + docId, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token } });
+            loadMyDocuments();
+        } catch (e) {
+            alert('Failed to delete');
+        }
+    }
+
+    // ==================== 구인 목록 ====================
+    let _applicantJobs = [];
+
+    async function loadApplicantJobs() {
+        const container = document.getElementById('applicantJobsList');
+        if (!container) return;
+
+        try {
+            const res = await fetch(API_BASE + '/jobs?status=active');
+            const data = await res.json();
+            _applicantJobs = Array.isArray(data) ? data : (data.items || []);
+            renderApplicantJobs(_applicantJobs);
+        } catch (e) {
+            container.innerHTML = '<div class="text-center text-red-400 py-8"><i class="fas fa-exclamation-circle mr-2"></i> Failed to load jobs</div>';
+        }
+    }
+
+    function filterApplicantJobs() {
+        const search = (document.getElementById('jobSearchInput')?.value || '').toLowerCase();
+        const visa = document.getElementById('jobVisaFilter')?.value || '';
+        const filtered = _applicantJobs.filter(j => {
+            if (search && !((j.title || '').toLowerCase().includes(search) || (j.location || '').toLowerCase().includes(search))) return false;
+            if (visa && !(j.visa_types || '').includes(visa)) return false;
+            return true;
+        });
+        renderApplicantJobs(filtered);
+    }
+
+    function renderApplicantJobs(jobs) {
+        const container = document.getElementById('applicantJobsList');
+        if (!container) return;
+        if (!jobs.length) {
+            container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="fas fa-briefcase text-4xl mb-3"></i><p class="text-sm">No job listings available</p></div>';
+            return;
+        }
+        container.innerHTML = jobs.map(j => {
+            const visas = (j.visa_types || '').split(',').filter(Boolean);
+            const daysAgo = j.created_at ? Math.floor((Date.now() - new Date(j.created_at).getTime()) / 86400000) : 0;
+            const timeLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : daysAgo + ' days ago';
+            return `<div class="card p-5 hover:shadow-md transition cursor-pointer" onclick="showJobDetail(${j.id})">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-semibold text-gray-800">${j.title || 'Untitled'}</h4>
+                        <p class="text-sm text-gray-500 mt-1"><i class="fas fa-building mr-1"></i> ${j.contact_name || j.location || ''}</p>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            ${visas.map(v => `<span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">${v.trim()}</span>`).join('')}
+                            ${j.location ? `<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full"><i class="fas fa-map-marker-alt mr-1"></i> ${j.location}</span>` : ''}
+                            ${j.salary ? `<span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full"><i class="fas fa-won-sign mr-1"></i> ${j.salary}</span>` : ''}
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-400">${timeLabel}</span>
+                </div>
+                ${j.positions ? `<div class="mt-2 text-xs text-orange-600"><i class="fas fa-users mr-1"></i> ${j.positions} positions</div>` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    function showJobDetail(jobId) {
+        const job = _applicantJobs.find(j => j.id === jobId);
+        if (!job) return;
+        const token = sessionStorage.getItem('kwv_token');
+        const applyBtn = token ? `<button onclick="applyForJobApplicant(${job.id},'${(job.title||'').replace(/'/g,'')}')" class="w-full mt-4 py-2.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium text-sm"><i class="fas fa-paper-plane mr-1"></i> Apply</button>` : '';
+        alert(`${job.title}\n\n${job.description || 'No description'}\n\nLocation: ${job.location || '-'}\nSalary: ${job.salary || '-'}\nPositions: ${job.positions || '-'}`);
+    }
+
+    async function applyForJobApplicant(jobId, title) {
+        if (!confirm(`Apply for "${title}"?`)) return;
+        const token = sessionStorage.getItem('kwv_token');
+        if (!token) return alert('Please login first');
+        try {
+            const res = await fetch(API_BASE + '/jobs/' + jobId + '/apply', {
+                method: 'POST', headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Failed'); }
+            alert('Application submitted!');
+        } catch (e) { alert(e.message); }
+    }
+
+    function toggleUserMenu() {
+        document.getElementById('userMenu').classList.toggle('hidden');
+    }
+
+    function toggleProfileEdit() {
+        const inputs = document.querySelectorAll('#tab-profile input:not([type="password"]), #tab-profile select');
+        const btn = document.getElementById('editProfileBtn');
+        const isEditing = !inputs[0].disabled;
+        inputs.forEach(i => { if (!i.classList.contains('bg-gray-50')) i.disabled = isEditing; });
+        btn.innerHTML = isEditing
+            ? '<i class="fas fa-edit mr-1"></i> Edit'
+            : '<i class="fas fa-save mr-1"></i> Save';
+        if (isEditing) alert('Profile updated (prototype)');
+    }
+
+    function logout() {
+        sessionStorage.removeItem('kwv_logged_in');
+        sessionStorage.removeItem('kwv_user');
+        sessionStorage.removeItem('kwv_user_type');
+        sessionStorage.removeItem('kwv_token');
+        localStorage.removeItem('kwv_logged_in');
+        localStorage.removeItem('kwv_user');
+        localStorage.removeItem('kwv_token');
+        localStorage.removeItem('kwv_username');
+        window.location.replace('/kwv-login.html');
+    }
+
+    // ==================== 모바일 전용 함수 ====================
+    let mobileCurrentPage = 0;
+    let mobileTouchStartX = 0;
+    let mobileTouchStartY = 0;
+
+    function isMobileView() { return window.innerWidth <= 768; }
+
+    function initMobileSwipe() {
+        const container = document.getElementById('mobileSwipeContainer');
+        if (!container) return;
+        container.addEventListener('touchstart', (e) => {
+            mobileTouchStartX = e.touches[0].clientX;
+            mobileTouchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        container.addEventListener('touchend', (e) => {
+            const dx = e.changedTouches[0].clientX - mobileTouchStartX;
+            const dy = e.changedTouches[0].clientY - mobileTouchStartY;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+                if (dx < 0 && mobileCurrentPage === 0) switchMobilePage(1);
+                else if (dx > 0 && mobileCurrentPage === 1) switchMobilePage(0);
+            }
+        }, { passive: true });
+    }
+
+    function switchMobilePage(page) {
+        mobileCurrentPage = page;
+        const container = document.getElementById('mobileSwipeContainer');
+        if (container) container.style.transform = `translateX(-${page * 50}%)`;
+        document.querySelectorAll('.mobile-page-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === page);
+        });
+        const page1 = document.getElementById('mobilePage1');
+        const page2 = document.getElementById('mobilePage2');
+        if (page1) page1.style.pointerEvents = page === 0 ? 'auto' : 'none';
+        if (page2) page2.style.pointerEvents = page === 1 ? 'auto' : 'none';
+        const targetPage = page === 0 ? page1 : page2;
+        if (targetPage) targetPage.scrollTop = 0;
+        window.scrollTo(0, 0);
+        // 메뉴 닫기
+        const lm = document.getElementById('mobileLayoutUserMenu');
+        if (lm) lm.classList.add('hidden');
+        const mp = document.getElementById('mobileNotifPanel');
+        if (mp) mp.classList.add('hidden');
+        // 스와이프 힌트 숨기기
+        const hint = document.getElementById('mobileSwipeHint');
+        if (hint && page === 1) hint.style.display = 'none';
+        // 메뉴 페이지로 갈 때 탭 콘텐츠 숨기기
+        if (page === 1) {
+            const tc = document.getElementById('mobileTabContent');
+            if (tc) tc.style.display = 'none';
+            const mg = document.getElementById('mobileMenuGrid');
+            if (mg) mg.style.display = 'grid';
+        }
+    }
+
+    function toggleMobileNotification() {
+        const panel = document.getElementById('mobileNotifPanel');
+        if (panel) panel.classList.toggle('hidden');
+        const lm = document.getElementById('mobileLayoutUserMenu');
+        if (lm) lm.classList.add('hidden');
+    }
+
+    function toggleMobileUserMenu() {
+        const lm = document.getElementById('mobileLayoutUserMenu');
+        if (lm) lm.classList.toggle('hidden');
+        const panel = document.getElementById('mobileNotifPanel');
+        if (panel) panel.classList.add('hidden');
+    }
+
+    function renderMobileDashboard() {
+        const content = document.getElementById('mobileDashboardContent');
+        if (!content) return;
+
+        const userStr = sessionStorage.getItem('kwv_user');
+        let userName = t('welcomePrefix') || 'Hello, ';
+        let userSuffix = t('welcomeSuffix') || '!';
+        if (userStr) {
+            try {
+                const u = JSON.parse(userStr);
+                userName = (t('welcomePrefix') || 'Hello, ') + (u.name || u.email || 'User') + userSuffix;
+            } catch(e) {}
+        }
+
+        const today = new Date();
+        let dateStr;
+        if (currentLang === 'ko') {
+            dateStr = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+        } else {
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            dateStr = `${months[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+        }
+
+        let delay = 0;
+        const fd = () => { delay += 0.05; return `animation-delay:${delay}s`; };
+
+        content.innerHTML = `
+            <!-- 환영 카드 -->
+            <div class="mobile-fade-in rounded-2xl p-5 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white mb-4" style="${fd()}">
+                <p class="text-white/70 text-xs">${dateStr}</p>
+                <h2 class="text-lg font-bold mt-1">${userName}</h2>
+                <p class="text-white/80 text-xs mt-1">${t('welcomeDesc') || 'Check your visa status and manage your application.'}</p>
+            </div>
+
+            <!-- 신청 상태 요약 -->
+            <div class="mobile-fade-in bg-white rounded-2xl p-4 mb-4 shadow-sm" style="${fd()}">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-semibold text-gray-800"><i class="fas fa-chart-line mr-1 text-blue-500"></i> ${t('mStatusOverview') || t('applicationOverview') || 'Application Status'}</h3>
+                    <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium"><i class="fas fa-spinner fa-spin mr-1"></i>${t('statusProcessing') || 'Processing'}</span>
+                </div>
+                <!-- 미니 타임라인 -->
+                <div class="flex items-center justify-between px-1">
+                    <div class="flex flex-col items-center">
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="text-[9px] text-gray-500 mt-1">${t('stepSubmitted') || 'Submitted'}</span>
+                    </div>
+                    <div class="flex-1 h-0.5 bg-green-400 mx-1"></div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="text-[9px] text-gray-500 mt-1">${t('stepReceived') || 'Received'}</span>
+                    </div>
+                    <div class="flex-1 h-0.5 bg-green-400 mx-1"></div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+                        <span class="text-[9px] text-blue-600 font-medium mt-1">${t('stepReview') || 'Review'}</span>
+                    </div>
+                    <div class="flex-1 h-0.5 bg-gray-200 mx-1"></div>
+                    <div class="flex flex-col items-center">
+                        <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                        <span class="text-[9px] text-gray-400 mt-1">${t('stepDecision') || 'Decision'}</span>
+                    </div>
+                </div>
+                <div class="mt-3 p-2.5 bg-blue-50 rounded-xl text-xs text-blue-700">
+                    <i class="fas fa-info-circle mr-1"></i> ${t('reviewMsg') || 'Your application is currently under review.'}
+                </div>
+            </div>
+
+            <!-- 빠른 액션 -->
+            <div class="mobile-fade-in mb-4" style="${fd()}">
+                <h3 class="text-sm font-semibold text-gray-800 mb-2 px-1">${t('mQuickActions') || t('qVisa') || 'Quick Actions'}</h3>
+                <div class="grid grid-cols-4 gap-2">
+                    <div onclick="handleMobileMenuClick('visa')" class="bg-white rounded-2xl p-3 text-center shadow-sm cursor-pointer active:scale-95 transition-transform">
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                            <i class="fas fa-passport text-blue-500"></i>
+                        </div>
+                        <p class="text-[10px] font-medium text-gray-700">${t('qVisa') || 'Visa'}</p>
+                    </div>
+                    <div onclick="handleMobileMenuClick('documents')" class="bg-white rounded-2xl p-3 text-center shadow-sm cursor-pointer active:scale-95 transition-transform">
+                        <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                            <i class="fas fa-file-upload text-green-500"></i>
+                        </div>
+                        <p class="text-[10px] font-medium text-gray-700">${t('qDocs') || 'Docs'}</p>
+                    </div>
+                    <div onclick="handleMobileMenuClick('jobs')" class="bg-white rounded-2xl p-3 text-center shadow-sm cursor-pointer active:scale-95 transition-transform">
+                        <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                            <i class="fas fa-search text-orange-500"></i>
+                        </div>
+                        <p class="text-[10px] font-medium text-gray-700">${t('qJobs') || 'Jobs'}</p>
+                    </div>
+                    <div onclick="handleMobileMenuClick('consulting')" class="bg-white rounded-2xl p-3 text-center shadow-sm cursor-pointer active:scale-95 transition-transform">
+                        <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-1.5">
+                            <i class="fas fa-calendar-check text-purple-500"></i>
+                        </div>
+                        <p class="text-[10px] font-medium text-gray-700">${t('qConsult') || 'Consult'}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 최근 알림 -->
+            <div class="mobile-fade-in bg-white rounded-2xl p-4 mb-4 shadow-sm" style="${fd()}">
+                <h3 class="text-sm font-semibold text-gray-800 mb-3"><i class="fas fa-bell mr-1 text-orange-500"></i> ${t('recentNotifs') || 'Recent Notifications'}</h3>
+                <div class="space-y-2">
+                    <div class="flex items-start space-x-2 p-2.5 bg-blue-50 rounded-xl">
+                        <div class="w-7 h-7 bg-blue-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-file-alt text-blue-600 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-800">${t('notif1Title') || 'Document Verified'}</p>
+                            <p class="text-[10px] text-gray-500 mt-0.5">${t('notif1Desc') || 'Your passport copy has been verified successfully.'}</p>
+                            <p class="text-[9px] text-gray-400 mt-0.5">2h ago</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-2 p-2.5 bg-green-50 rounded-xl">
+                        <div class="w-7 h-7 bg-green-200 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-medium text-gray-800">${t('notif2Title') || 'Application Received'}</p>
+                            <p class="text-[10px] text-gray-500 mt-0.5">${t('notif2Desc') || 'Your E-8 visa application has been received.'}</p>
+                            <p class="text-[9px] text-gray-400 mt-0.5">1d ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 비자 유형 요약 -->
+            <div class="mobile-fade-in grid grid-cols-3 gap-2 mb-4" style="${fd()}">
+                <div class="mobile-stat-blue rounded-2xl p-3 text-center text-white">
+                    <p class="text-lg font-bold">E-8</p>
+                    <p class="text-[9px] text-white/70">${t('agriculture') || 'Seasonal'}</p>
+                </div>
+                <div class="mobile-stat-green rounded-2xl p-3 text-center text-white">
+                    <p class="text-lg font-bold">E-9</p>
+                    <p class="text-[9px] text-white/70">${t('manufacturing') || 'Employment'}</p>
+                </div>
+                <div class="mobile-stat-purple rounded-2xl p-3 text-center text-white">
+                    <p class="text-lg font-bold">H-2</p>
+                    <p class="text-[9px] text-white/70">Working Visit</p>
+                </div>
+            </div>
+
+            <!-- 긴급 연락처 -->
+            <div class="mobile-fade-in bg-white rounded-2xl p-4 mb-4 shadow-sm" style="${fd()}">
+                <h3 class="text-sm font-semibold text-gray-800 mb-3"><i class="fas fa-phone-alt mr-1 text-red-500"></i> ${t('emergency') || 'Emergency Contacts'}</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="p-2.5 bg-red-50 rounded-xl flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-red-200 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-phone text-red-600 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-medium text-gray-800">${t('hotline') || 'Immigration'}</p>
+                            <p class="text-xs text-blue-600 font-bold">1345</p>
+                        </div>
+                    </div>
+                    <div class="p-2.5 bg-blue-50 rounded-xl flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-hands-helping text-blue-600 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-medium text-gray-800">${t('laborHelp') || 'Labor'}</p>
+                            <p class="text-xs text-blue-600 font-bold">1350</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderMobileMenuGrid() {
+        const grid = document.getElementById('mobileMenuGrid');
+        if (!grid) return;
+        const menus = [
+            { id: 'home', icon: 'fa-home', label: t('mobileHome') || t('tabHome') || 'Home', desc: t('mobileHomeDesc') || 'Dashboard', color: 'mobile-menu-blue' },
+            { id: 'visa', icon: 'fa-file-alt', label: t('tabVisa') || 'Application', desc: t('mobileVisaDesc') || 'Status & apply', color: 'mobile-menu-green' },
+            { id: 'documents', icon: 'fa-folder-open', label: t('tabDocs') || 'Documents', desc: t('mobileDocsDesc') || 'Manage files', color: 'mobile-menu-purple' },
+            { id: 'jobs', icon: 'fa-briefcase', label: t('tabJobs') || 'Jobs', desc: t('mobileJobsDesc') || 'Find work', color: 'mobile-menu-orange' },
+            { id: 'consulting', icon: 'fa-headset', label: t('tabConsulting') || 'Consulting', desc: t('mobileConsultDesc') || 'Book session', color: 'mobile-menu-indigo' },
+            { id: 'guide', icon: 'fa-book', label: t('tabGuide') || 'Guide', desc: t('mobileGuideDesc') || 'Info & FAQ', color: 'mobile-menu-teal' },
+            { id: 'activity-group', icon: 'fa-clipboard-list', label: t('tabActivity') || 'Activity', desc: 'Work & Points', color: 'mobile-menu-purple', isGroup: true },
+            { id: 'profile', icon: 'fa-user-cog', label: t('tabProfile') || 'Profile', desc: t('mobileProfileDesc') || 'My settings', color: 'mobile-menu-pink' },
+            { id: 'notifications', icon: 'fa-bell', label: t('notifsTitle') || 'Notifications', desc: t('mobileNotifsDesc') || 'Alerts', color: 'mobile-menu-orange' }
+        ];
+
+        grid.innerHTML = menus.map(m => `
+            <div class="mobile-menu-card mobile-fade-in bg-white rounded-2xl overflow-hidden shadow-sm cursor-pointer" onclick="handleMobileMenuClick('${m.id}')">
+                <div class="${m.color} p-4 flex flex-col items-center justify-center" style="min-height:90px;">
+                    <i class="fas ${m.icon} text-white text-2xl mb-2"></i>
+                    <span class="text-white font-bold text-xs">${m.label}</span>
+                </div>
+                <div class="p-2.5">
+                    <p class="text-gray-500 text-[10px] text-center">${m.desc}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function handleMobileMenuClick(tabId) {
+        if (tabId === 'home') {
+            switchMobilePage(0);
+            return;
+        }
+        // 활동 그룹 → 서브메뉴 표시
+        if (tabId === 'activity-group') {
+            const mobileTabContent = document.getElementById('mobileTabContent');
+            const menuGrid = document.getElementById('mobileMenuGrid');
+            if (mobileTabContent) {
+                menuGrid.style.display = 'none';
+                mobileTabContent.style.display = 'block';
+                mobileTabContent.innerHTML = `
+                    <button onclick="closeMobileTab()" class="mb-3 text-sm text-blue-600 font-medium"><i class="fas fa-arrow-left mr-1"></i> ${t('mobileMenu') || 'Menu'}</button>
+                    <h3 class="font-bold text-gray-800 mb-3"><i class="fas fa-clipboard-list mr-2 text-purple-500"></i>${t('tabActivity') || 'Activity'}</h3>
+                    <div class="space-y-2">
+                        <div onclick="handleMobileMenuClick('attendance')" class="card p-4 flex items-center space-x-3 cursor-pointer active:scale-95 transition-transform">
+                            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center"><i class="fas fa-clock text-blue-500"></i></div>
+                            <div><p class="font-medium text-gray-800">${t('tabAttendance') || 'Attendance'}</p><p class="text-xs text-gray-500">Check in/out records</p></div>
+                        </div>
+                        <div onclick="handleMobileMenuClick('activities')" class="card p-4 flex items-center space-x-3 cursor-pointer active:scale-95 transition-transform">
+                            <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center"><i class="fas fa-book text-purple-500"></i></div>
+                            <div><p class="font-medium text-gray-800">${t('tabActivities') || 'Activity Log'}</p><p class="text-xs text-gray-500">Write & view logs</p></div>
+                        </div>
+                        <div onclick="handleMobileMenuClick('points')" class="card p-4 flex items-center space-x-3 cursor-pointer active:scale-95 transition-transform">
+                            <div class="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center"><i class="fas fa-star text-yellow-500"></i></div>
+                            <div><p class="font-medium text-gray-800">${t('tabPoints') || 'Points'}</p><p class="text-xs text-gray-500">Point history</p></div>
+                        </div>
+                    </div>
+                `;
+                if (mobileCurrentPage !== 1) switchMobilePage(1);
+            }
+            return;
+        }
+        const tabContent = document.getElementById('tab-' + tabId);
+        const mobileTabContent = document.getElementById('mobileTabContent');
+        const menuGrid = document.getElementById('mobileMenuGrid');
+        if (tabContent && mobileTabContent) {
+            menuGrid.style.display = 'none';
+            mobileTabContent.style.display = 'block';
+            mobileTabContent.innerHTML = `
+                <button onclick="closeMobileTab()" class="mb-3 text-sm text-blue-600 font-medium"><i class="fas fa-arrow-left mr-1"></i> ${t('mobileMenu') || 'Menu'}</button>
+                <div>${tabContent.innerHTML}</div>
+            `;
+            // 탭 전환 시 페이지 2로 이동
+            if (mobileCurrentPage !== 1) switchMobilePage(1);
+            showTab(tabId);
+        }
+    }
+
+    function closeMobileTab() {
+        const mobileTabContent = document.getElementById('mobileTabContent');
+        const menuGrid = document.getElementById('mobileMenuGrid');
+        if (mobileTabContent) mobileTabContent.style.display = 'none';
+        if (menuGrid) menuGrid.style.display = 'grid';
+    }
+
+    function renderMobileNotifications() {
+        const list = document.getElementById('mobileNotifList');
+        if (!list) return;
+        list.innerHTML = `
+            <div class="flex items-start space-x-2 p-2 bg-blue-50 rounded-xl">
+                <i class="fas fa-file-alt text-blue-500 text-xs mt-1"></i>
+                <div>
+                    <p class="text-xs font-medium text-gray-800">${t('notif1Title') || 'Document Verified'}</p>
+                    <p class="text-[10px] text-gray-500">${t('notif1Desc') || 'Passport copy verified.'}</p>
+                </div>
+            </div>
+            <div class="flex items-start space-x-2 p-2 bg-green-50 rounded-xl">
+                <i class="fas fa-check text-green-500 text-xs mt-1"></i>
+                <div>
+                    <p class="text-xs font-medium text-gray-800">${t('notif2Title') || 'Application Received'}</p>
+                    <p class="text-[10px] text-gray-500">${t('notif2Desc') || 'E-8 visa application received.'}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function initMobileLayout() {
+        renderMobileDashboard();
+        renderMobileMenuGrid();
+        renderMobileNotifications();
+        initMobileSwipe();
+        // 초기 상태: page2 비활성
+        const page2 = document.getElementById('mobilePage2');
+        if (page2) page2.style.pointerEvents = 'none';
+        // 스와이프 힌트 숨기기 (7초 후)
+        setTimeout(() => {
+            const hint = document.getElementById('mobileSwipeHint');
+            if (hint) hint.style.opacity = '0';
+            setTimeout(() => { if (hint) hint.style.display = 'none'; }, 500);
+        }, 7000);
+    }
+
+    // ==================== 초기화 ====================
+    document.addEventListener('DOMContentLoaded', () => {
+        // 모바일 초기화 최우선
+        if (isMobileView()) {
+            try { initMobileLayout(); } catch(e) { console.warn('initMobileLayout error:', e); }
+        }
+
+        const userStr = sessionStorage.getItem('kwv_user');
+        if (userStr) {
+            try {
+                currentUser = JSON.parse(userStr);
+                const name = currentUser.name || currentUser.email || 'User';
+                const headerName = document.getElementById('headerUserName');
+                if (headerName) headerName.textContent = name;
+                const menuName = document.getElementById('menuUserName');
+                if (menuName) menuName.textContent = name;
+                const profileName = document.getElementById('profileName');
+                if (profileName) profileName.textContent = name;
+                const profileEmail = document.getElementById('profileEmail');
+                if (profileEmail) profileEmail.textContent = currentUser.email || '';
+                const pfNameInput = document.getElementById('pfNameInput');
+                if (pfNameInput) pfNameInput.value = name;
+                const pfEmailInput = document.getElementById('pfEmailInput');
+                if (pfEmailInput) pfEmailInput.value = currentUser.email || '';
+                const pfLangInput = document.getElementById('pfLangInput');
+                if (pfLangInput) pfLangInput.value = currentLang;
+
+                // 모바일 사용자 메뉴 이름
+                const mobileMenuName = document.getElementById('mobileLayoutUserMenuName');
+                if (mobileMenuName) mobileMenuName.textContent = name;
+
+                const tr = translations[currentLang] || translations.en;
+                const welcomeMsg = document.getElementById('welcomeMsg');
+                if (welcomeMsg) welcomeMsg.textContent = (tr.welcomePrefix || 'Hello, ') + name + (tr.welcomeSuffix || '!');
+            } catch(e) {}
+        }
+
+        // 오늘 날짜
+        const today = new Date();
+        const dateEl = document.getElementById('todayDate');
+        if (dateEl) {
+            if (currentLang === 'ko') {
+                dateEl.textContent = `${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+            } else {
+                const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+                dateEl.textContent = `${months[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`;
+            }
+        }
+
+        applyTranslations();
+
+        // 시스템 설정 (로고/타이틀) 적용
+        (async () => {
+            try {
+                const res = await fetch(API_BASE + '/settings');
+                if (res.ok) {
+                    const s = await res.json();
+                    if (s.system_title) {
+                        document.title = s.system_title + ' - Worker Dashboard';
+                        const ht = document.getElementById('headerSiteTitle');
+                        if (ht) ht.textContent = s.system_title;
+                        const mt = document.getElementById('mobileSiteTitle');
+                        if (mt) mt.textContent = s.system_title;
+                    }
+                    if (s.logo_url) {
+                        // 데스크톱
+                        const icon = document.getElementById('headerLogoIcon');
+                        const img = document.getElementById('headerLogoImg');
+                        if (icon && img) { icon.classList.add('hidden'); img.src = s.logo_url; img.classList.remove('hidden'); }
+                        // 모바일
+                        const mIcon = document.getElementById('mobileLogoIcon');
+                        const mImg = document.getElementById('mobileLogoImg');
+                        if (mIcon && mImg) { mIcon.classList.add('hidden'); mImg.src = s.logo_url; mImg.classList.remove('hidden'); }
+                    }
+                }
+            } catch(e) {}
+        })();
+
+        // 리사이즈 핸들러
+        let mobileInitDone = isMobileView();
+        window.addEventListener('resize', () => {
+            if (isMobileView() && !mobileInitDone) {
+                mobileInitDone = true;
+                try { initMobileLayout(); } catch(e) { console.warn(e); }
+            }
+        });
+    });
+
+    // 외부 클릭 시 메뉴 닫기
+    document.addEventListener('click', (e) => {
+        const menu = document.getElementById('userMenu');
+        if (menu && !menu.classList.contains('hidden') && !e.target.closest('.relative')) {
+            menu.classList.add('hidden');
+        }
+        const mobileMenu = document.getElementById('mobileLayoutUserMenu');
+        if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+            const trigger = e.target.closest('[onclick*="toggleMobileUserMenu"]');
+            if (!trigger && !mobileMenu.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        }
+        const notifPanel = document.getElementById('mobileNotifPanel');
+        if (notifPanel && !notifPanel.classList.contains('hidden')) {
+            const trigger = e.target.closest('[onclick*="toggleMobileNotification"]');
+            if (!trigger && !notifPanel.contains(e.target)) {
+                notifPanel.classList.add('hidden');
+            }
+        }
+    });
+</script>
+</body>
+</html>

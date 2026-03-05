@@ -1,0 +1,639 @@
+/**
+ * PWA 모바일 최적화 스타일
+ * BH2025 Education Management System
+ */
+
+/* ==================== 터치 친화적 UI ==================== */
+
+/* 모든 버튼과 링크에 터치 영역 확대 */
+button, a, .tab-btn, .clickable {
+    min-height: 44px; /* iOS 권장 최소 터치 영역 */
+    min-width: 44px;
+}
+
+/* 터치 피드백 효과 */
+button:active, a:active, .tab-btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+/* 터치 하이라이트 제거 (네이티브 앱처럼) */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* 텍스트 선택 허용 (입력 필드는 제외) */
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* ==================== 모바일 전용 스타일 ==================== */
+
+@media (max-width: 768px) {
+    /* 헤더 축소 */
+    header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    header p {
+        font-size: 0.75rem !important;
+    }
+    
+    /* 네비게이션 버튼 크기 조정 */
+    .tab-btn {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    /* 카드 간격 축소 */
+    .space-y-6 > * + * {
+        margin-top: 1rem !important;
+    }
+    
+    /* 테이블 스크롤 가능하게 */
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    /* 폼 입력 필드 크기 조정 */
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="password"],
+    select,
+    textarea {
+        font-size: 16px !important; /* iOS 자동 줌 방지 */
+        padding: 0.75rem !important;
+    }
+    
+    /* 모달 크기 조정 */
+    .modal-content {
+        width: 95% !important;
+        max-width: 100% !important;
+        margin: 1rem !important;
+    }
+    
+    /* 스크롤바 숨기기 (깔끔한 모바일 UI) */
+    ::-webkit-scrollbar {
+        width: 2px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-radius: 2px;
+    }
+}
+
+/* ==================== PWA 전용 스타일 ==================== */
+
+/* PWA 모드에서 상단 여백 추가 (노치 대응) */
+.pwa-mode {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* PWA 스플래시 화면 (로딩 중) */
+.pwa-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.pwa-loading .logo {
+    width: 120px;
+    height: 120px;
+    margin-bottom: 2rem;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+/* ==================== 오프라인 인디케이터 ==================== */
+
+.offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: #f59e0b;
+    color: white;
+    padding: 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    z-index: 9999;
+    transform: translateY(-100%);
+    transition: transform 0.3s;
+}
+
+.offline-indicator.show {
+    transform: translateY(0);
+}
+
+/* ==================== 설치 배너 애니메이션 ==================== */
+
+#install-banner {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* ==================== 풀 스크린 버튼 (사진 보기) ==================== */
+
+.fullscreen-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fullscreen-image img {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+/* ==================== 스와이프 제스처 힌트 ==================== */
+
+.swipeable {
+    position: relative;
+    touch-action: pan-y;
+}
+
+.swipeable::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 4px;
+    height: 40px;
+    background-color: #3b82f6;
+    transform: translateY(-50%);
+    opacity: 0.3;
+    border-radius: 0 4px 4px 0;
+}
+
+/* ==================== 카메라 버튼 강조 ==================== */
+
+.camera-button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    box-shadow: 0 4px 14px 0 rgba(102, 126, 234, 0.4);
+    transition: all 0.3s;
+}
+
+.camera-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px 0 rgba(102, 126, 234, 0.6);
+}
+
+.camera-button:active {
+    transform: translateY(0);
+}
+
+/* ==================== 프로그레스 바 애니메이션 ==================== */
+
+.progress-bar {
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ==================== 반응형 그리드 최적화 ==================== */
+
+@media (max-width: 640px) {
+    .grid-cols-2,
+    .grid-cols-3,
+    .grid-cols-4 {
+        grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+    .grid-cols-3,
+    .grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+/* ==================== 로딩 스피너 개선 ==================== */
+
+.spinner-border {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ==================== 모바일 검색 바 ==================== */
+
+@media (max-width: 768px) {
+    input[type="search"] {
+        -webkit-appearance: none;
+        appearance: none;
+        border-radius: 9999px;
+        padding-left: 2.5rem !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'%3E%3C/path%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 0.75rem center;
+        background-size: 1.25rem;
+    }
+}
+
+/* ==================== 햅틱 피드백 시뮬레이션 ==================== */
+
+.haptic-light:active {
+    animation: hapticLight 0.1s;
+}
+
+@keyframes hapticLight {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.97);
+    }
+}
+
+/* ==================== Safe Area 대응 (iPhone X 이상) ==================== */
+
+@supports (padding: max(0px)) {
+    .safe-area-padding {
+        padding-left: max(1rem, env(safe-area-inset-left));
+        padding-right: max(1rem, env(safe-area-inset-right));
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+}
+
+/* ==================== 반응형 헤더 개선 ==================== */
+
+@media (max-width: 768px) {
+    /* 헤더 컨테이너 */
+    header .container {
+        padding: 1rem !important;
+    }
+    
+    /* 헤더 플렉스 방향 변경 */
+    header .flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem;
+    }
+    
+    /* 사용자 정보와 로그아웃 버튼 */
+    header .flex.items-center.gap-4 {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    /* 로그아웃 버튼 크기 축소 */
+    header button {
+        padding: 0.5rem 1rem !important;
+        font-size: 0.875rem !important;
+    }
+}
+
+/* ==================== 반응형 네비게이션 ==================== */
+
+@media (max-width: 1024px) {
+    /* 네비게이션 버튼들 래핑 */
+    nav {
+        flex-wrap: wrap !important;
+    }
+    
+    /* 드롭다운 메뉴 위치 조정 */
+    .group:hover > div {
+        left: auto;
+        right: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    /* 네비게이션 세로 정렬 */
+    nav {
+        flex-direction: column !important;
+        width: 100%;
+    }
+    
+    /* 탭 버튼 전체 너비 */
+    .tab-btn,
+    nav button {
+        width: 100% !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+    
+    /* 드롭다운 메뉴 전체 너비 */
+    .group > div {
+        position: static !important;
+        width: 100% !important;
+        box-shadow: none !important;
+        background-color: #f3f4f6 !important;
+        padding-left: 1rem !important;
+    }
+    
+    /* 드롭다운 항목 */
+    .group > div button {
+        padding-left: 2rem !important;
+    }
+}
+
+/* ==================== 반응형 테이블 (카드형) ==================== */
+
+@media (max-width: 768px) {
+    /* 테이블을 카드 스타일로 변환 */
+    table.mobile-card thead {
+        display: none;
+    }
+    
+    table.mobile-card,
+    table.mobile-card tbody,
+    table.mobile-card tr {
+        display: block;
+        width: 100%;
+    }
+    
+    table.mobile-card tr {
+        margin-bottom: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    table.mobile-card td {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0 !important;
+        border: none !important;
+        text-align: right;
+    }
+    
+    table.mobile-card td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        text-align: left;
+        color: #374151;
+        flex: 1;
+    }
+    
+    table.mobile-card td:last-child {
+        border-bottom: none;
+    }
+    
+    /* 작업 버튼 중앙 정렬 */
+    table.mobile-card td:last-child {
+        justify-content: center;
+        gap: 0.5rem;
+    }
+}
+
+/* ==================== 반응형 폼 ==================== */
+
+@media (max-width: 768px) {
+    /* 그리드를 단일 컬럼으로 */
+    .grid-cols-2,
+    .grid-cols-3,
+    .md\\:grid-cols-2,
+    .md\\:grid-cols-3,
+    .md\\:grid-cols-4,
+    .md\\:grid-cols-5,
+    .md\\:grid-cols-6 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* 폼 버튼 전체 너비 */
+    form button,
+    .form-actions button {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* 필터 섹션 간격 조정 */
+    .bg-gray-50.p-4 {
+        padding: 1rem !important;
+    }
+}
+
+/* ==================== 반응형 대시보드 ==================== */
+
+@media (max-width: 768px) {
+    /* 통계 카드 세로 정렬 */
+    .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* 카드 패딩 축소 */
+    .rounded-xl.shadow-lg.p-6 {
+        padding: 1rem !important;
+    }
+    
+    /* 대시보드 제목 크기 조정 */
+    #app h2 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* 대시보드 아이콘 크기 조정 */
+    .bg-white.bg-opacity-20 i {
+        font-size: 2rem !important;
+    }
+}
+
+/* ==================== 반응형 모달 ==================== */
+
+@media (max-width: 768px) {
+    /* 모달 전체 화면 */
+    .fixed.inset-0 > div {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* 모달 스크롤 */
+    .overflow-y-auto {
+        max-height: calc(100vh - 4rem) !important;
+    }
+}
+
+/* ==================== 반응형 검색 및 필터 ==================== */
+
+@media (max-width: 768px) {
+    /* 검색 입력 전체 너비 */
+    input[type="search"],
+    input[type="text"].flex-1 {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* 필터 버튼들 스택 */
+    .flex.gap-2 {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .flex.gap-2 button {
+        width: 100% !important;
+    }
+}
+
+/* ==================== 반응형 사진 업로드 ==================== */
+
+@media (max-width: 768px) {
+    /* 사진 그리드 2열로 */
+    .grid.grid-cols-4,
+    .grid.grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* 사진 버튼 크기 조정 */
+    .border-2.border-dashed button {
+        font-size: 0.875rem !important;
+        padding: 0.5rem 1rem !important;
+    }
+}
+
+/* ==================== 반응형 텍스트 ==================== */
+
+@media (max-width: 768px) {
+    /* 본문 텍스트 크기 */
+    body {
+        font-size: 14px;
+    }
+    
+    /* 제목 크기 조정 */
+    h1 { font-size: 1.5rem !important; }
+    h2 { font-size: 1.25rem !important; }
+    h3 { font-size: 1.125rem !important; }
+    
+    /* 작은 텍스트 가독성 */
+    .text-xs {
+        font-size: 0.75rem !important;
+    }
+    
+    .text-sm {
+        font-size: 0.875rem !important;
+    }
+}
+
+/* ==================== 모바일 하단 고정 버튼 ==================== */
+
+@media (max-width: 768px) {
+    /* 추가 버튼을 하단에 고정 (선택적) */
+    .mobile-fixed-bottom {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1rem;
+        background: white;
+        box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        z-index: 100;
+    }
+}
+
+/* ==================== 가로 스크롤 개선 ==================== */
+
+@media (max-width: 768px) {
+    /* 가로 스크롤 컨테이너 */
+    .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    /* 가로 스크롤 힌트 */
+    .overflow-x-auto:before {
+        content: '← 좌우로 스크롤 →';
+        display: block;
+        text-align: center;
+        font-size: 0.75rem;
+        color: #9ca3af;
+        padding: 0.5rem;
+        background: #f9fafb;
+    }
+}
+
+/* ==================== 터치 영역 최적화 ==================== */
+
+@media (max-width: 768px) {
+    /* 모든 클릭 가능한 요소 */
+    button,
+    a,
+    .clickable,
+    [onclick] {
+        min-height: 48px;
+        min-width: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* 아이콘 버튼 */
+    .fa,
+    .fas,
+    .far {
+        font-size: 1.25rem !important;
+        padding: 0.5rem;
+    }
+}

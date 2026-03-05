@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KoreaWorkingVisa - 로그인</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); }
+        .input-apple { border: 1px solid #d1d1d6; border-radius: 12px; padding: 14px 16px; transition: all 0.2s; width: 100%; }
+        .input-apple:focus { border-color: #007aff; box-shadow: 0 0 0 4px rgba(0,122,255,0.1); outline: none; }
+        .btn-primary { background: #007aff; color: white; border-radius: 12px; padding: 14px 24px; font-weight: 600; transition: all 0.2s; width: 100%; }
+        .btn-primary:hover { background: #0056b3; transform: scale(1.02); }
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div class="glass rounded-3xl p-10 w-full max-w-md shadow-2xl">
+        <!-- 로고 -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-globe-asia text-white text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">KoreaWorkingVisa</h1>
+            <p class="text-gray-500 text-sm mt-1">관리자 로그인</p>
+        </div>
+
+        <!-- 로그인 폼 -->
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">아이디</label>
+                <div class="relative">
+                    <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="username" class="input-apple pl-11" placeholder="아이디를 입력하세요" required>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="password" id="password" class="input-apple pl-11" placeholder="비밀번호를 입력하세요" required>
+                    <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center justify-between">
+                <label class="flex items-center">
+                    <input type="checkbox" id="remember" class="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-600">로그인 유지</span>
+                </label>
+            </div>
+            <div id="errorMsg" class="hidden bg-red-50 text-red-600 p-3 rounded-xl text-sm text-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                <span>아이디 또는 비밀번호가 일치하지 않습니다.</span>
+            </div>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-sign-in-alt mr-2"></i>로그인
+            </button>
+        </form>
+
+        <!-- 푸터 -->
+        <p class="text-center text-gray-400 text-xs mt-8">© 2026 KoreaWorkingVisa. All rights reserved.</p>
+    </div>
+
+    <script>
+        // 이미 로그인 되어있으면 대시보드로
+        if (localStorage.getItem('kwv_logged_in') === 'true') {
+            window.location.href = '/kwv-dashboard.html';
+        }
+
+        // 비밀번호 보기 토글
+        function togglePassword() {
+            const pw = document.getElementById('password');
+            const icon = document.getElementById('eyeIcon');
+            if (pw.type === 'password') {
+                pw.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                pw.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // 로그인 처리
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            const errorMsg = document.getElementById('errorMsg');
+            
+            // 관리자 인증
+            if (username === 'gwc2025' && password === 'dodan1004~!@#') {
+                // 로그인 성공
+                if (remember) {
+                    localStorage.setItem('kwv_logged_in', 'true');
+                    localStorage.setItem('kwv_username', username);
+                } else {
+                    sessionStorage.setItem('kwv_logged_in', 'true');
+                    sessionStorage.setItem('kwv_username', username);
+                }
+                
+                // 대시보드로 이동
+                window.location.href = '/kwv-dashboard.html';
+            } else {
+                // 로그인 실패
+                errorMsg.classList.remove('hidden');
+                this.classList.add('shake');
+                setTimeout(() => this.classList.remove('shake'), 500);
+            }
+        });
+    </script>
+</body>
+</html>

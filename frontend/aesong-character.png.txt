@@ -1,0 +1,2 @@
+이미지를 다운로드할 수 없어서 대신 이미지를 직접 업로드하는 방식을 사용합니다.
+사용자가 제공한 이미지 URL: https://www.genspark.ai/api/files/s/VbB8BdAr

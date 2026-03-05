@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>회원가입 - 대한민국 계절 근로자 통합 관리</title>
+    <meta name="description" content="대한민국 계절 근로자 통합 관리 플랫폼 회원가입">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="회원가입 - 대한민국 계절 근로자 통합 관리">
+    <meta property="og:description" content="외국인 계절근로자 통합 관리 플랫폼에 가입하세요.">
+    <meta property="og:image" content="/static/og-kwv.svg">
+    <meta property="og:site_name" content="대한민국 계절 근로자 통합 관리">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127472;&#127479;</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
+    <div class="fixed top-4 right-4 z-50">
+        <select id="langSelector" onchange="changeLanguage(this.value)" class="px-3 py-2 bg-white/90 rounded-lg shadow-lg text-sm focus:outline-none cursor-pointer">
+            <option value="en">English</option>
+            <option value="ko">한국어</option>
+            <option value="vi">Tiếng Việt</option>
+            <option value="th">ภาษาไทย</option>
+            <option value="tl">Pilipino</option>
+        </select>
+    </div>
+
+    <div class="w-full max-w-lg">
+        <div class="glass-card rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-green-600 to-blue-600 p-6 text-center">
+                <div id="regLogoWrap" class="w-[200px] h-[200px] bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-user-plus text-7xl text-green-600" id="regLogoIcon"></i>
+                    <img id="regLogoImg" src="" class="w-40 h-40 rounded-full object-contain hidden">
+                </div>
+                <h1 class="text-2xl font-bold text-white" data-i18n="title" id="regTitle">Worker Registration</h1>
+                <p class="text-green-100 text-sm mt-1" data-i18n="subtitle" id="regSubtitle">Sign up with Google</p>
+            </div>
+
+            <div class="p-6 text-center">
+                <div class="mb-6">
+                    <div class="w-16 h-16 bg-blue-100 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <i class="fab fa-google text-3xl text-blue-600"></i>
+                    </div>
+                    <p class="text-gray-600 mb-2" data-i18n="googleRegDesc">Create your account instantly with Google.</p>
+                    <p class="text-gray-400 text-sm" data-i18n="googleRegNote">Your Google name and email will be used for your profile.</p>
+                </div>
+
+                <button type="button" onclick="window.location.href='/api/kwv/auth/google/start?mode=register'"
+                    class="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg border-2 border-gray-200 text-lg mb-4">
+                    <svg width="24" height="24" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                    <span data-i18n="googleRegBtn">Sign up with Google</span>
+                </button>
+
+                <div class="border-t border-gray-200 pt-4 mt-2">
+                    <p class="text-gray-600 text-sm">
+                        <span data-i18n="hasAccount">Already have an account?</span>
+                        <a href="/kwv-login.html" class="text-blue-600 font-medium hover:underline" data-i18n="login">Login</a>
+                    </p>
+                    <p class="text-gray-500 text-sm mt-2">
+                        <span data-i18n="isAdmin">Are you an administrator?</span>
+                        <a href="/kwv-admin-register.html" class="text-purple-600 font-medium hover:underline" data-i18n="adminRegLink">Apply as Admin</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-6">
+            <p class="text-white/80 text-sm">&copy; 2026 Korea Working Visa</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/kwv';
+
+        const translations = {
+            en: {
+                title: 'Worker Registration', subtitle: 'Sign up with Google',
+                googleRegDesc: 'Create your account instantly with Google.',
+                googleRegNote: 'Your Google name and email will be used for your profile.',
+                googleRegBtn: 'Sign up with Google',
+                hasAccount: 'Already have an account?', login: 'Login',
+                isAdmin: 'Are you an administrator?', adminRegLink: 'Apply as Admin'
+            },
+            ko: {
+                title: '근로자 가입', subtitle: 'Google로 가입하기',
+                googleRegDesc: 'Google 계정으로 간편하게 가입하세요.',
+                googleRegNote: 'Google 이름과 이메일이 프로필에 사용됩니다.',
+                googleRegBtn: 'Google로 가입하기',
+                hasAccount: '이미 계정이 있으신가요?', login: '로그인',
+                isAdmin: '관리자이신가요?', adminRegLink: '관리자 가입 신청'
+            },
+            vi: {
+                title: 'Đăng ký Lao động', subtitle: 'Đăng ký bằng Google',
+                googleRegDesc: 'Tạo tài khoản ngay với Google.',
+                googleRegNote: 'Tên và email Google sẽ được sử dụng cho hồ sơ.',
+                googleRegBtn: 'Đăng ký bằng Google',
+                hasAccount: 'Đã có tài khoản?', login: 'Đăng nhập',
+                isAdmin: 'Bạn là quản trị viên?', adminRegLink: 'Đăng ký Quản trị'
+            },
+            th: {
+                title: 'ลงทะเบียนแรงงาน', subtitle: 'สมัครด้วย Google',
+                googleRegDesc: 'สร้างบัญชีทันทีด้วย Google',
+                googleRegNote: 'ชื่อและอีเมล Google จะถูกใช้สำหรับโปรไฟล์ของคุณ',
+                googleRegBtn: 'สมัครด้วย Google',
+                hasAccount: 'มีบัญชีอยู่แล้ว?', login: 'เข้าสู่ระบบ',
+                isAdmin: 'คุณเป็นผู้ดูแลระบบ?', adminRegLink: 'สมัครเป็นผู้ดูแล'
+            },
+            tl: {
+                title: 'Pagpaparehistro ng Worker', subtitle: 'Mag-sign up gamit ang Google',
+                googleRegDesc: 'Gumawa ng account agad gamit ang Google.',
+                googleRegNote: 'Ang Google name at email ay gagamitin para sa profile.',
+                googleRegBtn: 'Mag-sign up gamit ang Google',
+                hasAccount: 'May account na?', login: 'Mag-login',
+                isAdmin: 'Ikaw ba ay administrator?', adminRegLink: 'Mag-apply bilang Admin'
+            }
+        };
+
+        let currentLang = localStorage.getItem('kwv_language') || 'en';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('kwv_language', lang);
+            applyTranslations();
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLang] || translations.en;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.getElementById('langSelector').value = currentLang;
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            applyTranslations();
+
+            try {
+                const res = await fetch(`${API_BASE}/settings`);
+                if (res.ok) {
+                    const s = await res.json();
+                    if (s.system_title) document.title = s.system_title + ' - 회원가입';
+                    if (s.logo_url) {
+                        document.getElementById('regLogoIcon').classList.add('hidden');
+                        const img = document.getElementById('regLogoImg');
+                        img.src = s.logo_url; img.classList.remove('hidden');
+                    }
+                }
+            } catch(e) {}
+        });
+    </script>
+</body>
+</html>

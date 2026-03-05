@@ -1,0 +1,45 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+venv/
+.venv/
+
+# Node
+node_modules/
+
+# Uploads & User Data
+backend/file_uploads/
+backend/backups/
+backend/logs/
+backend/thumbnails/
+
+# ML Model Cache
+backend/model_cache/
+backend/backend/
+
+# RAG vector store
+backend/rag/vector_data/
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker (removed)
+docker-compose.yml
+Dockerfile

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Korea Working Visa - 한국 취업비자 신청 플랫폼">
+    <title>Korea Working Visa - 로그인</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .input-focus:focus {
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .decorative-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .visa-icon {
+            font-size: 4rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- 장식 원형 요소들 -->
+    <div class="decorative-circle w-96 h-96 -top-48 -left-48" style="opacity: 0.5;"></div>
+    <div class="decorative-circle w-64 h-64 -bottom-32 -right-32" style="opacity: 0.3;"></div>
+    <div class="decorative-circle w-32 h-32 top-1/4 right-1/4" style="opacity: 0.2;"></div>
+
+    <div class="w-full max-w-md relative z-10">
+        <!-- 로고 및 타이틀 -->
+        <div class="text-center mb-8">
+            <div class="floating inline-block mb-4">
+                <div class="w-24 h-24 mx-auto bg-white rounded-2xl shadow-2xl flex items-center justify-center">
+                    <i class="fas fa-passport visa-icon"></i>
+                </div>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2 drop-shadow-lg">Korea Working Visa</h1>
+            <p class="text-white/80 text-sm">한국 취업비자 신청 플랫폼</p>
+        </div>
+
+        <!-- 로그인 카드 -->
+        <div class="glass-card rounded-3xl shadow-2xl overflow-hidden">
+            <!-- 탭 메뉴 -->
+            <div class="flex border-b border-gray-200">
+                <button id="tab-login" class="flex-1 py-4 text-center font-semibold text-purple-600 border-b-2 border-purple-600 transition-all">
+                    <i class="fas fa-sign-in-alt mr-2"></i>로그인
+                </button>
+                <button id="tab-register" class="flex-1 py-4 text-center font-semibold text-gray-400 hover:text-gray-600 transition-all">
+                    <i class="fas fa-user-plus mr-2"></i>회원가입
+                </button>
+            </div>
+
+            <!-- 로그인 폼 -->
+            <div id="form-login" class="p-8">
+                <form id="loginForm" class="space-y-5">
+                    <!-- 이메일 입력 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-envelope mr-2 text-purple-500"></i>이메일
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="example@email.com"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all"
+                            required
+                        >
+                    </div>
+
+                    <!-- 비밀번호 입력 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock mr-2 text-purple-500"></i>비밀번호
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="password"
+                                id="password"
+                                placeholder="비밀번호를 입력하세요"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all pr-12"
+                                required
+                            >
+                            <button
+                                type="button"
+                                id="togglePassword"
+                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <i class="fas fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 옵션 -->
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" id="rememberMe" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="ml-2 text-sm text-gray-600">로그인 상태 유지</span>
+                        </label>
+                        <a href="#" class="text-sm text-purple-600 hover:text-purple-800 font-medium">비밀번호 찾기</a>
+                    </div>
+
+                    <!-- 로그인 버튼 -->
+                    <button type="submit" class="w-full btn-primary text-white font-bold py-3 rounded-xl shadow-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>로그인
+                    </button>
+                </form>
+
+                <!-- 소셜 로그인 -->
+                <div class="mt-8">
+                    <div class="relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-300"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-4 bg-white text-gray-500">또는</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-3 gap-3">
+                        <button class="flex items-center justify-center py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all">
+                            <img src="https://www.google.com/favicon.ico" alt="Google" class="w-5 h-5">
+                        </button>
+                        <button class="flex items-center justify-center py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all">
+                            <i class="fab fa-apple text-xl text-gray-800"></i>
+                        </button>
+                        <button class="flex items-center justify-center py-3 border border-gray-300 rounded-xl hover:bg-yellow-50 transition-all">
+                            <img src="https://developers.kakao.com/assets/img/about/logos/kakaolink/kakaolink_btn_small.png" alt="Kakao" class="w-5 h-5">
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 회원가입 폼 (숨김) -->
+            <div id="form-register" class="p-8 hidden">
+                <form id="registerForm" class="space-y-5">
+                    <!-- 이름 -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-user mr-2 text-purple-500"></i>이름
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="홍길동"
+                                class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all"
+                            >
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-globe mr-2 text-purple-500"></i>국적
+                            </label>
+                            <select class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all bg-white">
+                                <option>선택하세요</option>
+                                <option>중국</option>
+                                <option>베트남</option>
+                                <option>필리핀</option>
+                                <option>인도네시아</option>
+                                <option>기타</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 이메일 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-envelope mr-2 text-purple-500"></i>이메일
+                        </label>
+                        <input
+                            type="email"
+                            placeholder="example@email.com"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all"
+                        >
+                    </div>
+
+                    <!-- 비밀번호 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-lock mr-2 text-purple-500"></i>비밀번호
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="8자 이상 입력"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all"
+                        >
+                    </div>
+
+                    <!-- 비밀번호 확인 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-check-double mr-2 text-purple-500"></i>비밀번호 확인
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="비밀번호를 다시 입력"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all"
+                        >
+                    </div>
+
+                    <!-- 비자 유형 -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-id-card mr-2 text-purple-500"></i>신청 비자 유형
+                        </label>
+                        <select class="w-full px-4 py-3 border border-gray-300 rounded-xl input-focus focus:border-purple-500 outline-none transition-all bg-white">
+                            <option>선택하세요</option>
+                            <option>E-7 (특정활동)</option>
+                            <option>E-9 (비전문취업)</option>
+                            <option>H-2 (방문취업)</option>
+                            <option>D-10 (구직)</option>
+                            <option>F-2 (거주)</option>
+                        </select>
+                    </div>
+
+                    <!-- 약관 동의 -->
+                    <div class="space-y-2">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 text-purple-600 rounded focus:ring-purple-500">
+                            <span class="ml-2 text-sm text-gray-600">
+                                <a href="#" class="text-purple-600 hover:underline">이용약관</a> 및
+                                <a href="#" class="text-purple-600 hover:underline">개인정보처리방침</a>에 동의합니다
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- 회원가입 버튼 -->
+                    <button type="submit" class="w-full btn-primary text-white font-bold py-3 rounded-xl shadow-lg">
+                        <i class="fas fa-user-plus mr-2"></i>회원가입
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 하단 링크 -->
+        <div class="text-center mt-6 space-y-2">
+            <p class="text-white/80 text-sm">
+                <i class="fas fa-question-circle mr-1"></i>
+                도움이 필요하신가요?
+                <a href="#" class="text-white font-semibold hover:underline">고객센터</a>
+            </p>
+            <p class="text-white/60 text-xs">
+                © 2025 Korea Working Visa. All rights reserved.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 탭 전환
+        const tabLogin = document.getElementById('tab-login');
+        const tabRegister = document.getElementById('tab-register');
+        const formLogin = document.getElementById('form-login');
+        const formRegister = document.getElementById('form-register');
+
+        tabLogin.addEventListener('click', () => {
+            tabLogin.classList.add('text-purple-600', 'border-b-2', 'border-purple-600');
+            tabLogin.classList.remove('text-gray-400');
+            tabRegister.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600');
+            tabRegister.classList.add('text-gray-400');
+            formLogin.classList.remove('hidden');
+            formRegister.classList.add('hidden');
+        });
+
+        tabRegister.addEventListener('click', () => {
+            tabRegister.classList.add('text-purple-600', 'border-b-2', 'border-purple-600');
+            tabRegister.classList.remove('text-gray-400');
+            tabLogin.classList.remove('text-purple-600', 'border-b-2', 'border-purple-600');
+            tabLogin.classList.add('text-gray-400');
+            formRegister.classList.remove('hidden');
+            formLogin.classList.add('hidden');
+        });
+
+        // 비밀번호 표시/숨김
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('eyeIcon');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            eyeIcon.classList.toggle('fa-eye');
+            eyeIcon.classList.toggle('fa-eye-slash');
+        });
+
+        // 폼 제출 (목업)
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('로그인 기능은 목업입니다.\n실제 구현 시 API 연동이 필요합니다.');
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('회원가입 기능은 목업입니다.\n실제 구현 시 API 연동이 필요합니다.');
+        });
+    </script>
+</body>
+</html>

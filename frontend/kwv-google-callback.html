@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google 인증 처리 중...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl p-8 max-w-sm text-center">
+        <div class="text-blue-500 text-5xl mb-4">
+            <svg class="animate-spin mx-auto" width="48" height="48" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+        </div>
+        <p id="statusMsg" class="text-gray-600">Google 인증 처리 중...</p>
+    </div>
+    <script>
+        const API_BASE = '/api/kwv';
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const error = urlParams.get('error');
+        const state = urlParams.get('state'); // 'login' 또는 'register'
+
+        if (error) {
+            document.getElementById('statusMsg').textContent = 'Google 인증이 취소되었습니다.';
+            setTimeout(() => window.location.href = '/kwv-login.html', 2000);
+        } else if (code) {
+            fetch(`${API_BASE}/auth/google/exchange?code=${encodeURIComponent(code)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.detail) throw new Error(data.detail);
+                    // login이든 register든 통합 처리: /auth/google (자동 가입+로그인)
+                    return handleGoogleAuth(data);
+                })
+                .catch(err => {
+                    console.error('인증 처리 실패:', err);
+                    document.getElementById('statusMsg').textContent = err.message || '인증 처리에 실패했습니다.';
+                    setTimeout(() => window.location.href = '/kwv-login.html', 3000);
+                });
+        } else {
+            document.getElementById('statusMsg').textContent = '잘못된 접근입니다.';
+            setTimeout(() => window.location.href = '/kwv-login.html', 2000);
+        }
+
+        async function handleGoogleAuth(googleUser) {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.textContent = '로그인 처리 중...';
+
+            try {
+                // /auth/google API 사용: 미가입이면 자동 가입(applicant), 기가입이면 로그인
+                const resp = await fetch(`${API_BASE}/auth/google`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: googleUser.email,
+                        name: googleUser.name
+                    })
+                });
+
+                const result = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error(result.detail || '인증 처리에 실패했습니다.');
+                }
+
+                // 로그인 성공
+                sessionStorage.setItem('kwv_token', result.access_token);
+                sessionStorage.setItem('kwv_logged_in', 'true');
+                sessionStorage.setItem('kwv_user', JSON.stringify(result.user));
+
+                statusMsg.textContent = '로그인 성공! 대시보드로 이동합니다...';
+
+                setTimeout(() => {
+                    if (result.user.user_type === 'admin') {
+                        window.location.href = '/kwv-dashboard.html';
+                    } else {
+                        window.location.href = '/applicant/dashboard.html';
+                    }
+                }, 1000);
+            } catch (e) {
+                console.error('Google 인증 실패:', e);
+                statusMsg.textContent = e.message || '인증 처리 중 오류가 발생했습니다.';
+                setTimeout(() => window.location.href = '/kwv-login.html', 3000);
+            }
+        }
+    </script>
+</body>
+</html>

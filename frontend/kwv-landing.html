@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대한민국 계절 근로자 통합 관리</title>
+    <meta name="description" content="대한민국 외국인 계절근로자 통합 관리 플랫폼 - 비자신청, 출퇴근, 활동일지, 지자체 매칭">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="대한민국 계절 근로자 통합 관리">
+    <meta property="og:description" content="외국인 계절근로자 비자신청부터 출퇴근, 활동일지, 포인트까지 한번에 관리하세요.">
+    <meta property="og:image" content="/static/og-kwv.svg">
+    <meta property="og:site_name" content="대한민국 계절 근로자 통합 관리">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="대한민국 계절 근로자 통합 관리">
+    <meta name="twitter:description" content="외국인 계절근로자 비자신청부터 출퇴근, 활동일지, 포인트까지 한번에 관리하세요.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127472;&#127479;</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        /* ===== Hero Section ===== */
+        .hero {
+            min-height: 100vh;
+            background: #0a0a1a;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-video {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translate(-50%, -50%);
+            object-fit: cover;
+            z-index: 0;
+            opacity: 0.45;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(10,10,26,0.4) 0%, rgba(10,10,26,0.2) 40%, rgba(10,10,26,0.6) 80%, rgba(10,10,26,0.95) 100%);
+            z-index: 1;
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 50%;
+            animation: float-up linear infinite;
+        }
+        @keyframes float-up {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* Grid lines */
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 2;
+        }
+
+        /* ===== Glassmorphism ===== */
+        .glass {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .glass-white {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.08);
+        }
+
+        /* ===== Scroll Animations ===== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-left { opacity: 0; transform: translateX(-40px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-left.visible { opacity: 1; transform: translateX(0); }
+        .reveal-right { opacity: 0; transform: translateX(40px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+        /* ===== Gradient Text ===== */
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-text-warm {
+            background: linear-gradient(135deg, #f97316, #ef4444, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ===== Feature Cards ===== */
+        .feature-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid #f1f5f9;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--card-color-1), var(--card-color-2));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 60px -15px rgba(0,0,0,0.12);
+        }
+        .feature-card:hover::before { opacity: 1; }
+
+        /* ===== Stats Counter ===== */
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        /* ===== CTA Section ===== */
+        .cta-section {
+            background: linear-gradient(135deg, #1e40af 0%, #7c3aed 50%, #db2777 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* ===== Process Steps ===== */
+        .step-line {
+            position: absolute;
+            top: 36px;
+            left: 50%;
+            width: calc(100% - 72px);
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            z-index: 0;
+        }
+
+        /* ===== Navbar ===== */
+        .navbar {
+            transition: all 0.3s;
+        }
+        .navbar.scrolled {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+        }
+
+        /* ===== Buttons ===== */
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-glow::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+            transform: scale(0);
+            transition: transform 0.6s;
+        }
+        .btn-glow:hover::before { transform: scale(1); }
+
+        /* ===== Marquee ===== */
+        .marquee-track {
+            display: flex;
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Smooth section backgrounds */
+        .section-light { background: #ffffff; }
+        .section-gray { background: #f8fafc; }
+        .section-dark { background: #0f172a; color: white; }
+    </style>
+</head>
+<body class="bg-white text-gray-900 overflow-x-hidden">
+
+    <!-- ===== Navigation ===== -->
+    <nav class="navbar fixed top-0 left-0 right-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="#" class="flex items-center space-x-3">
+                <div id="landingNavLogoWrap" class="w-[100px] h-[100px] rounded-xl flex items-center justify-center bg-white shadow-md">
+                    <i class="fas fa-globe-asia text-blue-600 text-4xl" id="landingNavLogoIcon"></i>
+                    <img id="landingNavLogoImg" src="" class="w-[90px] h-[90px] rounded-xl object-contain hidden">
+                </div>
+                <span id="landingNavTitle" class="text-white font-bold text-xl tracking-tight">KWV</span>
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#features" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navFeatures">주요 기능</a>
+                <a href="#process" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navProcess">절차 안내</a>
+                <a href="#stats" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navStats">현황</a>
+                <a href="#partners" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navPartners">파트너</a>
+                <a href="#visa-guide" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navVisa">비자안내</a>
+                <a href="#job-board" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navBoard">구인/구직</a>
+                <a href="#faq" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navFaq">FAQ</a>
+                <a href="#chatbot" class="text-white/70 hover:text-white transition text-sm font-medium" data-i18n="navChatbot">AI 챗봇</a>
+            </div>
+            <div class="flex items-center space-x-3">
+                <select onchange="changeLandingLang(this.value)" class="bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 outline-none cursor-pointer">
+                    <option value="ko" class="text-gray-900">🇰🇷 한국어</option>
+                    <option value="en" class="text-gray-900">🇺🇸 English</option>
+                    <option value="vi" class="text-gray-900">🇻🇳 Tiếng Việt</option>
+                    <option value="th" class="text-gray-900">🇹🇭 ภาษาไทย</option>
+                    <option value="tl" class="text-gray-900">🇵🇭 Pilipino</option>
+                </select>
+                <a href="/kwv-login.html" class="bg-white text-gray-900 px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-50 transition" data-i18n="navLogin">
+                    로그인
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== Hero Section ===== -->
+    <section class="hero flex items-center justify-center relative" id="hero">
+        <!-- Background Video -->
+        <video class="hero-video" autoplay muted loop playsinline preload="auto" poster="" style="object-fit:cover;">
+            <source src="/static/videos/kwv-hero.mp4" type="video/mp4">
+        </video>
+        <div class="grid-bg"></div>
+        <!-- Particles -->
+        <div id="particles"></div>
+
+        <div class="relative z-10 max-w-7xl mx-auto px-6 text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center glass rounded-full px-5 py-2 mb-8 animate-pulse">
+                <span class="w-2 h-2 bg-green-400 rounded-full mr-3 animate-ping"></span>
+                <span class="text-white/80 text-sm font-medium" data-i18n="heroBadge">정부 공인 외국인 계절근로자 관리 플랫폼</span>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.05] mb-6 tracking-tight">
+                <span data-i18n="heroTitle1">대한민국</span><br>
+                <span class="gradient-text" data-i18n="heroTitle2">계절근로자</span><br>
+                <span data-i18n="heroTitle3">통합 관리</span>
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="text-lg md:text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed" data-i18n="heroSubtitle">
+                지자체와 외국 정부 간 MOU 기반의 투명한 근로자 관리 시스템.<br>
+                출퇴근 기록, AI 이상감지, 포인트제로 안전하고 효율적인 인력 관리를 실현합니다.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                <a href="/kwv-login.html" class="btn-glow bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-4 rounded-2xl text-lg font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all hover:scale-105">
+                    <i class="fas fa-rocket mr-2"></i><span data-i18n="heroCtaStart">바로 시작하기</span>
+                </a>
+                <a href="#features" class="glass text-white px-8 py-4 rounded-2xl text-lg font-semibold hover:bg-white/10 transition">
+                    <i class="fas fa-play-circle mr-2"></i><span data-i18n="heroCtaLearn">자세히 알아보기</span>
+                </a>
+            </div>
+
+            <!-- Hero Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+                <div class="glass rounded-2xl p-4">
+                    <div class="text-2xl md:text-3xl font-black text-white">15+</div>
+                    <div class="text-xs text-white/50 mt-1" data-i18n="heroStat1">MOU 체결 국가</div>
+                </div>
+                <div class="glass rounded-2xl p-4">
+                    <div class="text-2xl md:text-3xl font-black text-white">50+</div>
+                    <div class="text-xs text-white/50 mt-1" data-i18n="heroStat2">참여 지자체</div>
+                </div>
+                <div class="glass rounded-2xl p-4">
+                    <div class="text-2xl md:text-3xl font-black text-white">10K+</div>
+                    <div class="text-xs text-white/50 mt-1" data-i18n="heroStat3">등록 근로자</div>
+                </div>
+                <div class="glass rounded-2xl p-4">
+                    <div class="text-2xl md:text-3xl font-black text-white">99.2%</div>
+                    <div class="text-xs text-white/50 mt-1" data-i18n="heroStat4">출퇴근 이행률</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll indicator -->
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
+            <a href="#features" class="text-white/40 hover:text-white/70 transition">
+                <i class="fas fa-chevron-down text-2xl"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- ===== Trust Marquee ===== -->
+    <section class="section-light py-6 border-b border-gray-100 overflow-hidden">
+        <div class="marquee-track">
+            <div class="flex items-center space-x-12 px-6 whitespace-nowrap">
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-check-circle text-blue-400 mr-2"></i>고용노동부 인증</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-check-circle text-green-400 mr-2"></i>법무부 협력</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-check-circle text-purple-400 mr-2"></i>행정안전부 연계</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-shield-alt text-orange-400 mr-2"></i>개인정보 보호법 준수</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-globe text-cyan-400 mr-2"></i>다국어 5개 언어 지원</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-mobile-alt text-pink-400 mr-2"></i>모바일 최적화</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-brain text-violet-400 mr-2"></i>AI 이상감지</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-qrcode text-teal-400 mr-2"></i>QR 출퇴근</span>
+            </div>
+            <div class="flex items-center space-x-12 px-6 whitespace-nowrap">
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-check-circle text-blue-400 mr-2"></i>고용노동부 인증</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-check-circle text-green-400 mr-2"></i>법무부 협력</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-check-circle text-purple-400 mr-2"></i>행정안전부 연계</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-shield-alt text-orange-400 mr-2"></i>개인정보 보호법 준수</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-globe text-cyan-400 mr-2"></i>다국어 5개 언어 지원</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-mobile-alt text-pink-400 mr-2"></i>모바일 최적화</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-brain text-violet-400 mr-2"></i>AI 이상감지</span>
+                <span class="text-gray-300 text-sm font-medium flex items-center"><i class="fas fa-qrcode text-teal-400 mr-2"></i>QR 출퇴근</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Features Section ===== -->
+    <section class="section-gray py-24 px-6" id="features">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="text-blue-600 font-semibold text-sm uppercase tracking-widest" data-i18n="featuresTag">Platform Features</span>
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mt-3 mb-4" data-i18n="featuresTitle">지자체를 위한<br>완벽한 관리 솔루션</h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto" data-i18n="featuresSubtitle">입국부터 귀국까지, 외국인 계절근로자의 모든 과정을 하나의 플랫폼에서 관리합니다.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card reveal" style="--card-color-1: #3b82f6; --card-color-2: #06b6d4; transition-delay: 0s;">
+                    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-qrcode text-blue-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="feat1Title">QR 출퇴근 관리</h3>
+                    <p class="text-gray-500 leading-relaxed" data-i18n="feat1Desc">사업장 QR 코드 스캔으로 간편 출퇴근. GPS 위치 자동 기록으로 근무지 확인이 실시간으로 이루어집니다.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card reveal" style="--card-color-1: #8b5cf6; --card-color-2: #ec4899; transition-delay: 0.1s;">
+                    <div class="w-16 h-16 bg-purple-50 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-brain text-purple-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="feat2Title">AI 이상감지</h3>
+                    <p class="text-gray-500 leading-relaxed" data-i18n="feat2Desc">출퇴근 패턴을 AI가 분석하여 이탈 징후를 조기에 감지. 3일 연속 결근, GPS 이탈 등 이상 시 즉시 알림.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card reveal" style="--card-color-1: #f97316; --card-color-2: #eab308; transition-delay: 0.2s;">
+                    <div class="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-star text-orange-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="feat3Title">포인트 인센티브</h3>
+                    <p class="text-gray-500 leading-relaxed" data-i18n="feat3Desc">성실한 출퇴근과 활동 기록에 포인트 부여. 재입국 심사 시 가점 혜택으로 자발적 참여를 유도합니다.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-card reveal" style="--card-color-1: #10b981; --card-color-2: #14b8a6; transition-delay: 0.3s;">
+                    <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-map-marked-alt text-green-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="feat4Title">실시간 위치 파악</h3>
+                    <p class="text-gray-500 leading-relaxed" data-i18n="feat4Desc">근로자가 자발적으로 접속할 때 위치 정보 수집. 지도 기반 대시보드로 지자체별 분포를 한눈에 파악.</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="feature-card reveal" style="--card-color-1: #ef4444; --card-color-2: #f97316; transition-delay: 0.4s;">
+                    <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-file-medical-alt text-red-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="feat5Title">종합 리포트</h3>
+                    <p class="text-gray-500 leading-relaxed" data-i18n="feat5Desc">출퇴근, 근로자 현황, 포인트, 상담일지 등 다양한 리포트를 Excel/PDF로 생성. 정부 보고에 즉시 활용.</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="feature-card reveal" style="--card-color-1: #06b6d4; --card-color-2: #3b82f6; transition-delay: 0.5s;">
+                    <div class="w-16 h-16 bg-cyan-50 rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas fa-handshake text-cyan-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-3" data-i18n="feat6Title">MOU 관리</h3>
+                    <p class="text-gray-500 leading-relaxed" data-i18n="feat6Desc">외국 정부·지자체와의 협정 현황을 체계적으로 관리하고 공개. 신뢰도 높은 파트너십을 증명합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Process Section ===== -->
+    <section class="section-light py-24 px-6" id="process">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="text-purple-600 font-semibold text-sm uppercase tracking-widest" data-i18n="processTag">How It Works</span>
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mt-3 mb-4" data-i18n="processTitle">간단한 4단계로<br>시작하세요</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+                <!-- Step line (desktop only) -->
+                <div class="hidden md:block step-line"></div>
+
+                <div class="reveal text-center" style="transition-delay: 0s;">
+                    <div class="relative z-10 w-[72px] h-[72px] bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                        <span class="text-white text-2xl font-black">1</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2" data-i18n="step1Title">MOU 체결</h3>
+                    <p class="text-gray-500 text-sm" data-i18n="step1Desc">외국 정부/지자체와 계절근로자 파견 협정을 체결합니다.</p>
+                </div>
+
+                <div class="reveal text-center" style="transition-delay: 0.15s;">
+                    <div class="relative z-10 w-[72px] h-[72px] bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-purple-200">
+                        <span class="text-white text-2xl font-black">2</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2" data-i18n="step2Title">근로자 등록</h3>
+                    <p class="text-gray-500 text-sm" data-i18n="step2Desc">근로자가 여권, 비자 정보와 함께 플랫폼에 등록합니다.</p>
+                </div>
+
+                <div class="reveal text-center" style="transition-delay: 0.3s;">
+                    <div class="relative z-10 w-[72px] h-[72px] bg-gradient-to-br from-pink-500 to-pink-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-pink-200">
+                        <span class="text-white text-2xl font-black">3</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2" data-i18n="step3Title">지자체 배정</h3>
+                    <p class="text-gray-500 text-sm" data-i18n="step3Desc">인천공항 도착 후 배정된 지자체에서 인계하여 사업장에 배치.</p>
+                </div>
+
+                <div class="reveal text-center" style="transition-delay: 0.45s;">
+                    <div class="relative z-10 w-[72px] h-[72px] bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-orange-200">
+                        <span class="text-white text-2xl font-black">4</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2" data-i18n="step4Title">스마트 관리</h3>
+                    <p class="text-gray-500 text-sm" data-i18n="step4Desc">QR 출퇴근, AI 모니터링, 포인트 적립으로 체계적 관리 시작.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Stats Section ===== -->
+    <section class="section-dark py-24 px-6" id="stats">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <div class="reveal-left">
+                    <span class="text-blue-400 font-semibold text-sm uppercase tracking-widest" data-i18n="statsTag">Why Choose Us</span>
+                    <h2 class="text-4xl md:text-5xl font-black text-white mt-3 mb-6" data-i18n="statsTitle">데이터가 증명하는<br><span class="gradient-text">신뢰와 성과</span></h2>
+                    <p class="text-white/60 text-lg leading-relaxed mb-8" data-i18n="statsDesc">KWV 플랫폼은 이미 전국 지자체에서 검증된 시스템입니다. 입국 단계부터 보험 가입, 출퇴근 관리, 상담까지 원스톱으로 처리합니다.</p>
+                    <a href="/kwv-login.html" class="inline-flex items-center bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-600 transition">
+                        <span data-i18n="statsCtaBtn">지금 도입하기</span><i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                <div class="grid grid-cols-2 gap-6 reveal-right">
+                    <div class="glass rounded-3xl p-8 text-center">
+                        <div class="stat-number text-white" data-count="98">0</div>
+                        <div class="text-lg text-white/80 font-medium mt-1">%</div>
+                        <div class="text-white/50 text-sm mt-2" data-i18n="statLabel1">근로자 관리율</div>
+                    </div>
+                    <div class="glass rounded-3xl p-8 text-center">
+                        <div class="stat-number text-white" data-count="24">0</div>
+                        <div class="text-lg text-white/80 font-medium mt-1">/7</div>
+                        <div class="text-white/50 text-sm mt-2" data-i18n="statLabel2">실시간 모니터링</div>
+                    </div>
+                    <div class="glass rounded-3xl p-8 text-center">
+                        <div class="stat-number text-white" data-count="5">0</div>
+                        <div class="text-lg text-white/80 font-medium mt-1" data-i18n="statUnit3">개 언어</div>
+                        <div class="text-white/50 text-sm mt-2" data-i18n="statLabel3">다국어 지원</div>
+                    </div>
+                    <div class="glass rounded-3xl p-8 text-center">
+                        <div class="stat-number text-white" data-count="30">0</div>
+                        <div class="text-lg text-white/80 font-medium mt-1" data-i18n="statUnit4">초</div>
+                        <div class="text-white/50 text-sm mt-2" data-i18n="statLabel4">이상감지 알림 속도</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== For Government Section ===== -->
+    <section class="section-gray py-24 px-6" id="partners">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="text-green-600 font-semibold text-sm uppercase tracking-widest" data-i18n="govTag">For Local Governments</span>
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mt-3 mb-4" data-i18n="govTitle">지자체 담당자를 위한<br>맞춤 기능</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="glass-white rounded-3xl p-10 reveal-left">
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-shield-alt text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2" data-i18n="gov1Title">이탈 방지 시스템</h3>
+                            <p class="text-gray-500 leading-relaxed" data-i18n="gov1Desc">근로자가 매일 자발적으로 출퇴근 기록을 남기면 포인트를 획득합니다. 포인트는 재입국 가산점으로 활용되어 이탈 동기를 원천 차단합니다. 3일 이상 미접속 시 AI가 자동으로 이상 알림을 발송합니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-white rounded-3xl p-10 reveal-right">
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-chart-bar text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2" data-i18n="gov2Title">원클릭 보고서</h3>
+                            <p class="text-gray-500 leading-relaxed" data-i18n="gov2Desc">출퇴근 현황, 근로자 통계, 상담 내역, 이상징후 리포트를 Excel/PDF로 즉시 생성. 정부 보고 양식에 맞춰 자동 포맷팅되어 행정 업무를 대폭 절감합니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-white rounded-3xl p-10 reveal-left">
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-umbrella text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2" data-i18n="gov3Title">보험 통합 관리</h3>
+                            <p class="text-gray-500 leading-relaxed" data-i18n="gov3Desc">입국 시점부터 4대 보험 가입 현황을 체계적으로 관리합니다. 보험 만료 임박 시 자동 알림으로 무보험 상태를 예방합니다.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-white rounded-3xl p-10 reveal-right">
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-comments text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2" data-i18n="gov4Title">상담일지 & 소통</h3>
+                            <p class="text-gray-500 leading-relaxed" data-i18n="gov4Desc">근로자와의 상담 기록을 체계적으로 관리. 음성 녹음, 사진 첨부, 후속 조치 추적까지 한 곳에서. 5개 국어 번역 지원으로 언어 장벽을 해소합니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Visa Guide Section ===== -->
+    <section class="section-light py-24 px-6" id="visa-guide">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="inline-block px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold mb-4" data-i18n="visaTag">Visa Guide</span>
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="visaSectionTitle">비자 종류 안내</h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto" data-i18n="visaSectionDesc">대한민국 계절근로에 필요한 비자 유형을 확인하세요</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal" id="landingVisaCards">
+                <div class="text-center text-gray-400 py-8 col-span-3"><i class="fas fa-spinner fa-spin mr-2"></i>로딩 중...</div>
+            </div>
+        </div>
+        <!-- Visa Detail Modal -->
+        <div id="landingVisaModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style="display:none;">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center p-6 border-b sticky top-0 bg-white rounded-t-2xl">
+                    <h3 class="font-bold text-lg text-gray-800" id="landingVisaModalTitle"></h3>
+                    <button onclick="closeLandingVisaModal()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                <div class="p-6" id="landingVisaModalContent"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== 구인/구직 게시판 Section ===== -->
+    <section class="section-gray py-24 px-6" id="job-board">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="inline-block px-4 py-2 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold mb-4" data-i18n="boardTag">Real-time Board</span>
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="boardTitle">구인 / 구직</h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto" data-i18n="boardDesc">실시간 구인·구직 현황을 확인하세요</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 reveal">
+                <!-- 좌측: 구인 -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-xl font-bold text-blue-700"><i class="fas fa-bullhorn mr-2"></i><span data-i18n="boardJobs">구인</span></h3>
+                        <span class="text-xs bg-blue-100 text-blue-600 px-3 py-1 rounded-full font-semibold" id="landingJobCount">0건</span>
+                    </div>
+                    <div id="landingJobList" class="space-y-3 max-h-96 overflow-y-auto">
+                        <div class="text-center text-gray-400 py-6"><i class="fas fa-spinner fa-spin mr-1"></i></div>
+                    </div>
+                </div>
+                <!-- 우측: 구직 -->
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="text-xl font-bold text-green-700"><i class="fas fa-user-tie mr-2"></i><span data-i18n="boardSeekers">구직</span></h3>
+                        <span class="text-xs bg-green-100 text-green-600 px-3 py-1 rounded-full font-semibold" id="landingSeekerCount">0건</span>
+                    </div>
+                    <div id="landingSeekerList" class="space-y-3 max-h-96 overflow-y-auto">
+                        <div class="text-center text-gray-400 py-6"><i class="fas fa-spinner fa-spin mr-1"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FAQ Section ===== -->
+    <section class="section-gray py-24 px-6" id="faq">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="inline-block px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold mb-4" data-i18n="faqTag">FAQ</span>
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="faqSectionTitle">자주 묻는 질문</h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto" data-i18n="faqSectionDesc">계절근로에 대해 궁금한 점을 확인하세요</p>
+            </div>
+            <!-- FAQ 카테고리 필터 -->
+            <div class="flex flex-wrap justify-center gap-2 mb-8 reveal">
+                <button onclick="landingFilterFaq('all')" class="landing-faq-btn px-5 py-2.5 rounded-xl text-sm font-medium bg-blue-600 text-white transition" data-filter="all">
+                    <i class="fas fa-list mr-1"></i><span data-i18n="faqAll">전체</span>
+                </button>
+                <button onclick="landingFilterFaq('visa')" class="landing-faq-btn px-5 py-2.5 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition" data-filter="visa">
+                    <i class="fas fa-passport mr-1"></i><span data-i18n="faqFilterVisa">비자</span>
+                </button>
+                <button onclick="landingFilterFaq('salary')" class="landing-faq-btn px-5 py-2.5 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition" data-filter="salary">
+                    <i class="fas fa-won-sign mr-1"></i><span data-i18n="faqFilterSalary">급여</span>
+                </button>
+                <button onclick="landingFilterFaq('housing')" class="landing-faq-btn px-5 py-2.5 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition" data-filter="housing">
+                    <i class="fas fa-home mr-1"></i><span data-i18n="faqFilterHousing">숙소</span>
+                </button>
+                <button onclick="landingFilterFaq('work')" class="landing-faq-btn px-5 py-2.5 rounded-xl text-sm font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition" data-filter="work">
+                    <i class="fas fa-briefcase mr-1"></i><span data-i18n="faqFilterWork">근무</span>
+                </button>
+            </div>
+            <div id="landingFaqList" class="space-y-4 reveal"></div>
+        </div>
+    </section>
+
+    <!-- ===== AI Chatbot Section ===== -->
+    <section class="section-light py-24 px-6" id="chatbot">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-16 reveal">
+                <span class="inline-block px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-semibold mb-4" data-i18n="chatbotTag">AI Assistant</span>
+                <h2 class="text-4xl md:text-5xl font-black text-gray-900 mb-4" data-i18n="chatbotSectionTitle">AI 챗봇</h2>
+                <p class="text-gray-500 text-lg max-w-2xl mx-auto" data-i18n="chatbotSectionDesc">계절근로 관련 궁금한 점을 AI에게 물어보세요</p>
+            </div>
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200 reveal" style="height: 500px; display: flex; flex-direction: column;">
+                <!-- 채팅 헤더 -->
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-4 flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-white font-semibold" data-i18n="chatbotName">KWV AI 어시스턴트</p>
+                        <p class="text-white/70 text-xs" data-i18n="chatbotStatus">온라인</p>
+                    </div>
+                </div>
+                <!-- 채팅 메시지 영역 -->
+                <div id="landingChatMessages" class="flex-1 overflow-y-auto p-6 space-y-4" style="background: #f8f9fa;">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm max-w-[80%]">
+                            <p class="text-sm text-gray-700" data-i18n="chatbotWelcome">안녕하세요! KWV AI 어시스턴트입니다. 계절근로에 관한 질문을 해주세요.</p>
+                            <p class="text-sm text-gray-700 mt-2" data-i18n="chatbotExamples">예시 질문:</p>
+                            <ul class="text-sm text-gray-500 mt-1 space-y-1">
+                                <li data-i18n="chatbotEx1">- E-8 비자가 뭔가요?</li>
+                                <li data-i18n="chatbotEx2">- 급여는 얼마나 받나요?</li>
+                                <li data-i18n="chatbotEx3">- 숙소가 제공되나요?</li>
+                                <li data-i18n="chatbotEx4">- 근무 시간은 어떻게 되나요?</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!-- 빠른 질문 -->
+                <div class="px-4 py-2 border-t border-gray-100 flex gap-2 overflow-x-auto">
+                    <button onclick="sendLandingQuickChat('E-8 비자가 뭔가요?')" class="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full whitespace-nowrap hover:bg-blue-100" data-i18n="chatbotQuick1">비자 안내</button>
+                    <button onclick="sendLandingQuickChat('급여는 얼마나 받나요?')" class="text-xs bg-green-50 text-green-600 px-3 py-1.5 rounded-full whitespace-nowrap hover:bg-green-100" data-i18n="chatbotQuick2">급여 안내</button>
+                    <button onclick="sendLandingQuickChat('숙소가 제공되나요?')" class="text-xs bg-purple-50 text-purple-600 px-3 py-1.5 rounded-full whitespace-nowrap hover:bg-purple-100" data-i18n="chatbotQuick3">숙소 안내</button>
+                    <button onclick="sendLandingQuickChat('근무 시간은 어떻게 되나요?')" class="text-xs bg-orange-50 text-orange-600 px-3 py-1.5 rounded-full whitespace-nowrap hover:bg-orange-100" data-i18n="chatbotQuick4">근무 안내</button>
+                </div>
+                <!-- 입력 영역 -->
+                <div class="p-4 border-t border-gray-200 flex items-center space-x-3">
+                    <input type="text" id="landingChatInput" class="flex-1 border border-gray-300 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition" placeholder="질문을 입력하세요..." data-i18n-placeholder="chatbotPlaceholder" onkeydown="if(event.key==='Enter')sendLandingChat()">
+                    <button onclick="sendLandingChat()" class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center hover:bg-blue-700 transition">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CTA Section ===== -->
+    <section class="cta-section py-24 px-6">
+        <div class="relative z-10 max-w-4xl mx-auto text-center reveal">
+            <h2 class="text-4xl md:text-5xl font-black text-white mb-6" data-i18n="ctaTitle">지금 바로<br>KWV를 도입하세요</h2>
+            <p class="text-white/80 text-lg mb-10 max-w-2xl mx-auto" data-i18n="ctaDesc">외국인 계절근로자 관리의 새로운 패러다임. 지자체 담당자도, 근로자도 모두 만족하는 스마트 플랫폼.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="/kwv-login.html" class="bg-white text-gray-900 px-10 py-5 rounded-2xl text-lg font-bold hover:bg-gray-100 transition shadow-2xl hover:scale-105 transform">
+                    <i class="fas fa-arrow-right mr-2"></i><span data-i18n="ctaBtnStart">바로가기</span>
+                </a>
+                <a href="/kwv-register.html" class="glass text-white px-10 py-5 rounded-2xl text-lg font-semibold hover:bg-white/10 transition border border-white/30">
+                    <i class="fas fa-user-plus mr-2"></i><span data-i18n="ctaBtnRegister">회원가입</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== Footer ===== -->
+    <footer class="section-dark py-16 px-6 border-t border-white/10">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div id="landingFooterLogoWrap" class="w-[100px] h-[100px] rounded-xl flex items-center justify-center bg-white shadow-md">
+                            <i class="fas fa-globe-asia text-blue-600 text-4xl" id="landingFooterLogoIcon"></i>
+                            <img id="landingFooterLogoImg" src="" class="w-[90px] h-[90px] rounded-xl object-contain hidden">
+                        </div>
+                        <span id="landingFooterTitle" class="text-white font-bold text-xl">KWV</span>
+                    </div>
+                    <p id="landingFooterDesc" class="text-white/40 text-sm leading-relaxed">Korea Working Visa<br>외국인 계절근로자<br>통합 관리 플랫폼</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">플랫폼</h4>
+                    <ul class="space-y-2 text-white/40 text-sm">
+                        <li><a href="/kwv-login.html" class="hover:text-white transition">로그인</a></li>
+                        <li><a href="/kwv-register.html" class="hover:text-white transition">회원가입</a></li>
+                        <li><a href="#features" class="hover:text-white transition">주요 기능</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">안내</h4>
+                    <ul class="space-y-2 text-white/40 text-sm">
+                        <li><a href="#process" class="hover:text-white transition">이용 절차</a></li>
+                        <li><a href="#partners" class="hover:text-white transition">지자체 안내</a></li>
+                        <li><a href="#visa-guide" class="hover:text-white transition">비자안내</a></li>
+                        <li><a href="#faq" class="hover:text-white transition">FAQ</a></li>
+                        <li><a href="#chatbot" class="hover:text-white transition">AI 챗봇</a></li>
+                        <li><a href="/kwv-privacy.html" class="hover:text-white transition">개인정보처리방침</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-semibold mb-4">문의</h4>
+                    <ul class="space-y-2 text-white/40 text-sm">
+                        <li><i class="fas fa-envelope mr-2"></i>eden1191@naver.com</li>
+                        <li><i class="fas fa-phone mr-2"></i>042-545-1155</li>
+                        <li><i class="fas fa-map-marker-alt mr-2"></i>대전광역시</li>
+                        <li><i class="fas fa-clock mr-2"></i>평일 09:00~18:00</li>
+                        <li><i class="fas fa-calendar-alt mr-2"></i>토 10:00~17:00 / 일·공휴일 휴무</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/10 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                    <div>
+                        <p class="text-white/30 text-sm">&copy; 2026 글로벌워크센터. All rights reserved.</p>
+                        <p class="text-white/20 text-xs mt-1">대표: 김성식 | 사업자등록번호: 123-45-09876</p>
+                    </div>
+                    <div class="flex items-center space-x-6 mt-4 md:mt-0">
+                        <a href="/kwv-privacy.html" class="text-white/40 hover:text-white text-sm transition">개인정보처리방침</a>
+                        <div class="flex space-x-3">
+                            <a href="#" class="text-white/30 hover:text-white transition"><i class="fab fa-facebook text-lg"></i></a>
+                            <a href="#" class="text-white/30 hover:text-white transition"><i class="fab fa-youtube text-lg"></i></a>
+                            <a href="#" class="text-white/30 hover:text-white transition"><i class="fab fa-instagram text-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ===== Particles =====
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDuration = (8 + Math.random() * 12) + 's';
+            p.style.animationDelay = Math.random() * 10 + 's';
+            p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+            particlesContainer.appendChild(p);
+        }
+
+        // ===== Navbar scroll effect =====
+        window.addEventListener('scroll', () => {
+            const navbar = document.querySelector('.navbar');
+            navbar.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ===== Scroll reveal =====
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+        document.querySelectorAll('.reveal, .reveal-left, .reveal-right').forEach(el => observer.observe(el));
+
+        // ===== Counter animation =====
+        const counterObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const target = parseInt(el.dataset.count);
+                    let current = 0;
+                    const increment = target / 40;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) { current = target; clearInterval(timer); }
+                        el.textContent = Math.round(current);
+                    }, 30);
+                    counterObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('[data-count]').forEach(el => counterObserver.observe(el));
+
+        // ===== Language =====
+        const landingI18n = {
+            ko: {
+                heroBadge: '정부 공인 외국인 계절근로자 관리 플랫폼',
+                heroTitle1: '대한민국', heroTitle2: '계절근로자', heroTitle3: '통합 관리',
+                heroSubtitle: '지자체와 외국 정부 간 MOU 기반의 투명한 근로자 관리 시스템.\n출퇴근 기록, AI 이상감지, 포인트제로 안전하고 효율적인 인력 관리를 실현합니다.',
+                heroCtaStart: '바로 시작하기', heroCtaLearn: '자세히 알아보기',
+                heroStat1: 'MOU 체결 국가', heroStat2: '참여 지자체', heroStat3: '등록 근로자', heroStat4: '출퇴근 이행률',
+                featuresTag: 'Platform Features', featuresTitle: '지자체를 위한<br>완벽한 관리 솔루션',
+                featuresSubtitle: '입국부터 귀국까지, 외국인 계절근로자의 모든 과정을 하나의 플랫폼에서 관리합니다.',
+                feat1Title: 'QR 출퇴근 관리', feat1Desc: '사업장 QR 코드 스캔으로 간편 출퇴근. GPS 위치 자동 기록으로 근무지 확인이 실시간으로 이루어집니다.',
+                feat2Title: 'AI 이상감지', feat2Desc: '출퇴근 패턴을 AI가 분석하여 이탈 징후를 조기에 감지. 3일 연속 결근, GPS 이탈 등 이상 시 즉시 알림.',
+                feat3Title: '포인트 인센티브', feat3Desc: '성실한 출퇴근과 활동 기록에 포인트 부여. 재입국 심사 시 가점 혜택으로 자발적 참여를 유도합니다.',
+                feat4Title: '실시간 위치 파악', feat4Desc: '근로자가 자발적으로 접속할 때 위치 정보 수집. 지도 기반 대시보드로 지자체별 분포를 한눈에 파악.',
+                feat5Title: '종합 리포트', feat5Desc: '출퇴근, 근로자 현황, 포인트, 상담일지 등 다양한 리포트를 Excel/PDF로 생성. 정부 보고에 즉시 활용.',
+                feat6Title: 'MOU 관리', feat6Desc: '외국 정부·지자체와의 협정 현황을 체계적으로 관리하고 공개. 신뢰도 높은 파트너십을 증명합니다.',
+                processTag: 'How It Works', processTitle: '간단한 4단계로<br>시작하세요',
+                step1Title: 'MOU 체결', step1Desc: '외국 정부/지자체와 계절근로자 파견 협정을 체결합니다.',
+                step2Title: '근로자 등록', step2Desc: '근로자가 여권, 비자 정보와 함께 플랫폼에 등록합니다.',
+                step3Title: '지자체 배정', step3Desc: '인천공항 도착 후 배정된 지자체에서 인계하여 사업장에 배치.',
+                step4Title: '스마트 관리', step4Desc: 'QR 출퇴근, AI 모니터링, 포인트 적립으로 체계적 관리 시작.',
+                statsTag: 'Why Choose Us', statsTitle: '데이터가 증명하는<br><span class="gradient-text">신뢰와 성과</span>',
+                statsDesc: 'KWV 플랫폼은 이미 전국 지자체에서 검증된 시스템입니다.', statsCtaBtn: '지금 도입하기',
+                statLabel1: '근로자 관리율', statLabel2: '실시간 모니터링', statUnit3: '개 언어', statLabel3: '다국어 지원', statUnit4: '초', statLabel4: '이상감지 알림 속도',
+                govTag: 'For Local Governments', govTitle: '지자체 담당자를 위한<br>맞춤 기능',
+                gov1Title: '이탈 방지 시스템', gov1Desc: '근로자가 매일 자발적으로 출퇴근 기록을 남기면 포인트를 획득합니다.',
+                gov2Title: '원클릭 보고서', gov2Desc: '출퇴근 현황, 근로자 통계, 상담 내역을 Excel/PDF로 즉시 생성.',
+                gov3Title: '보험 통합 관리', gov3Desc: '입국 시점부터 4대 보험 가입 현황을 체계적으로 관리합니다.',
+                gov4Title: '상담일지 & 소통', gov4Desc: '근로자와의 상담 기록을 체계적으로 관리. 5개 국어 번역 지원.',
+                ctaTitle: '지금 바로<br>KWV를 도입하세요', ctaDesc: '외국인 계절근로자 관리의 새로운 패러다임.',
+                ctaBtnStart: '바로가기', ctaBtnRegister: '회원가입',
+                navFeatures: '주요 기능', navProcess: '절차 안내', navStats: '현황', navPartners: '파트너', navLogin: '로그인',
+                navVisa: '비자안내', navBoard: '구인/구직', navFaq: 'FAQ', navChatbot: 'AI 챗봇',
+                boardTag: '실시간 게시판', boardTitle: '구인 / 구직', boardDesc: '실시간 구인·구직 현황을 확인하세요',
+                boardJobs: '구인', boardSeekers: '구직',
+                visaTag: '비자 안내', visaSectionTitle: '비자 종류 안내', visaSectionDesc: '대한민국 계절근로에 필요한 비자 유형을 확인하세요',
+                faqTag: 'FAQ', faqSectionTitle: '자주 묻는 질문', faqSectionDesc: '계절근로에 대해 궁금한 점을 확인하세요',
+                faqAll: '전체', faqFilterVisa: '비자', faqFilterSalary: '급여', faqFilterHousing: '숙소', faqFilterWork: '근무',
+                chatbotTag: 'AI 어시스턴트', chatbotSectionTitle: 'AI 챗봇', chatbotSectionDesc: '계절근로 관련 궁금한 점을 AI에게 물어보세요',
+                chatbotName: 'KWV AI 어시스턴트', chatbotStatus: '온라인',
+                chatbotWelcome: '안녕하세요! KWV AI 어시스턴트입니다. 계절근로에 관한 질문을 해주세요.',
+                chatbotExamples: '예시 질문:', chatbotEx1: '- E-8 비자가 뭔가요?', chatbotEx2: '- 급여는 얼마나 받나요?', chatbotEx3: '- 숙소가 제공되나요?', chatbotEx4: '- 근무 시간은 어떻게 되나요?',
+                chatbotQuick1: '비자 안내', chatbotQuick2: '급여 안내', chatbotQuick3: '숙소 안내', chatbotQuick4: '근무 안내',
+                chatbotPlaceholder: '질문을 입력하세요...',
+                faq_visa_q1: 'E-8 비자란 무엇인가요?', faq_visa_a1: 'E-8 비자는 계절근로자 비자로, 농업·어업 분야에서 최대 5개월간 일할 수 있는 단기 취업 비자입니다.',
+                faq_visa_q2: '비자 신청에 필요한 서류는?', faq_visa_a2: '여권, 비자 신청서, 증명사진, 건강검진서, 범죄경력증명서, 고용계약서가 필요합니다.',
+                faq_visa_q3: '비자 발급까지 얼마나 걸리나요?', faq_visa_a3: '일반적으로 서류 접수 후 2-4주 정도 소요됩니다.',
+                faq_visa_q4: '비자 연장이 가능한가요?', faq_visa_a4: 'E-8 비자는 원칙적으로 연장이 불가합니다. 다음 시즌에 다시 신청할 수 있습니다.',
+                faq_salary_q1: '급여는 얼마나 받나요?', faq_salary_a1: '최저임금 기준 시간당 9,860원. 월 200-250만원 정도이며, 초과근무 수당이 별도 지급됩니다.',
+                faq_salary_q2: '급여는 언제 지급되나요?', faq_salary_a2: '대부분 매월 10일 또는 25일에 지급됩니다.',
+                faq_salary_q3: '세금은 얼마나 공제되나요?', faq_salary_a3: '소득세와 4대 보험료가 공제됩니다. 대략 급여의 10-15% 정도입니다.',
+                faq_salary_q4: '본국으로 송금할 수 있나요?', faq_salary_a4: '네, 한국 은행 계좌에서 본국으로 송금할 수 있습니다.',
+                faq_housing_q1: '숙소가 제공되나요?', faq_housing_a1: '네, 대부분의 농장에서 무료 숙소를 제공합니다. 2-4인실이 일반적입니다.',
+                faq_housing_q2: '숙소 시설은 어떤가요?', faq_housing_a2: '기본적인 침대, 냉난방 시설, 공용 화장실/샤워실이 제공됩니다.',
+                faq_housing_q3: '식사도 제공되나요?', faq_housing_a3: '농장마다 다릅니다. 일부는 3식을 제공하고, 일부는 취사 시설만 제공합니다.',
+                faq_housing_q4: '인터넷 사용이 가능한가요?', faq_housing_a4: '대부분의 숙소에서 Wi-Fi를 제공합니다.',
+                faq_work_q1: '근무 시간은 어떻게 되나요?', faq_work_a1: '오전 6-7시 시작, 오후 5-6시 종료. 초과근무 수당이 지급됩니다.',
+                faq_work_q2: '휴일은 있나요?', faq_work_a2: '주 1회 휴일이 보장됩니다. 휴일 근무 시 수당이 지급됩니다.',
+                faq_work_q3: '어떤 일을 하게 되나요?', faq_work_a3: '작물 재배, 수확, 포장, 분류 등의 농작업을 합니다.',
+                faq_work_q4: '한국어를 못해도 일할 수 있나요?', faq_work_a4: '기본적인 의사소통이 가능하면 됩니다. 많은 농장에서 통역 지원을 제공합니다.'
+            },
+            en: {
+                heroBadge: 'Government-certified seasonal worker management platform',
+                heroTitle1: 'Korea', heroTitle2: 'Seasonal Workers', heroTitle3: 'Integrated Management',
+                heroSubtitle: 'Transparent worker management system based on MOUs between local governments and foreign governments.\nAttendance tracking, AI anomaly detection, and point system for safe and efficient workforce management.',
+                heroCtaStart: 'Get Started', heroCtaLearn: 'Learn More',
+                heroStat1: 'MOU Countries', heroStat2: 'Local Governments', heroStat3: 'Registered Workers', heroStat4: 'Attendance Rate',
+                featuresTag: 'Platform Features', featuresTitle: 'Complete Management<br>Solution for Local Gov.',
+                featuresSubtitle: 'Manage the entire process of foreign seasonal workers from entry to departure on a single platform.',
+                feat1Title: 'QR Attendance', feat1Desc: 'Simple check-in/out by scanning workplace QR codes. GPS location automatically recorded for real-time workplace verification.',
+                feat2Title: 'AI Anomaly Detection', feat2Desc: 'AI analyzes attendance patterns to detect early signs of desertion. Instant alerts for 3+ consecutive absences or GPS deviations.',
+                feat3Title: 'Point Incentives', feat3Desc: 'Points awarded for diligent attendance and activity records. Re-entry bonus incentives encourage voluntary participation.',
+                feat4Title: 'Real-time Tracking', feat4Desc: 'Location data collected when workers voluntarily connect. Map-based dashboard shows distribution by local government.',
+                feat5Title: 'Comprehensive Reports', feat5Desc: 'Generate various reports including attendance, worker status, points, and counseling in Excel/PDF format.',
+                feat6Title: 'MOU Management', feat6Desc: 'Systematically manage and disclose agreement status with foreign governments and local authorities.',
+                processTag: 'How It Works', processTitle: 'Get Started in<br>4 Simple Steps',
+                step1Title: 'Sign MOU', step1Desc: 'Sign seasonal worker dispatch agreement with foreign government/local authority.',
+                step2Title: 'Register Workers', step2Desc: 'Workers register on the platform with passport and visa information.',
+                step3Title: 'Assignment', step3Desc: 'After arriving at Incheon Airport, assigned local government takes over and assigns workplace.',
+                step4Title: 'Smart Management', step4Desc: 'Start systematic management with QR attendance, AI monitoring, and point accumulation.',
+                statsTag: 'Why Choose Us', statsTitle: 'Data-Proven<br><span class="gradient-text">Trust & Results</span>',
+                statsDesc: 'KWV platform is an already verified system used by local governments nationwide.', statsCtaBtn: 'Adopt Now',
+                statLabel1: 'Worker Management', statLabel2: 'Real-time Monitoring', statUnit3: 'Languages', statLabel3: 'Multilingual Support', statUnit4: 'sec', statLabel4: 'Anomaly Alert Speed',
+                govTag: 'For Local Governments', govTitle: 'Customized Features for<br>Local Gov. Officers',
+                gov1Title: 'Desertion Prevention', gov1Desc: 'Workers earn points by recording daily attendance. Points are used as re-entry bonus.',
+                gov2Title: 'One-Click Reports', gov2Desc: 'Instantly generate attendance, statistics, counseling reports in Excel/PDF.',
+                gov3Title: 'Insurance Management', gov3Desc: 'Systematically manage 4 major insurance enrollment status from entry.',
+                gov4Title: 'Counseling & Communication', gov4Desc: 'Systematically manage counseling records with workers. 5-language translation.',
+                ctaTitle: 'Adopt KWV<br>Right Now', ctaDesc: 'A new paradigm in foreign seasonal worker management.',
+                ctaBtnStart: 'Get Started', ctaBtnRegister: 'Sign Up',
+                navFeatures: 'Features', navProcess: 'Process', navStats: 'Stats', navPartners: 'Partners', navLogin: 'Login',
+                navVisa: 'Visa Guide', navBoard: 'Jobs', navFaq: 'FAQ', navChatbot: 'AI Chat',
+                boardTag: 'Real-time Board', boardTitle: 'Jobs / Seekers', boardDesc: 'Check real-time job postings and seekers',
+                boardJobs: 'Job Postings', boardSeekers: 'Job Seekers',
+                visaTag: 'Visa Guide', visaSectionTitle: 'Visa Types', visaSectionDesc: 'Check the visa types required for seasonal work in Korea',
+                faqTag: 'FAQ', faqSectionTitle: 'Frequently Asked Questions', faqSectionDesc: 'Find answers about seasonal work',
+                faqAll: 'All', faqFilterVisa: 'Visa', faqFilterSalary: 'Salary', faqFilterHousing: 'Housing', faqFilterWork: 'Work',
+                chatbotTag: 'AI Assistant', chatbotSectionTitle: 'AI Chatbot', chatbotSectionDesc: 'Ask the AI about seasonal work',
+                chatbotName: 'KWV AI Assistant', chatbotStatus: 'Online',
+                chatbotWelcome: 'Hello! I\'m the KWV AI Assistant. Ask me about seasonal work in Korea.',
+                chatbotExamples: 'Example questions:', chatbotEx1: '- What is an E-8 visa?', chatbotEx2: '- How much is the salary?', chatbotEx3: '- Is accommodation provided?', chatbotEx4: '- What are the working hours?',
+                chatbotQuick1: 'Visa', chatbotQuick2: 'Salary', chatbotQuick3: 'Housing', chatbotQuick4: 'Work',
+                chatbotPlaceholder: 'Type your question...',
+                faq_visa_q1: 'What is an E-8 visa?', faq_visa_a1: 'E-8 visa is a seasonal worker visa for agriculture/fisheries for up to 5 months.',
+                faq_visa_q2: 'What documents are needed?', faq_visa_a2: 'Passport, visa application, photo, health check, criminal record, employment contract.',
+                faq_visa_q3: 'How long does visa processing take?', faq_visa_a3: 'Generally 2-4 weeks after document submission.',
+                faq_visa_q4: 'Can the visa be extended?', faq_visa_a4: 'E-8 visa cannot be extended. You can reapply next season.',
+                faq_salary_q1: 'How much is the salary?', faq_salary_a1: 'Minimum wage is 9,860 KRW/hour. Monthly around 2-2.5 million KRW plus overtime.',
+                faq_salary_q2: 'When is salary paid?', faq_salary_a2: 'Usually on the 10th or 25th of each month.',
+                faq_salary_q3: 'How much tax is deducted?', faq_salary_a3: 'Income tax and 4 major insurances. About 10-15% of salary.',
+                faq_salary_q4: 'Can I send money home?', faq_salary_a4: 'Yes, you can transfer from Korean bank accounts.',
+                faq_housing_q1: 'Is accommodation provided?', faq_housing_a1: 'Yes, most farms provide free dormitory housing, typically 2-4 person rooms.',
+                faq_housing_q2: 'What are the facilities like?', faq_housing_a2: 'Basic beds, heating/cooling, shared bathrooms are provided.',
+                faq_housing_q3: 'Are meals provided?', faq_housing_a3: 'Varies by farm. Some provide 3 meals, others only cooking facilities.',
+                faq_housing_q4: 'Is internet available?', faq_housing_a4: 'Most accommodations provide Wi-Fi.',
+                faq_work_q1: 'What are the working hours?', faq_work_a1: 'Usually 6-7 AM to 5-6 PM. Overtime pay is provided.',
+                faq_work_q2: 'Are there days off?', faq_work_a2: 'One day off per week is guaranteed with holiday pay for extra work.',
+                faq_work_q3: 'What kind of work?', faq_work_a3: 'Crop cultivation, harvesting, packing, sorting and other farm work.',
+                faq_work_q4: 'Can I work without Korean?', faq_work_a4: 'Basic communication is enough. Many farms provide interpreter support.'
+            },
+            vi: {
+                heroBadge: 'Nền tảng quản lý lao động thời vụ được chính phủ chứng nhận',
+                heroTitle1: 'Hàn Quốc', heroTitle2: 'Lao động thời vụ', heroTitle3: 'Quản lý tích hợp',
+                heroSubtitle: 'Hệ thống quản lý lao động minh bạch dựa trên MOU giữa chính quyền địa phương và chính phủ nước ngoài.',
+                heroCtaStart: 'Bắt đầu ngay', heroCtaLearn: 'Tìm hiểu thêm',
+                heroStat1: 'Quốc gia MOU', heroStat2: 'Chính quyền địa phương', heroStat3: 'Lao động đăng ký', heroStat4: 'Tỷ lệ chấm công',
+                featuresTag: 'Tính năng', featuresTitle: 'Giải pháp quản lý<br>hoàn hảo',
+                featuresSubtitle: 'Quản lý toàn bộ quy trình lao động thời vụ nước ngoài trên một nền tảng duy nhất.',
+                feat1Title: 'Chấm công QR', feat1Desc: 'Chấm công đơn giản bằng quét mã QR. Vị trí GPS tự động ghi nhận.',
+                feat2Title: 'AI phát hiện bất thường', feat2Desc: 'AI phân tích mẫu chấm công để phát hiện sớm dấu hiệu bỏ trốn.',
+                feat3Title: 'Tích điểm thưởng', feat3Desc: 'Tặng điểm cho chấm công đều đặn. Điểm thưởng khi tái nhập cảnh.',
+                feat4Title: 'Theo dõi thời gian thực', feat4Desc: 'Thu thập vị trí khi người lao động kết nối. Bảng điều khiển bản đồ.',
+                feat5Title: 'Báo cáo tổng hợp', feat5Desc: 'Tạo báo cáo Excel/PDF về chấm công, tình trạng, điểm, tư vấn.',
+                feat6Title: 'Quản lý MOU', feat6Desc: 'Quản lý có hệ thống tình trạng thỏa thuận với chính phủ nước ngoài.',
+                processTag: 'Quy trình', processTitle: 'Bắt đầu trong<br>4 bước đơn giản',
+                step1Title: 'Ký MOU', step1Desc: 'Ký thỏa thuận phái cử lao động thời vụ.',
+                step2Title: 'Đăng ký lao động', step2Desc: 'Lao động đăng ký với hộ chiếu và thông tin visa.',
+                step3Title: 'Phân công', step3Desc: 'Sau khi đến sân bay, được phân công đến chính quyền địa phương.',
+                step4Title: 'Quản lý thông minh', step4Desc: 'Quản lý có hệ thống với chấm công QR, AI giám sát, tích điểm.',
+                statsTag: 'Tại sao chọn chúng tôi', statsTitle: 'Dữ liệu chứng minh<br><span class="gradient-text">Uy tín & Kết quả</span>',
+                statsDesc: 'Nền tảng KWV đã được xác minh bởi các chính quyền địa phương.', statsCtaBtn: 'Áp dụng ngay',
+                statLabel1: 'Quản lý lao động', statLabel2: 'Giám sát thời gian thực', statUnit3: 'ngôn ngữ', statLabel3: 'Hỗ trợ đa ngữ', statUnit4: 'giây', statLabel4: 'Tốc độ cảnh báo',
+                govTag: 'Cho chính quyền', govTitle: 'Tính năng tùy chỉnh<br>cho cán bộ địa phương',
+                gov1Title: 'Phòng chống bỏ trốn', gov1Desc: 'Lao động tích điểm bằng chấm công hàng ngày.',
+                gov2Title: 'Báo cáo nhanh', gov2Desc: 'Tạo báo cáo Excel/PDF ngay lập tức.',
+                gov3Title: 'Quản lý bảo hiểm', gov3Desc: 'Quản lý tình trạng bảo hiểm từ khi nhập cảnh.',
+                gov4Title: 'Tư vấn & Giao tiếp', gov4Desc: 'Quản lý hồ sơ tư vấn. Hỗ trợ dịch 5 ngôn ngữ.',
+                ctaTitle: 'Áp dụng KWV<br>ngay bây giờ', ctaDesc: 'Mô hình mới trong quản lý lao động thời vụ nước ngoài.',
+                ctaBtnStart: 'Bắt đầu', ctaBtnRegister: 'Đăng ký',
+                navFeatures: 'Tính năng', navProcess: 'Quy trình', navStats: 'Thống kê', navPartners: 'Đối tác', navLogin: 'Đăng nhập',
+                navVisa: 'Visa', navBoard: 'Việc làm', navFaq: 'FAQ', navChatbot: 'AI Chat',
+                boardTag: 'Bảng tin thời gian thực', boardTitle: 'Tuyển dụng / Tìm việc', boardDesc: 'Kiểm tra thông tin tuyển dụng và tìm việc theo thời gian thực',
+                boardJobs: 'Tuyển dụng', boardSeekers: 'Tìm việc',
+                visaTag: 'Hướng dẫn Visa', visaSectionTitle: 'Loại Visa', visaSectionDesc: 'Kiểm tra các loại visa cần thiết cho lao động thời vụ tại Hàn Quốc',
+                faqTag: 'FAQ', faqSectionTitle: 'Câu hỏi thường gặp', faqSectionDesc: 'Tìm câu trả lời về lao động thời vụ',
+                faqAll: 'Tất cả', faqFilterVisa: 'Visa', faqFilterSalary: 'Lương', faqFilterHousing: 'Chỗ ở', faqFilterWork: 'Công việc',
+                chatbotTag: 'Trợ lý AI', chatbotSectionTitle: 'AI Chatbot', chatbotSectionDesc: 'Hỏi AI về lao động thời vụ',
+                chatbotName: 'Trợ lý AI KWV', chatbotStatus: 'Trực tuyến',
+                chatbotWelcome: 'Xin chào! Tôi là trợ lý AI KWV. Hãy hỏi tôi về lao động thời vụ tại Hàn Quốc.',
+                chatbotExamples: 'Câu hỏi mẫu:', chatbotEx1: '- Visa E-8 là gì?', chatbotEx2: '- Lương bao nhiêu?', chatbotEx3: '- Có cung cấp chỗ ở không?', chatbotEx4: '- Giờ làm việc như thế nào?',
+                chatbotQuick1: 'Visa', chatbotQuick2: 'Lương', chatbotQuick3: 'Chỗ ở', chatbotQuick4: 'Công việc',
+                chatbotPlaceholder: 'Nhập câu hỏi...',
+                faq_visa_q1: 'Visa E-8 là gì?', faq_visa_a1: 'Visa E-8 là visa lao động thời vụ cho nông nghiệp/ngư nghiệp tối đa 5 tháng.',
+                faq_visa_q2: 'Cần những giấy tờ gì?', faq_visa_a2: 'Hộ chiếu, đơn xin visa, ảnh, giấy khám sức khỏe, lý lịch tư pháp, hợp đồng lao động.',
+                faq_visa_q3: 'Mất bao lâu để có visa?', faq_visa_a3: 'Thường 2-4 tuần sau khi nộp hồ sơ.',
+                faq_visa_q4: 'Có thể gia hạn visa không?', faq_visa_a4: 'Visa E-8 không thể gia hạn. Có thể nộp lại vào mùa sau.',
+                faq_salary_q1: 'Lương bao nhiêu?', faq_salary_a1: 'Lương tối thiểu 9.860 KRW/giờ. Hàng tháng khoảng 2-2,5 triệu KRW.',
+                faq_salary_q2: 'Lương được trả khi nào?', faq_salary_a2: 'Thường vào ngày 10 hoặc 25 hàng tháng.',
+                faq_salary_q3: 'Thuế trừ bao nhiêu?', faq_salary_a3: 'Thuế thu nhập và 4 bảo hiểm. Khoảng 10-15% lương.',
+                faq_salary_q4: 'Có thể gửi tiền về nước?', faq_salary_a4: 'Có, có thể chuyển từ tài khoản ngân hàng Hàn Quốc.',
+                faq_housing_q1: 'Có cung cấp chỗ ở không?', faq_housing_a1: 'Có, hầu hết các trang trại cung cấp ký túc xá miễn phí, phòng 2-4 người.',
+                faq_housing_q2: 'Cơ sở vật chất thế nào?', faq_housing_a2: 'Giường, điều hòa, nhà vệ sinh chung được cung cấp.',
+                faq_housing_q3: 'Có cung cấp bữa ăn không?', faq_housing_a3: 'Tùy trang trại. Một số cung cấp 3 bữa, một số chỉ có bếp.',
+                faq_housing_q4: 'Có internet không?', faq_housing_a4: 'Hầu hết chỗ ở đều có Wi-Fi.',
+                faq_work_q1: 'Giờ làm việc như thế nào?', faq_work_a1: 'Thường 6-7 sáng đến 5-6 chiều. Có phụ cấp làm thêm.',
+                faq_work_q2: 'Có ngày nghỉ không?', faq_work_a2: 'Nghỉ 1 ngày/tuần. Làm ngày nghỉ được trả phụ cấp.',
+                faq_work_q3: 'Làm công việc gì?', faq_work_a3: 'Trồng trọt, thu hoạch, đóng gói, phân loại và các công việc nông trại.',
+                faq_work_q4: 'Không biết tiếng Hàn có làm được không?', faq_work_a4: 'Giao tiếp cơ bản là đủ. Nhiều trang trại có phiên dịch hỗ trợ.'
+            },
+            th: {
+                heroBadge: 'แพลตฟอร์มจัดการแรงงานตามฤดูกาลที่ได้รับการรับรองจากรัฐบาล',
+                heroTitle1: 'เกาหลี', heroTitle2: 'แรงงานตามฤดูกาล', heroTitle3: 'การจัดการแบบบูรณาการ',
+                heroSubtitle: 'ระบบจัดการแรงงานโปร่งใสบน MOU ระหว่างรัฐบาลท้องถิ่นและรัฐบาลต่างประเทศ',
+                heroCtaStart: 'เริ่มต้นใช้งาน', heroCtaLearn: 'เรียนรู้เพิ่มเติม',
+                heroStat1: 'ประเทศ MOU', heroStat2: 'รัฐบาลท้องถิ่น', heroStat3: 'แรงงานลงทะเบียน', heroStat4: 'อัตราการเข้างาน',
+                featuresTag: 'คุณสมบัติ', featuresTitle: 'โซลูชันการจัดการ<br>ที่สมบูรณ์แบบ',
+                featuresSubtitle: 'จัดการกระบวนการทั้งหมดของแรงงานตามฤดูกาลบนแพลตฟอร์มเดียว',
+                feat1Title: 'ลงเวลา QR', feat1Desc: 'ลงเวลาง่ายๆ ด้วยสแกน QR GPS บันทึกอัตโนมัติ',
+                feat2Title: 'AI ตรวจจับผิดปกติ', feat2Desc: 'AI วิเคราะห์รูปแบบการเข้างานเพื่อตรวจจับสัญญาณการหลบหนี',
+                feat3Title: 'สะสมคะแนน', feat3Desc: 'ให้คะแนนสำหรับการเข้างานสม่ำเสมอ โบนัสเมื่อกลับเข้าประเทศ',
+                feat4Title: 'ติดตามเรียลไทม์', feat4Desc: 'เก็บข้อมูลตำแหน่งเมื่อแรงงานเชื่อมต่อ แดชบอร์ดแผนที่',
+                feat5Title: 'รายงานครบถ้วน', feat5Desc: 'สร้างรายงาน Excel/PDF สำหรับการเข้างาน สถานะ คะแนน การให้คำปรึกษา',
+                feat6Title: 'จัดการ MOU', feat6Desc: 'จัดการสถานะข้อตกลงกับรัฐบาลต่างประเทศอย่างเป็นระบบ',
+                processTag: 'ขั้นตอน', processTitle: 'เริ่มต้นใน<br>4 ขั้นตอนง่ายๆ',
+                step1Title: 'ลงนาม MOU', step1Desc: 'ลงนามข้อตกลงส่งแรงงานตามฤดูกาล',
+                step2Title: 'ลงทะเบียนแรงงาน', step2Desc: 'แรงงานลงทะเบียนด้วยหนังสือเดินทางและวีซ่า',
+                step3Title: 'มอบหมาย', step3Desc: 'หลังถึงสนามบิน ส่งมอบให้รัฐบาลท้องถิ่น',
+                step4Title: 'จัดการอัจฉริยะ', step4Desc: 'เริ่มจัดการด้วย QR ลงเวลา AI ติดตาม สะสมคะแนน',
+                statsTag: 'ทำไมเลือกเรา', statsTitle: 'ข้อมูลพิสูจน์<br><span class="gradient-text">ความน่าเชื่อถือ</span>',
+                statsDesc: 'แพลตฟอร์ม KWV ได้รับการตรวจสอบโดยรัฐบาลท้องถิ่นทั่วประเทศ', statsCtaBtn: 'นำไปใช้ตอนนี้',
+                statLabel1: 'การจัดการแรงงาน', statLabel2: 'การติดตามเรียลไทม์', statUnit3: 'ภาษา', statLabel3: 'รองรับหลายภาษา', statUnit4: 'วินาที', statLabel4: 'ความเร็วแจ้งเตือน',
+                govTag: 'สำหรับรัฐบาลท้องถิ่น', govTitle: 'ฟีเจอร์สำหรับ<br>เจ้าหน้าที่ท้องถิ่น',
+                gov1Title: 'ป้องกันการหลบหนี', gov1Desc: 'แรงงานสะสมคะแนนจากการลงเวลาทุกวัน',
+                gov2Title: 'รายงานคลิกเดียว', gov2Desc: 'สร้างรายงาน Excel/PDF ทันที',
+                gov3Title: 'จัดการประกัน', gov3Desc: 'จัดการสถานะประกันตั้งแต่เข้าประเทศ',
+                gov4Title: 'ให้คำปรึกษา', gov4Desc: 'จัดการบันทึกการให้คำปรึกษา รองรับ 5 ภาษา',
+                ctaTitle: 'นำ KWV ไปใช้<br>ตอนนี้เลย', ctaDesc: 'รูปแบบใหม่ในการจัดการแรงงานตามฤดูกาลต่างชาติ',
+                ctaBtnStart: 'เริ่มต้น', ctaBtnRegister: 'สมัครสมาชิก',
+                navFeatures: 'คุณสมบัติ', navProcess: 'ขั้นตอน', navStats: 'สถิติ', navPartners: 'พันธมิตร', navLogin: 'เข้าสู่ระบบ',
+                navVisa: 'วีซ่า', navBoard: 'งาน', navFaq: 'FAQ', navChatbot: 'AI แชท',
+                boardTag: 'บอร์ดเรียลไทม์', boardTitle: 'รับสมัคร / หางาน', boardDesc: 'ตรวจสอบข้อมูลรับสมัครและหางานแบบเรียลไทม์',
+                boardJobs: 'รับสมัคร', boardSeekers: 'หางาน',
+                visaTag: 'คู่มือวีซ่า', visaSectionTitle: 'ประเภทวีซ่า', visaSectionDesc: 'ตรวจสอบประเภทวีซ่าสำหรับแรงงานตามฤดูกาลในเกาหลี',
+                faqTag: 'FAQ', faqSectionTitle: 'คำถามที่พบบ่อย', faqSectionDesc: 'คำตอบเกี่ยวกับแรงงานตามฤดูกาล',
+                faqAll: 'ทั้งหมด', faqFilterVisa: 'วีซ่า', faqFilterSalary: 'เงินเดือน', faqFilterHousing: 'ที่พัก', faqFilterWork: 'งาน',
+                chatbotTag: 'ผู้ช่วย AI', chatbotSectionTitle: 'AI แชทบอท', chatbotSectionDesc: 'ถาม AI เกี่ยวกับแรงงานตามฤดูกาล',
+                chatbotName: 'ผู้ช่วย AI KWV', chatbotStatus: 'ออนไลน์',
+                chatbotWelcome: 'สวัสดี! ฉันคือผู้ช่วย AI KWV ถามเกี่ยวกับแรงงานตามฤดูกาลในเกาหลี',
+                chatbotExamples: 'ตัวอย่างคำถาม:', chatbotEx1: '- วีซ่า E-8 คืออะไร?', chatbotEx2: '- เงินเดือนเท่าไหร่?', chatbotEx3: '- มีที่พักให้ไหม?', chatbotEx4: '- เวลาทำงานเป็นอย่างไร?',
+                chatbotQuick1: 'วีซ่า', chatbotQuick2: 'เงินเดือน', chatbotQuick3: 'ที่พัก', chatbotQuick4: 'งาน',
+                chatbotPlaceholder: 'พิมพ์คำถาม...',
+                faq_visa_q1: 'วีซ่า E-8 คืออะไร?', faq_visa_a1: 'วีซ่า E-8 คือวีซ่าแรงงานตามฤดูกาลสำหรับเกษตร/ประมง สูงสุด 5 เดือน',
+                faq_visa_q2: 'ต้องใช้เอกสารอะไรบ้าง?', faq_visa_a2: 'หนังสือเดินทาง ใบสมัครวีซ่า รูปถ่าย ใบตรวจสุขภาพ ใบรับรองความประพฤติ สัญญาจ้าง',
+                faq_visa_q3: 'วีซ่าใช้เวลานานแค่ไหน?', faq_visa_a3: 'ปกติ 2-4 สัปดาห์หลังยื่นเอกสาร',
+                faq_visa_q4: 'ต่ออายุวีซ่าได้ไหม?', faq_visa_a4: 'วีซ่า E-8 ไม่สามารถต่ออายุได้ สามารถสมัครใหม่ในฤดูถัดไป',
+                faq_salary_q1: 'เงินเดือนเท่าไหร่?', faq_salary_a1: 'ค่าแรงขั้นต่ำ 9,860 วอน/ชั่วโมง รายเดือนประมาณ 2-2.5 ล้านวอน',
+                faq_salary_q2: 'จ่ายเงินเดือนเมื่อไหร่?', faq_salary_a2: 'ส่วนใหญ่วันที่ 10 หรือ 25 ของทุกเดือน',
+                faq_salary_q3: 'หักภาษีเท่าไหร่?', faq_salary_a3: 'ภาษีรายได้และประกัน 4 ประเภท ประมาณ 10-15% ของเงินเดือน',
+                faq_salary_q4: 'โอนเงินกลับบ้านได้ไหม?', faq_salary_a4: 'ได้ โอนจากบัญชีธนาคารเกาหลีได้',
+                faq_housing_q1: 'มีที่พักให้ไหม?', faq_housing_a1: 'ใช่ ฟาร์มส่วนใหญ่มีหอพักฟรี ห้องพัก 2-4 คน',
+                faq_housing_q2: 'สิ่งอำนวยความสะดวกเป็นอย่างไร?', faq_housing_a2: 'มีเตียง เครื่องปรับอากาศ ห้องน้ำรวม',
+                faq_housing_q3: 'มีอาหารให้ไหม?', faq_housing_a3: 'แตกต่างตามฟาร์ม บางแห่งมี 3 มื้อ บางแห่งมีแค่ครัว',
+                faq_housing_q4: 'มีอินเทอร์เน็ตไหม?', faq_housing_a4: 'ที่พักส่วนใหญ่มี Wi-Fi',
+                faq_work_q1: 'เวลาทำงานเป็นอย่างไร?', faq_work_a1: 'ปกติ 6-7 โมงเช้า ถึง 5-6 โมงเย็น มีค่าล่วงเวลา',
+                faq_work_q2: 'มีวันหยุดไหม?', faq_work_a2: 'หยุด 1 วัน/สัปดาห์ ทำงานวันหยุดได้ค่าตอบแทนพิเศษ',
+                faq_work_q3: 'ทำงานอะไรบ้าง?', faq_work_a3: 'ปลูก เก็บเกี่ยว บรรจุ คัดแยก และงานฟาร์มอื่นๆ',
+                faq_work_q4: 'ไม่พูดเกาหลีทำงานได้ไหม?', faq_work_a4: 'สื่อสารพื้นฐานก็เพียงพอ ฟาร์มหลายแห่งมีล่ามช่วย'
+            },
+            tl: {
+                heroBadge: 'Platform ng pamamahala ng seasonal worker na sertipikado ng gobyerno',
+                heroTitle1: 'Korea', heroTitle2: 'Seasonal Workers', heroTitle3: 'Integrated Management',
+                heroSubtitle: 'Transparent na sistema ng pamamahala ng manggagawa batay sa MOU sa pagitan ng local governments at foreign governments.',
+                heroCtaStart: 'Magsimula', heroCtaLearn: 'Alamin pa',
+                heroStat1: 'MOU Countries', heroStat2: 'Local Governments', heroStat3: 'Registered Workers', heroStat4: 'Attendance Rate',
+                featuresTag: 'Mga Features', featuresTitle: 'Kumpletong Solusyon<br>sa Pamamahala',
+                featuresSubtitle: 'Pamahalaan ang buong proseso ng foreign seasonal workers sa isang platform.',
+                feat1Title: 'QR Attendance', feat1Desc: 'Simpleng check-in/out sa pamamagitan ng QR code scan. GPS location awtomatikong nire-record.',
+                feat2Title: 'AI Anomaly Detection', feat2Desc: 'Pinag-aaralan ng AI ang attendance patterns para maaga madetect ang paglayas.',
+                feat3Title: 'Point Incentives', feat3Desc: 'Points para sa regular na attendance. Re-entry bonus incentives.',
+                feat4Title: 'Real-time Tracking', feat4Desc: 'Kinokolekta ang location data kapag kumonekta ang manggagawa.',
+                feat5Title: 'Mga Ulat', feat5Desc: 'Gumawa ng iba\'t ibang ulat sa Excel/PDF format.',
+                feat6Title: 'MOU Management', feat6Desc: 'Sistematikong pamahalaan ang mga kasunduan sa dayuhang gobyerno.',
+                processTag: 'Proseso', processTitle: 'Magsimula sa<br>4 na Simpleng Hakbang',
+                step1Title: 'Pumirma ng MOU', step1Desc: 'Pumirma ng kasunduan sa pagpapadala ng seasonal worker.',
+                step2Title: 'Mag-register', step2Desc: 'Nag-register ang mga manggagawa gamit ang passport at visa.',
+                step3Title: 'Assignment', step3Desc: 'Pagdating sa airport, itinalaga sa local government.',
+                step4Title: 'Smart Management', step4Desc: 'Simulan ang sistematikong pamamahala gamit ang QR, AI, at points.',
+                statsTag: 'Bakit Kami', statsTitle: 'Pinatunayan ng Data<br><span class="gradient-text">Tiwala at Resulta</span>',
+                statsDesc: 'Napatunayan na ang KWV platform ng mga local governments sa buong bansa.', statsCtaBtn: 'Gamitin Ngayon',
+                statLabel1: 'Worker Management', statLabel2: 'Real-time Monitoring', statUnit3: 'wika', statLabel3: 'Multilingual Support', statUnit4: 'seg', statLabel4: 'Alert Speed',
+                govTag: 'Para sa Local Gov.', govTitle: 'Custom Features para sa<br>Local Gov. Officers',
+                gov1Title: 'Pag-iwas sa Paglayas', gov1Desc: 'Kumikita ng points ang mga manggagawa sa pang-araw-araw na attendance.',
+                gov2Title: 'One-Click Reports', gov2Desc: 'Agad gumawa ng Excel/PDF reports.',
+                gov3Title: 'Insurance Management', gov3Desc: 'Pamahalaan ang insurance status mula sa pagpasok.',
+                gov4Title: 'Counseling', gov4Desc: 'Pamahalaan ang counseling records. 5-language translation support.',
+                ctaTitle: 'Gamitin ang KWV<br>Ngayon Na', ctaDesc: 'Bagong paradigm sa pamamahala ng foreign seasonal workers.',
+                ctaBtnStart: 'Magsimula', ctaBtnRegister: 'Mag-sign Up',
+                navFeatures: 'Features', navProcess: 'Proseso', navStats: 'Istatistika', navPartners: 'Partners', navLogin: 'Mag-login',
+                navVisa: 'Visa', navBoard: 'Trabaho', navFaq: 'FAQ', navChatbot: 'AI Chat',
+                boardTag: 'Real-time Board', boardTitle: 'Hiring / Job Seekers', boardDesc: 'Tingnan ang real-time na hiring at job seekers',
+                boardJobs: 'Hiring', boardSeekers: 'Job Seekers',
+                visaTag: 'Gabay sa Visa', visaSectionTitle: 'Mga Uri ng Visa', visaSectionDesc: 'Tingnan ang mga uri ng visa para sa seasonal work sa Korea',
+                faqTag: 'FAQ', faqSectionTitle: 'Mga Madalas Itanong', faqSectionDesc: 'Mga sagot tungkol sa seasonal work',
+                faqAll: 'Lahat', faqFilterVisa: 'Visa', faqFilterSalary: 'Sahod', faqFilterHousing: 'Tirahan', faqFilterWork: 'Trabaho',
+                chatbotTag: 'AI Assistant', chatbotSectionTitle: 'AI Chatbot', chatbotSectionDesc: 'Magtanong sa AI tungkol sa seasonal work',
+                chatbotName: 'KWV AI Assistant', chatbotStatus: 'Online',
+                chatbotWelcome: 'Kumusta! Ako ang KWV AI Assistant. Magtanong ka tungkol sa seasonal work sa Korea.',
+                chatbotExamples: 'Mga halimbawang tanong:', chatbotEx1: '- Ano ang E-8 visa?', chatbotEx2: '- Magkano ang sahod?', chatbotEx3: '- May tirahan ba?', chatbotEx4: '- Ano ang working hours?',
+                chatbotQuick1: 'Visa', chatbotQuick2: 'Sahod', chatbotQuick3: 'Tirahan', chatbotQuick4: 'Trabaho',
+                chatbotPlaceholder: 'I-type ang tanong...',
+                faq_visa_q1: 'Ano ang E-8 visa?', faq_visa_a1: 'Ang E-8 visa ay para sa seasonal worker sa agrikultura/pangingisda hanggang 5 buwan.',
+                faq_visa_q2: 'Anong mga dokumento ang kailangan?', faq_visa_a2: 'Pasaporte, visa application, larawan, medical check, NBI clearance, employment contract.',
+                faq_visa_q3: 'Gaano katagal ang visa processing?', faq_visa_a3: 'Karaniwang 2-4 na linggo pagkatapos mag-submit ng dokumento.',
+                faq_visa_q4: 'Pwede bang i-extend ang visa?', faq_visa_a4: 'Hindi maaaring i-extend ang E-8 visa. Pwedeng mag-apply ulit sa susunod na season.',
+                faq_salary_q1: 'Magkano ang sahod?', faq_salary_a1: 'Minimum wage 9,860 KRW/oras. Buwan-buwan mga 2-2.5 milyong KRW kasama overtime.',
+                faq_salary_q2: 'Kailan binabayaran ang sahod?', faq_salary_a2: 'Karaniwang ika-10 o ika-25 ng buwan.',
+                faq_salary_q3: 'Magkano ang buwis?', faq_salary_a3: 'Income tax at 4 na insurance. Mga 10-15% ng sahod.',
+                faq_salary_q4: 'Pwede bang mag-padala ng pera?', faq_salary_a4: 'Oo, pwedeng mag-transfer mula sa Korean bank account.',
+                faq_housing_q1: 'May tirahan ba?', faq_housing_a1: 'Oo, karamihan sa mga bukid ay nagbibigay ng libreng dorm, kwarto para sa 2-4 na tao.',
+                faq_housing_q2: 'Ano ang mga pasilidad?', faq_housing_a2: 'Mga kama, aircon/heater, at shared bathroom.',
+                faq_housing_q3: 'May pagkain ba?', faq_housing_a3: 'Depende sa bukid. May nagbibigay ng 3 kainan, ang iba ay kusina lang.',
+                faq_housing_q4: 'May internet ba?', faq_housing_a4: 'Karamihan sa mga tirahan ay may Wi-Fi.',
+                faq_work_q1: 'Ano ang working hours?', faq_work_a1: 'Karaniwang 6-7 AM hanggang 5-6 PM. May overtime pay.',
+                faq_work_q2: 'May day off ba?', faq_work_a2: '1 araw na day off bawat linggo. May holiday pay kung magtrabaho sa day off.',
+                faq_work_q3: 'Anong uri ng trabaho?', faq_work_a3: 'Pagtatanim, pag-aani, pagbabalot, pag-sort at iba pang farm work.',
+                faq_work_q4: 'Pwede ba kahit hindi marunong mag-Korean?', faq_work_a4: 'Basta basic communication lang. Maraming bukid na may interpreter.'
+            }
+        };
+
+        function changeLandingLang(lang) {
+            localStorage.setItem('kwv_language', lang);
+            const dict = landingI18n[lang] || landingI18n['ko'];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (dict[key]) el.innerHTML = dict[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (dict[key]) el.placeholder = dict[key];
+            });
+            renderLandingFaq();
+            loadLandingVisaCards();
+        }
+
+        // ===== i18n helper =====
+        function lt(key) {
+            const lang = localStorage.getItem('kwv_language') || 'ko';
+            const dict = landingI18n[lang] || landingI18n['ko'];
+            return dict[key] || landingI18n['ko'][key] || key;
+        }
+
+        // ===== Visa Guide =====
+        async function loadLandingVisaCards() {
+            const cards = document.getElementById('landingVisaCards');
+            if (!cards) return;
+            try {
+                const res = await fetch('/api/kwv/visa');
+                const data = await res.json();
+                if (!data.success) return;
+                const colors = {E8: ['from-blue-500', 'to-blue-600'], D2: ['from-green-500', 'to-green-600'], D4: ['from-purple-500', 'to-purple-600'], D10: ['from-orange-500', 'to-orange-600'], F4: ['from-pink-500', 'to-pink-600']};
+                const icons = {E8: 'tractor', D2: 'graduation-cap', D4: 'language', D10: 'search', F4: 'users'};
+                cards.innerHTML = '';
+                for (const [type, info] of Object.entries(data.data)) {
+                    const [c1, c2] = colors[type] || ['from-gray-500', 'to-gray-600'];
+                    const icon = icons[type] || 'passport';
+                    cards.innerHTML += `
+                        <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition cursor-pointer border border-gray-100" onclick="openLandingVisaModal('${type}')">
+                            <div class="w-14 h-14 bg-gradient-to-br ${c1} ${c2} rounded-2xl flex items-center justify-center mb-4">
+                                <i class="fas fa-${icon} text-white text-xl"></i>
+                            </div>
+                            <span class="px-2 py-1 bg-gray-100 rounded-lg text-xs font-bold text-gray-600">${type}</span>
+                            <h3 class="text-xl font-bold text-gray-800 mt-2 mb-1">${info.name}</h3>
+                            <p class="text-sm text-gray-400 mb-4">${info.name_en || ''}</p>
+                            <div class="space-y-2 text-sm text-gray-500">
+                                <p><i class="fas fa-clock mr-2 w-4"></i>${info.duration}</p>
+                                <p><i class="fas fa-tag mr-2 w-4"></i>${info.type}</p>
+                            </div>
+                            <button class="w-full mt-6 bg-gradient-to-r ${c1} ${c2} text-white py-3 rounded-xl font-medium hover:opacity-90 transition">
+                                상세보기
+                            </button>
+                        </div>`;
+                }
+            } catch(e) { cards.innerHTML = '<p class="text-center text-gray-400 col-span-3">비자 정보를 불러올 수 없습니다.</p>'; }
+        }
+
+        async function openLandingVisaModal(visaType) {
+            try {
+                const res = await fetch('/api/kwv/visa/' + visaType + '/detail');
+                const data = await res.json();
+                if (!data.success) return;
+                const v = data.data;
+                document.getElementById('landingVisaModalTitle').textContent = v.name + ' (' + visaType + ')';
+                document.getElementById('landingVisaModalContent').innerHTML = `
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-2xl text-white">
+                            <p class="text-lg">${v.description}</p>
+                            <div class="grid grid-cols-3 gap-4 mt-6">
+                                <div class="bg-white/20 rounded-xl p-3 text-center"><p class="text-white/70 text-xs">체류기간</p><p class="font-bold">${v.duration}</p></div>
+                                <div class="bg-white/20 rounded-xl p-3 text-center"><p class="text-white/70 text-xs">비자유형</p><p class="font-bold">${v.type}</p></div>
+                                <div class="bg-white/20 rounded-xl p-3 text-center"><p class="text-white/70 text-xs">비용</p><p class="font-bold">${v.cost}</p></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800 mb-3">자격 요건</h4>
+                            <div class="space-y-2">${v.requirements.map(r => '<div class="flex items-center p-3 bg-green-50 rounded-xl"><i class="fas fa-check text-green-500 mr-3"></i><span class="text-gray-700">' + r + '</span></div>').join('')}</div>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-800 mb-3">필요 서류</h4>
+                            <div class="grid grid-cols-2 gap-3">${v.documents.map(d => '<div class="flex items-center p-3 bg-gray-50 rounded-xl"><i class="fas fa-file text-gray-400 mr-3"></i><span class="text-gray-700 text-sm">' + d + '</span></div>').join('')}</div>
+                        </div>
+                        ${v.process ? '<div><h4 class="text-lg font-bold text-gray-800 mb-3">절차</h4><div class="grid grid-cols-5 gap-2">' + v.process.map(p => '<div class="text-center"><div class="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center mx-auto font-bold">' + p.step + '</div><p class="font-medium mt-2 text-xs">' + p.title + '</p></div>').join('') + '</div></div>' : ''}
+                    </div>`;
+                document.getElementById('landingVisaModal').style.display = 'flex';
+            } catch(e) { console.error(e); }
+        }
+
+        function closeLandingVisaModal() {
+            document.getElementById('landingVisaModal').style.display = 'none';
+        }
+
+        // ===== FAQ =====
+        const landingFaqData = [
+            { id: 1, category: 'visa', qKey: 'faq_visa_q1', aKey: 'faq_visa_a1' },
+            { id: 2, category: 'visa', qKey: 'faq_visa_q2', aKey: 'faq_visa_a2' },
+            { id: 3, category: 'visa', qKey: 'faq_visa_q3', aKey: 'faq_visa_a3' },
+            { id: 4, category: 'visa', qKey: 'faq_visa_q4', aKey: 'faq_visa_a4' },
+            { id: 5, category: 'salary', qKey: 'faq_salary_q1', aKey: 'faq_salary_a1' },
+            { id: 6, category: 'salary', qKey: 'faq_salary_q2', aKey: 'faq_salary_a2' },
+            { id: 7, category: 'salary', qKey: 'faq_salary_q3', aKey: 'faq_salary_a3' },
+            { id: 8, category: 'salary', qKey: 'faq_salary_q4', aKey: 'faq_salary_a4' },
+            { id: 9, category: 'housing', qKey: 'faq_housing_q1', aKey: 'faq_housing_a1' },
+            { id: 10, category: 'housing', qKey: 'faq_housing_q2', aKey: 'faq_housing_a2' },
+            { id: 11, category: 'housing', qKey: 'faq_housing_q3', aKey: 'faq_housing_a3' },
+            { id: 12, category: 'housing', qKey: 'faq_housing_q4', aKey: 'faq_housing_a4' },
+            { id: 13, category: 'work', qKey: 'faq_work_q1', aKey: 'faq_work_a1' },
+            { id: 14, category: 'work', qKey: 'faq_work_q2', aKey: 'faq_work_a2' },
+            { id: 15, category: 'work', qKey: 'faq_work_q3', aKey: 'faq_work_a3' },
+            { id: 16, category: 'work', qKey: 'faq_work_q4', aKey: 'faq_work_a4' },
+        ];
+
+        let landingFaqFilter = 'all';
+        let landingOpenFaqId = null;
+
+        const faqCatIcons = { visa: 'fa-passport', salary: 'fa-won-sign', housing: 'fa-home', work: 'fa-briefcase' };
+        const faqCatColors = {
+            visa: { bg: 'bg-blue-100', text: 'text-blue-600' },
+            salary: { bg: 'bg-green-100', text: 'text-green-600' },
+            housing: { bg: 'bg-purple-100', text: 'text-purple-600' },
+            work: { bg: 'bg-orange-100', text: 'text-orange-600' }
+        };
+        const faqCatNames = { visa: 'faqFilterVisa', salary: 'faqFilterSalary', housing: 'faqFilterHousing', work: 'faqFilterWork' };
+
+        function landingFilterFaq(cat) {
+            landingFaqFilter = cat;
+            document.querySelectorAll('.landing-faq-btn').forEach(btn => {
+                if (btn.dataset.filter === cat) {
+                    btn.classList.remove('bg-gray-100', 'text-gray-600');
+                    btn.classList.add('bg-blue-600', 'text-white');
+                } else {
+                    btn.classList.remove('bg-blue-600', 'text-white');
+                    btn.classList.add('bg-gray-100', 'text-gray-600');
+                }
+            });
+            renderLandingFaq();
+        }
+
+        function toggleLandingFaq(id) {
+            landingOpenFaqId = landingOpenFaqId === id ? null : id;
+            renderLandingFaq();
+        }
+
+        function renderLandingFaq() {
+            const container = document.getElementById('landingFaqList');
+            if (!container) return;
+            const filtered = landingFaqFilter === 'all' ? landingFaqData : landingFaqData.filter(f => f.category === landingFaqFilter);
+            container.innerHTML = filtered.map(faq => {
+                const isOpen = landingOpenFaqId === faq.id;
+                const colors = faqCatColors[faq.category];
+                const icon = faqCatIcons[faq.category];
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="p-5 cursor-pointer hover:bg-gray-50 transition flex items-center" onclick="toggleLandingFaq(${faq.id})">
+                            <div class="w-10 h-10 ${colors.bg} rounded-xl flex items-center justify-center mr-4 flex-shrink-0">
+                                <i class="fas ${icon} ${colors.text}"></i>
+                            </div>
+                            <div class="flex-1">
+                                <span class="text-xs px-2 py-0.5 rounded-full ${colors.bg} ${colors.text} font-medium">${lt(faqCatNames[faq.category])}</span>
+                                <h3 class="font-semibold text-gray-800 mt-1">${lt(faq.qKey)}</h3>
+                            </div>
+                            <i class="fas fa-chevron-down text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}" style="transition: transform 0.3s;"></i>
+                        </div>
+                        <div style="max-height: ${isOpen ? '500px' : '0'}; overflow: hidden; transition: max-height 0.3s ease;">
+                            <div class="px-5 pb-5 pt-0">
+                                <div class="ml-14 p-4 bg-gray-50 rounded-xl text-gray-600 leading-relaxed text-sm">
+                                    ${lt(faq.aKey)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // ===== AI Chatbot =====
+        function sendLandingQuickChat(msg) {
+            document.getElementById('landingChatInput').value = msg;
+            sendLandingChat();
+        }
+
+        function sendLandingChat() {
+            const input = document.getElementById('landingChatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            input.value = '';
+            const container = document.getElementById('landingChatMessages');
+            container.innerHTML += `
+                <div class="flex items-start space-x-3 justify-end">
+                    <div class="bg-blue-500 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-sm max-w-[80%]">
+                        <p class="text-sm">${msg.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</p>
+                    </div>
+                </div>`;
+            container.scrollTop = container.scrollHeight;
+
+            // FAQ 기반 응답
+            const answer = generateLandingChatResponse(msg);
+            setTimeout(() => {
+                container.innerHTML += `
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-robot text-white text-sm"></i>
+                        </div>
+                        <div class="bg-white rounded-2xl rounded-tl-md px-4 py-3 shadow-sm max-w-[80%]">
+                            <p class="text-sm text-gray-700">${answer}</p>
+                        </div>
+                    </div>`;
+                container.scrollTop = container.scrollHeight;
+            }, 500);
+        }
+
+        function generateLandingChatResponse(msg) {
+            const lower = msg.toLowerCase();
+            const allFaqAnswers = landingFaqData.map(f => ({ q: lt(f.qKey).toLowerCase(), a: lt(f.aKey), cat: f.category }));
+
+            // 키워드 매칭
+            const keywords = {
+                visa: ['비자', 'visa', 'e-8', 'e8', 'd2', 'd4', 'd10', 'f4', '여권', 'passport', '신청', 'apply'],
+                salary: ['급여', '월급', '임금', 'salary', 'wage', 'pay', '세금', 'tax', '송금', 'remit', '돈', 'money', 'sahod', 'lương'],
+                housing: ['숙소', '기숙사', '숙박', 'housing', 'accommodation', 'dorm', '식사', 'meal', '인터넷', 'internet', 'wifi', 'tirahan', 'chỗ ở', 'ที่พัก'],
+                work: ['근무', '일', '작업', 'work', 'job', 'hour', '휴일', 'holiday', '시간', 'time', 'trabaho', 'งาน', 'công việc']
+            };
+
+            // 정확한 FAQ 매칭
+            for (const faq of allFaqAnswers) {
+                if (lower.includes(faq.q.substring(0, 10)) || faq.q.includes(lower.substring(0, 10))) {
+                    return faq.a;
+                }
+            }
+
+            // 카테고리 매칭
+            for (const [cat, kws] of Object.entries(keywords)) {
+                if (kws.some(kw => lower.includes(kw))) {
+                    const catFaqs = allFaqAnswers.filter(f => f.cat === cat);
+                    // 세부 키워드로 2차 매칭
+                    for (const faq of catFaqs) {
+                        const words = faq.q.split(/\s+/);
+                        if (words.some(w => w.length > 2 && lower.includes(w))) {
+                            return faq.a;
+                        }
+                    }
+                    return catFaqs.map(f => '• ' + f.a).join('<br><br>');
+                }
+            }
+
+            return lt('chatbotWelcome') + '<br><br>' + lt('chatbotExamples') + '<br>' + lt('chatbotEx1') + '<br>' + lt('chatbotEx2') + '<br>' + lt('chatbotEx3') + '<br>' + lt('chatbotEx4');
+        }
+
+        // ===== 시스템 설정 적용 =====
+        async function loadLandingSettings() {
+            try {
+                const res = await fetch('/api/kwv/settings');
+                const s = await res.json();
+                if (s.system_title) {
+                    document.title = s.system_title;
+                    document.getElementById('landingNavTitle').textContent = s.system_title;
+                    document.getElementById('landingFooterTitle').textContent = s.system_title;
+                }
+                if (s.system_subtitle) {
+                    document.getElementById('landingFooterDesc').innerHTML = s.system_title + '<br>' + s.system_subtitle;
+                }
+                if (s.logo_url) {
+                    // Nav logo
+                    document.getElementById('landingNavLogoIcon').classList.add('hidden');
+                    const navImg = document.getElementById('landingNavLogoImg');
+                    navImg.src = s.logo_url; navImg.classList.remove('hidden');
+                    // Footer logo
+                    document.getElementById('landingFooterLogoIcon').classList.add('hidden');
+                    const footImg = document.getElementById('landingFooterLogoImg');
+                    footImg.src = s.logo_url; footImg.classList.remove('hidden');
+                }
+            } catch(e) { console.error('Settings load error:', e); }
+        }
+
+        // ===== 구인/구직 게시판 로드 =====
+        async function loadLandingBoard() {
+            try {
+                const res = await fetch('/api/kwv/public/board');
+                const data = await res.json();
+                const nationMap = {VN:'베트남',TH:'태국',PH:'필리핀',KH:'캄보디아',ID:'인도네시아',MM:'미얀마',NP:'네팔',CN:'중국',MN:'몽골',UZ:'우즈베키스탄',BD:'방글라데시',LK:'스리랑카',TL:'동티모르'};
+
+                // 구인
+                const jobList = document.getElementById('landingJobList');
+                const jobCount = document.getElementById('landingJobCount');
+                if (data.jobs && data.jobs.length > 0) {
+                    jobCount.textContent = data.jobs.length + '건';
+                    jobList.innerHTML = data.jobs.map(j => `
+                        <div class="border border-gray-100 rounded-xl p-4 hover:bg-blue-50 transition">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-gray-800">${j.title}</span>
+                                ${j.visa_types ? `<span class="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">${j.visa_types}</span>` : ''}
+                            </div>
+                            <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-1">
+                                ${j.lg_name ? `<span><i class="fas fa-map-marker-alt mr-1 text-blue-400"></i>${j.lg_name}</span>` : ''}
+                                ${j.location ? `<span><i class="fas fa-location-dot mr-1"></i>${j.location}</span>` : ''}
+                                <span><i class="fas fa-users mr-1 text-blue-400"></i>${j.positions || 0}명</span>
+                                ${j.salary ? `<span><i class="fas fa-won-sign mr-1 text-blue-400"></i>${j.salary}</span>` : ''}
+                                <span class="ml-auto text-gray-400">${j.created_at || ''}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    jobCount.textContent = '0건';
+                    jobList.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">등록된 구인 공고가 없습니다</div>';
+                }
+
+                // 구직
+                const seekerList = document.getElementById('landingSeekerList');
+                const seekerCount = document.getElementById('landingSeekerCount');
+                if (data.seekers && data.seekers.length > 0) {
+                    seekerCount.textContent = data.seekers.length + '건';
+                    seekerList.innerHTML = data.seekers.map(s => `
+                        <div class="border border-gray-100 rounded-xl p-4 hover:bg-green-50 transition">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-semibold text-gray-800"><i class="fas fa-user mr-1 text-green-500"></i>${s.name}</span>
+                                ${s.visa_type ? `<span class="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full">${s.visa_type}</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                                ${s.nationality ? `<span><i class="fas fa-flag mr-1 text-green-400"></i>${nationMap[s.nationality] || s.nationality}</span>` : ''}
+                                <span class="ml-auto text-gray-400">${s.created_at || ''}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    seekerCount.textContent = '0건';
+                    seekerList.innerHTML = '<div class="text-center text-gray-400 py-8 text-sm">등록된 구직자가 없습니다</div>';
+                }
+            } catch(e) {
+                console.error('Board load error:', e);
+            }
+        }
+
+        // ===== Init =====
+        // Apply saved language on load
+        (function() {
+            const saved = localStorage.getItem('kwv_language');
+            if (saved && saved !== 'ko') {
+                changeLandingLang(saved);
+                const sel = document.querySelector('select[onchange*="changeLandingLang"]');
+                if (sel) sel.value = saved;
+            }
+            loadLandingVisaCards();
+            renderLandingFaq();
+            loadLandingSettings();
+            loadLandingBoard();
+        })();
+
+        // ESC to close modal
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLandingVisaModal(); });
+    </script>
+</body>
+</html>

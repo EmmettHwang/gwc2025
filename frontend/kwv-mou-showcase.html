@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOU 협정 현황 - 대한민국 계절 근로자 통합 관리</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #0a0a1a; color: #e2e8f0; font-family: 'Pretendard', -apple-system, system-ui, sans-serif; }
+        .glass-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(10px); border-radius: 16px; transition: all 0.3s; }
+        .glass-card:hover { background: rgba(255,255,255,0.06); border-color: rgba(96,165,250,0.3); transform: translateY(-4px); }
+        .country-flag { font-size: 2.5rem; }
+        .status-active { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+        .status-draft { background: rgba(250,204,21,0.15); color: #facc15; border: 1px solid rgba(250,204,21,0.3); }
+        .partner-govt { background: rgba(96,165,250,0.1); border-left: 3px solid #60a5fa; }
+        .partner-local { background: rgba(168,85,247,0.1); border-left: 3px solid #a855f7; }
+        .partner-agency { background: rgba(249,115,22,0.1); border-left: 3px solid #f97316; }
+        .fade-in { opacity: 0; transform: translateY(20px); transition: all 0.6s ease-out; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+        .stat-glow { box-shadow: 0 0 30px rgba(96,165,250,0.1); }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 px-6 py-4" style="background:rgba(10,10,26,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="/kwv-landing.html" class="flex items-center space-x-3">
+                <div class="w-9 h-9 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-globe-asia text-white text-sm"></i>
+                </div>
+                <span class="text-white font-bold text-lg">KWV</span>
+            </a>
+            <div class="flex items-center space-x-4">
+                <a href="/kwv-landing.html" class="text-white/60 hover:text-white text-sm transition">홈</a>
+                <a href="/kwv-login.html" class="bg-blue-500/20 text-blue-300 px-4 py-2 rounded-lg text-sm hover:bg-blue-500/30 transition">로그인</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="pt-28 pb-12 px-6 text-center">
+        <div class="max-w-4xl mx-auto">
+            <div class="inline-flex items-center px-4 py-2 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-300 text-sm mb-6">
+                <i class="fas fa-handshake mr-2"></i> International Partnerships
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">MOU 협정 현황</h1>
+            <p class="text-white/50 text-lg max-w-2xl mx-auto">
+                한국 지자체와 해외 정부·기관 간의 외국인 계절근로자 관련 양해각서(MOU) 체결 현황입니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="px-6 pb-12">
+        <div class="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4" id="mouStats">
+            <div class="glass-card stat-glow p-6 text-center">
+                <p class="text-3xl font-bold text-blue-400" id="statTotal">0</p>
+                <p class="text-white/40 text-sm mt-1">총 협정</p>
+            </div>
+            <div class="glass-card stat-glow p-6 text-center">
+                <p class="text-3xl font-bold text-green-400" id="statActive">0</p>
+                <p class="text-white/40 text-sm mt-1">활성 협정</p>
+            </div>
+            <div class="glass-card stat-glow p-6 text-center">
+                <p class="text-3xl font-bold text-purple-400" id="statCountries">0</p>
+                <p class="text-white/40 text-sm mt-1">협약국</p>
+            </div>
+            <div class="glass-card stat-glow p-6 text-center">
+                <p class="text-3xl font-bold text-orange-400" id="statWorkers">0</p>
+                <p class="text-white/40 text-sm mt-1">협정 인원</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter -->
+    <section class="px-6 pb-6">
+        <div class="max-w-5xl mx-auto flex flex-wrap gap-2" id="countryFilters">
+            <button onclick="filterMou('all')" class="mou-filter px-4 py-2 rounded-full text-sm bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 transition" data-filter="all">
+                전체
+            </button>
+        </div>
+    </section>
+
+    <!-- MOU Cards -->
+    <section class="px-6 pb-20">
+        <div class="max-w-5xl mx-auto">
+            <div id="mouGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="text-center text-white/30 py-20 col-span-2">
+                    <i class="fas fa-spinner fa-spin text-3xl mb-4"></i>
+                    <p>MOU 정보를 불러오는 중...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 px-6 border-t border-white/10">
+        <div class="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center">
+            <p class="text-white/30 text-sm">&copy; 2026 글로벌워크센터. All rights reserved.</p>
+            <div class="flex items-center space-x-6 mt-3 md:mt-0">
+                <a href="/kwv-privacy.html" class="text-white/40 hover:text-white text-sm transition">개인정보처리방침</a>
+                <a href="/kwv-landing.html" class="text-white/40 hover:text-white text-sm transition">
+                    <i class="fas fa-arrow-left mr-1"></i> 메인으로
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const countryFlags = {VN:'🇻🇳',TH:'🇹🇭',PH:'🇵🇭',KH:'🇰🇭',ID:'🇮🇩',MM:'🇲🇲',NP:'🇳🇵',LK:'🇱🇰',BD:'🇧🇩',MN:'🇲🇳',UZ:'🇺🇿',TL:'🇹🇱',CN:'🇨🇳',JP:'🇯🇵',US:'🇺🇸'};
+        const partnerTypeLabels = {government:'정부',local_government:'지방정부',agency:'기관',other:'기타'};
+        const partnerTypeClass = {government:'partner-govt',local_government:'partner-local',agency:'partner-agency',other:'partner-govt'};
+        let allMous = [];
+
+        async function loadMous() {
+            try {
+                const res = await fetch('/api/kwv/mou/public');
+                allMous = await res.json();
+                renderStats();
+                renderFilters();
+                renderMous(allMous);
+            } catch(e) {
+                document.getElementById('mouGrid').innerHTML = '<div class="text-center text-white/30 py-20 col-span-2"><i class="fas fa-info-circle text-3xl mb-4"></i><p>아직 등록된 MOU가 없습니다.</p></div>';
+            }
+        }
+
+        function renderStats() {
+            document.getElementById('statTotal').textContent = allMous.length;
+            document.getElementById('statActive').textContent = allMous.filter(m => m.status === 'active').length;
+            document.getElementById('statCountries').textContent = [...new Set(allMous.map(m => m.partner_country))].length;
+            document.getElementById('statWorkers').textContent = allMous.reduce((s, m) => s + (m.worker_quota || 0), 0).toLocaleString();
+        }
+
+        function renderFilters() {
+            const countries = [...new Set(allMous.map(m => m.partner_country))];
+            const container = document.getElementById('countryFilters');
+            countries.forEach(c => {
+                const name = allMous.find(m => m.partner_country === c)?.partner_country_name || c;
+                const btn = document.createElement('button');
+                btn.className = 'mou-filter px-4 py-2 rounded-full text-sm bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 transition';
+                btn.dataset.filter = c;
+                btn.textContent = `${countryFlags[c]||''} ${name}`;
+                btn.onclick = () => filterMou(c);
+                container.appendChild(btn);
+            });
+        }
+
+        function filterMou(filter) {
+            document.querySelectorAll('.mou-filter').forEach(btn => {
+                btn.classList.remove('bg-blue-500/20','text-blue-300','border-blue-500/30');
+                btn.classList.add('bg-white/5','text-white/60','border-white/10');
+            });
+            const activeBtn = document.querySelector(`.mou-filter[data-filter="${filter}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-blue-500/20','text-blue-300','border-blue-500/30');
+                activeBtn.classList.remove('bg-white/5','text-white/60','border-white/10');
+            }
+            const filtered = filter === 'all' ? allMous : allMous.filter(m => m.partner_country === filter);
+            renderMous(filtered);
+        }
+
+        function renderMous(mous) {
+            const grid = document.getElementById('mouGrid');
+            if (!mous.length) {
+                grid.innerHTML = '<div class="text-center text-white/30 py-20 col-span-2"><i class="fas fa-handshake text-3xl mb-4"></i><p>등록된 MOU가 없습니다.</p></div>';
+                return;
+            }
+            grid.innerHTML = mous.map((m, i) => `
+                <div class="glass-card overflow-hidden fade-in" style="transition-delay:${i*100}ms">
+                    ${m.photo_url ? `<div class="h-48 bg-gray-800 overflow-hidden"><img src="${m.photo_url}" class="w-full h-full object-cover opacity-80 hover:opacity-100 transition"></div>` : `<div class="h-24 bg-gradient-to-r from-blue-900/50 to-purple-900/50 flex items-center justify-center"><span class="country-flag">${countryFlags[m.partner_country]||'🌐'}</span></div>`}
+                    <div class="p-6">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h3 class="text-white font-bold text-lg leading-tight">${m.title}</h3>
+                                ${m.title_en ? `<p class="text-white/30 text-sm mt-1">${m.title_en}</p>` : ''}
+                            </div>
+                            <span class="px-2 py-1 rounded-full text-xs font-medium ${m.status === 'active' ? 'status-active' : 'status-draft'}">
+                                ${m.status === 'active' ? '활성' : '준비중'}
+                            </span>
+                        </div>
+                        <div class="p-3 rounded-lg mb-4 ${partnerTypeClass[m.partner_type]||'partner-govt'}">
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl">${countryFlags[m.partner_country]||'🌐'}</span>
+                                <div>
+                                    <p class="text-white/90 font-medium text-sm">${m.partner_organization}</p>
+                                    <p class="text-white/40 text-xs">${m.partner_country_name||''} · ${partnerTypeLabels[m.partner_type]||''}</p>
+                                </div>
+                            </div>
+                        </div>
+                        ${m.description ? `<p class="text-white/40 text-sm mb-4 line-clamp-3">${m.description}</p>` : ''}
+                        <div class="flex flex-wrap gap-3 text-xs text-white/40">
+                            ${m.signed_date ? `<span><i class="fas fa-calendar-check mr-1 text-blue-400"></i>${m.signed_date}</span>` : ''}
+                            ${m.worker_quota ? `<span><i class="fas fa-users mr-1 text-green-400"></i>${m.worker_quota}명</span>` : ''}
+                            ${m.korean_organization ? `<span><i class="fas fa-flag mr-1 text-red-400"></i>${m.korean_organization}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Fade in animation
+            setTimeout(() => {
+                document.querySelectorAll('.fade-in').forEach(el => el.classList.add('visible'));
+            }, 100);
+        }
+
+        // Init
+        loadMous();
+    </script>
+</body>
+</html>

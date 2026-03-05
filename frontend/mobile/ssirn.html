@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>SSIRN - 바이오헬스교육관리 (v2.0.95)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+        .memo-card {
+            transition: all 0.3s ease;
+        }
+        .memo-card:active {
+            transform: scale(0.98);
+        }
+        .photo-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        /* Pull to Refresh */
+        .ptr-indicator {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            transition: transform 0.3s ease;
+            z-index: 40;
+        }
+        .ptr-indicator.active {
+            transform: translateX(-50%) scale(1);
+        }
+        .ptr-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: ptr-spin 0.8s linear infinite;
+        }
+        @keyframes ptr-spin {
+            to { transform: rotate(360deg); }
+        }
+    
+        /* Toast animations */
+        @keyframes fadeInScale {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOutScale {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+        }
+        .toast-enter {
+            animation: fadeInScale 0.3s ease-out forwards;
+        }
+        .toast-exit {
+            animation: fadeOutScale 0.2s ease-in forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Pull to Refresh Indicator -->
+    <div id="ptrIndicator" class="ptr-indicator">
+        <div class="ptr-spinner"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-green-500 to-emerald-600 text-white sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <button onclick="goBack()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h1 class="text-xl font-bold">SSIRN</h1>
+            <button onclick="showCreateModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                <i class="fas fa-plus text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="container mx-auto px-4 py-4">
+        <div class="relative">
+            <input type="text" id="searchInput" placeholder="메모 검색..."
+                   class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 shadow-md"
+                   oninput="searchMemos()">
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+        </div>
+    </div>
+
+    <!-- Memos List -->
+    <main class="container mx-auto px-4 pb-20">
+        <div id="memosList" class="space-y-4">
+            <!-- Memos will be loaded here -->
+        </div>
+        <div id="emptyState" class="text-center py-20 hidden">
+            <i class="fas fa-sticky-note text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">등록된 메모가 없습니다</p>
+            <button onclick="showCreateModal()" 
+                    class="mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                <i class="fas fa-plus mr-2"></i>첫 메모 작성하기
+            </button>
+        </div>
+    </main>
+
+    <!-- Create/Edit Modal -->
+    <div id="memoModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold" id="modalTitle">새 메모</h2>
+                    <button onclick="closeModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="memoForm" class="p-6 space-y-4">
+                <input type="hidden" id="memoId">
+                
+                <!-- Date -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-calendar mr-2 text-green-500"></i>날짜
+                    </label>
+                    <input type="date" id="memoDate" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                </div>
+
+                <!-- Content -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center justify-between">
+                        <span><i class="fas fa-edit mr-2 text-green-500"></i>내용</span>
+                        <button type="button" id="voiceBtn"
+                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-all shadow-md">
+                            <i class="fas fa-microphone text-xl"></i>
+                        </button>
+                    </label>
+                    <textarea id="memoContent" rows="6" required
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                              placeholder="메모 내용을 입력하세요..."></textarea>
+                </div>
+
+                <!-- Media Upload -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-paperclip mr-2 text-green-500"></i>파일 첨부
+                    </label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                        <!-- 사진 촬영 (카메라 직접 실행) -->
+                        <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple class="hidden" onchange="handleMediaSelect(event)">
+                        <button type="button" onclick="document.getElementById('cameraInput').click()"
+                                class="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg transition-all mb-2">
+                            <i class="fas fa-camera mr-2"></i>사진 촬영
+                        </button>
+                        
+                        <!-- 파일 첨부 (갤러리/파일 선택) -->
+                        <input type="file" id="fileInput" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.hwp,.txt" multiple class="hidden" onchange="handleMediaSelect(event)">
+                        <button type="button" onclick="document.getElementById('fileInput').click()"
+                                class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-3 rounded-lg transition-all">
+                            <i class="fas fa-paperclip mr-2"></i>파일 첨부
+                        </button>
+                        
+                        <p class="text-xs text-gray-500 mt-2 text-center">최대 5개까지 업로드 가능 (이미지, PDF, 문서 등)</p>
+                    </div>
+                    <div id="mediaPreviewContainer" class="mt-3 grid grid-cols-4 gap-2"></div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" onclick="closeModal()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-xl font-semibold transition-all">
+                        취소
+                    </button>
+                    <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                        저장
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Photo Preview Modal -->
+    <div id="photoModal" class="fixed inset-0 bg-black bg-opacity-90 z-[60] hidden items-center justify-center p-4">
+        <button onclick="closePhotoModal()" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="photoModalImg" src="" alt="Photo" class="max-w-full max-h-full object-contain">
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-[100] hidden items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm mx-4 text-center">
+            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500 mb-4"></div>
+            <p id="loadingText" class="text-lg font-semibold text-gray-800 mb-2">처리 중...</p>
+            <p id="loadingSubtext" class="text-sm text-gray-600">잠시만 기다려주세요</p>
+            <!-- Progress Bar -->
+            <div class="mt-4">
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div id="progressBar" class="bg-green-500 h-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="progressPercent" class="text-xs text-gray-500 mt-2"></p>
+            </div>
+        </div>
+    </div>
+    <!-- Toast Message Container -->
+    <div id="toastContainer" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[200] flex flex-col gap-3 pointer-events-none">
+        <!-- Toasts will be added here dynamically -->
+    </div>
+
+
+
+    <script>
+        // Loading overlay functions
+        function showLoading(text = "처리 중...", subtext = "잠시만 기다려주세요") {
+            document.getElementById("loadingText").textContent = text;
+            document.getElementById("loadingSubtext").textContent = subtext;
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.remove("hidden");
+            overlay.classList.add("flex");
+        }
+
+        function hideLoading() {
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.add("hidden");
+            overlay.classList.remove("flex");
+        }
+        
+        // Progress bar functions
+        function showProgress(text = "처리 중...") {
+            document.getElementById("loadingText").textContent = text;
+            document.getElementById("loadingSubtext").textContent = "잠시만 기다려주세요";
+            document.getElementById("progressBar").style.width = "0%";
+            document.getElementById("progressPercent").textContent = "";
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.remove("hidden");
+            overlay.classList.add("flex");
+        }
+        
+        function updateProgress(percent) {
+            document.getElementById("progressBar").style.width = percent + "%";
+            document.getElementById("progressPercent").textContent = percent + "%";
+        }
+        
+        function hideProgress() {
+            const overlay = document.getElementById("loadingOverlay");
+            overlay.classList.add("hidden");
+            overlay.classList.remove("flex");
+        }
+
+        // Toast Message System
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-enter pointer-events-auto';
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <div class="${colors[type]} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[280px] max-w-[90vw]">
+                    <i class="fas ${icons[type]} text-2xl"></i>
+                    <span class="flex-1 font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200 ml-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto remove after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.classList.remove('toast-enter');
+                    toast.classList.add('toast-exit');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+        // 버전 정보
+        const APP_VERSION = 'v2.0.95';
+        console.log(`%c🚀 SSIRN ${APP_VERSION} 로드됨`, 'color: #10b981; font-weight: bold; font-size: 14px;');
+        
+        const API_BASE_URL = '';
+        let currentUser = null;
+        let userType = null;
+        let allMemos = [];
+        let selectedPhotos = [];
+        let existingPhotoUrls = [];
+        let voiceRecordingCount = 0; // 음성 녹음 횟수 카운터
+        
+        // Pull to Refresh variables
+        let startY = 0;
+        let currentY = 0;
+        let isPulling = false;
+        let isRefreshing = false;
+        
+        // Initialize Pull to Refresh
+        function initPullToRefresh() {
+            const ptrIndicator = document.getElementById('ptrIndicator');
+            
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0 && !isRefreshing) {
+                    startY = e.touches[0].pageY;
+                    isPulling = true;
+                }
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!isPulling || isRefreshing) return;
+                
+                currentY = e.touches[0].pageY;
+                const pullDistance = currentY - startY;
+                
+                if (pullDistance > 0 && window.scrollY === 0) {
+                    if (pullDistance > 80) {
+                        ptrIndicator.classList.add('active');
+                    } else {
+                        ptrIndicator.classList.remove('active');
+                    }
+                }
+            }, { passive: true });
+            
+            document.addEventListener('touchend', async (e) => {
+                if (!isPulling || isRefreshing) return;
+                
+                const pullDistance = currentY - startY;
+                
+                if (pullDistance > 80 && window.scrollY === 0) {
+                    isRefreshing = true;
+                    ptrIndicator.classList.add('active');
+                    
+                    // Refresh data
+                    await loadMemos();
+                    showToast('메모 목록을 새로고침했습니다', 'success', 2000);
+                    
+                    // Hide indicator after short delay
+                    setTimeout(() => {
+                        ptrIndicator.classList.remove('active');
+                        isRefreshing = false;
+                    }, 500);
+                } else {
+                    ptrIndicator.classList.remove('active');
+                }
+                
+                isPulling = false;
+                startY = 0;
+                currentY = 0;
+            });
+        }
+        
+        // Convert FTP URL to HTTP proxy URL
+        function convertFtpUrl(url) {
+            if (!url || typeof url !== 'string') return url;
+            if (url.startsWith('ftp://')) {
+                return `${API_BASE_URL}/api/proxy-image?url=${encodeURIComponent(url)}`;
+            }
+            return url;
+        }
+
+        // Initialize
+        async function init() {
+            const userStr = sessionStorage.getItem('user');
+            userType = sessionStorage.getItem('user_type');
+            
+            if (!userStr || !userType) {
+                showToast('로그인이 필요합니다.', 'warning');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1000);
+                return;
+            }
+
+            currentUser = JSON.parse(userStr);
+            
+            // Pull to Refresh 초기화
+            initPullToRefresh();
+            
+            // 초기 로딩 표시
+            showLoading('메모 불러오는 중...', '');
+            await loadMemos();
+            hideLoading();
+        }
+
+        // Load memos
+        async function loadMemos() {
+            try {
+                let response;
+                const timestamp = new Date().getTime(); // 캐시 방지
+                if (userType === 'instructor') {
+                    response = await axios.get(`${API_BASE_URL}/api/class-notes?instructor_code=${currentUser.code}&_t=${timestamp}`);
+                } else {
+                    response = await axios.get(`${API_BASE_URL}/api/class-notes?student_id=${currentUser.id}&_t=${timestamp}`);
+                }
+
+                allMemos = response.data || [];
+                renderMemos(allMemos);
+            } catch (error) {
+                console.error('Failed to load memos:', error);
+                hideLoading();
+                document.getElementById('emptyState').classList.remove('hidden');
+            }
+        }
+
+        // Render memos
+        function renderMemos(memos) {
+            const container = document.getElementById('memosList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (!memos || memos.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            
+            // Sort by date descending
+            memos.sort((a, b) => new Date(b.note_date) - new Date(a.note_date));
+
+            container.innerHTML = memos.map(memo => {
+                // 첨부파일 처리 (개선된 파싱 - 데스크톱과 동일)
+                let attachmentsHTML = '';
+                if (memo.photo_urls) {
+                    try {
+                        let fileUrls = [];
+                        
+                        // JSON 배열 형태 파싱 시도
+                        if (typeof memo.photo_urls === 'string') {
+                            // "[]" 같은 빈 배열 문자열 제거
+                            const cleanedUrls = memo.photo_urls.replace(/\[\]/g, '').trim();
+                            
+                            if (cleanedUrls.startsWith('[') && cleanedUrls.endsWith(']')) {
+                                // JSON 배열 파싱
+                                try {
+                                    fileUrls = JSON.parse(cleanedUrls);
+                                } catch (e) {
+                                    // JSON 파싱 실패 시 쉼표로 분리
+                                    fileUrls = cleanedUrls.slice(1, -1).split(',').map(url => url.trim().replace(/^"|"$/g, ''));
+                                }
+                            } else {
+                                // 쉼표로 분리된 URL
+                                fileUrls = cleanedUrls.split(',').map(url => url.trim());
+                            }
+                        } else if (Array.isArray(memo.photo_urls)) {
+                            fileUrls = memo.photo_urls;
+                        }
+                        
+                        // 유효한 URL만 필터링
+                        fileUrls = fileUrls.filter(url => {
+                            if (!url || url === '[]' || url.length < 10) return false;
+                            return url.startsWith('ftp://') || url.startsWith('http://') || url.startsWith('https://');
+                        });
+                        
+                        if (fileUrls.length > 0) {
+                            let validFileCount = 0;
+                            let filesHTML = '';
+                            
+                            fileUrls.forEach(url => {
+                                const convertedUrl = convertFtpUrl(url);
+                                if (!convertedUrl) return;
+                                
+                                const urlLower = convertedUrl.toLowerCase();
+                                const fileName = decodeURIComponent(convertedUrl.split('/').pop());
+                                const ext = fileName.split('.').pop().toUpperCase();
+                                
+                                // 알려진 파일 확장자만 표시
+                                const knownExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'hwp'];
+                                if (!knownExtensions.includes(ext.toLowerCase())) {
+                                    console.warn('알 수 없는 파일 형식:', fileName);
+                                    return;
+                                }
+                                
+                                validFileCount++;
+                                
+                                // 이미지 파일 확인
+                                if (urlLower.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)) {
+                                    filesHTML += `
+                                        <div class="flex flex-col items-center">
+                                            <div class="relative group">
+                                                <img src="${convertedUrl}" 
+                                                     class="w-20 h-20 object-cover rounded-lg border-2 border-gray-200 cursor-pointer active:opacity-70 active:scale-95 transition-all"
+                                                     onclick="showPhotoModal(event, '${convertedUrl}')"
+                                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2212%22%3E이미지%3C/text%3E%3C/svg%3E';"
+                                                     title="${fileName} - 탭하여 크게 보기">
+                                                <div class="absolute inset-0 rounded-lg flex items-center justify-center pointer-events-none">
+                                                    <i class="fas fa-search-plus text-white text-2xl drop-shadow-lg"></i>
+                                                </div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1 max-w-[80px] truncate text-center" title="${fileName}">${fileName}</p>
+                                        </div>
+                                    `;
+                                } else {
+                                    // 기타 파일 - 다운로드 버튼 (파일명 + 확장자 표시)
+                                    const iconClass = 
+                                        urlLower.endsWith('.pdf') ? 'fa-file-pdf text-red-500' :
+                                        urlLower.match(/\.(doc|docx)$/i) ? 'fa-file-word text-blue-500' :
+                                        urlLower.match(/\.(xls|xlsx)$/i) ? 'fa-file-excel text-green-500' :
+                                        urlLower.match(/\.(ppt|pptx)$/i) ? 'fa-file-powerpoint text-orange-500' :
+                                        urlLower.endsWith('.hwp') ? 'fa-file-alt text-blue-400' :
+                                        'fa-file text-gray-500';
+                                    
+                                    filesHTML += `
+                                        <a href="${convertedUrl}" 
+                                           onclick="event.preventDefault(); event.stopPropagation(); downloadFile('${convertedUrl}', '${fileName}'); return false;"
+                                           class="flex flex-col items-center gap-2 px-3 py-3 bg-gray-50 active:bg-gray-200 rounded-lg border border-gray-200 text-xs transition-colors min-w-[90px] max-w-[120px] cursor-pointer">
+                                            <i class="fas ${iconClass} text-2xl flex-shrink-0"></i>
+                                            <span class="text-center break-all line-clamp-2 text-xs">${fileName}</span>
+                                            <span class="px-2 py-1 bg-gray-200 rounded text-xs font-semibold">${ext}</span>
+                                        </a>
+                                    `;
+                                }
+                            });
+                            
+                            if (validFileCount > 0) {
+                                attachmentsHTML = '<div class="mt-4 pt-3 border-t border-gray-100">';
+                                attachmentsHTML += '<p class="text-xs text-gray-600 mb-2 font-semibold"><i class="fas fa-paperclip mr-1"></i>첨부파일 (' + validFileCount + '개)</p>';
+                                attachmentsHTML += '<div class="flex flex-wrap gap-3">';
+                                attachmentsHTML += filesHTML;
+                                attachmentsHTML += '</div></div>';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('첨부파일 파싱 오류:', error, memo.photo_urls);
+                    }
+                }
+
+                // 날짜/시간 포맷팅
+                const formatDateTime = (dateStr) => {
+                    if (!dateStr) return '';
+                    const date = new Date(dateStr);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    return `${year}-${month}-${day} ${hours}:${minutes}`;
+                };
+
+                return `
+                    <div class="memo-card bg-white rounded-2xl shadow-md p-5 cursor-pointer active:shadow-lg active:scale-[0.99] transition-all"
+                         onclick="editMemo(${memo.id})">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center space-x-2 min-w-0 flex-1">
+                                <i class="fas fa-clock text-green-500 flex-shrink-0"></i>
+                                <span class="text-sm font-semibold text-gray-600 truncate">${formatDateTime(memo.note_date)}</span>
+                            </div>
+                            <button onclick="event.stopPropagation(); deleteMemo(${memo.id})" 
+                                    class="text-red-500 hover:text-red-700 active:scale-90 p-2 ml-2 flex-shrink-0 transition-transform">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <p class="text-gray-800 whitespace-pre-wrap leading-relaxed">${memo.content}</p>
+                        ${attachmentsHTML}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Search memos
+        function searchMemos() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!query) {
+                renderMemos(allMemos);
+                return;
+            }
+
+            const filtered = allMemos.filter(memo => 
+                memo.content.toLowerCase().includes(query) ||
+                memo.note_date.includes(query)
+            );
+            renderMemos(filtered);
+        }
+
+        // Show create modal
+        function showCreateModal() {
+            document.getElementById('modalTitle').textContent = '새 메모';
+            document.getElementById('memoForm').reset();
+            document.getElementById('memoId').value = '';
+            document.getElementById('memoDate').value = new Date().toISOString().split('T')[0];
+            selectedPhotos = [];
+            existingPhotoUrls = [];
+            voiceRecordingCount = 0; // 녹음 카운터 초기화
+            document.getElementById('mediaPreviewContainer').innerHTML = '';
+            document.getElementById('memoModal').classList.remove('hidden');
+            document.getElementById('memoModal').classList.add('flex');
+        }
+
+        // Edit memo
+        function editMemo(memoId) {
+            const memo = allMemos.find(m => m.id === memoId);
+            if (!memo) return;
+
+            document.getElementById('modalTitle').textContent = '메모 수정';
+            document.getElementById('memoId').value = memo.id;
+            document.getElementById('memoDate').value = memo.note_date;
+            document.getElementById('memoContent').value = memo.content;
+            
+            selectedPhotos = [];
+            
+            // 기존 첨부파일 파싱 (renderMemos와 동일한 로직)
+            existingPhotoUrls = [];
+            if (memo.photo_urls) {
+                try {
+                    let fileUrls = [];
+                    
+                    if (typeof memo.photo_urls === 'string') {
+                        // "[]" 같은 빈 배열 문자열 제거
+                        const cleanedUrls = memo.photo_urls.replace(/\[\]/g, '').trim();
+                        
+                        if (cleanedUrls.startsWith('[') && cleanedUrls.endsWith(']')) {
+                            // JSON 배열 파싱
+                            try {
+                                fileUrls = JSON.parse(cleanedUrls);
+                            } catch (e) {
+                                // JSON 파싱 실패 시 쉼표로 분리
+                                fileUrls = cleanedUrls.slice(1, -1).split(',').map(url => url.trim().replace(/^"|"$/g, ''));
+                            }
+                        } else {
+                            // 쉼표로 분리된 URL
+                            fileUrls = cleanedUrls.split(',').map(url => url.trim());
+                        }
+                    } else if (Array.isArray(memo.photo_urls)) {
+                        fileUrls = memo.photo_urls;
+                    }
+                    
+                    // 유효한 URL만 필터링하고 FTP URL 변환
+                    existingPhotoUrls = fileUrls
+                        .filter(url => url && url !== '[]' && url.length >= 10 && 
+                                      (url.startsWith('ftp://') || url.startsWith('http://') || url.startsWith('https://')))
+                        .map(url => convertFtpUrl(url));
+                } catch (error) {
+                    console.error('기존 첨부파일 파싱 오류:', error);
+                    existingPhotoUrls = [];
+                }
+            }
+            
+            voiceRecordingCount = 0; // 녹음 카운터 초기화
+            
+            renderMediaPreview();
+            
+            document.getElementById('memoModal').classList.remove('hidden');
+            document.getElementById('memoModal').classList.add('flex');
+        }
+
+        // Voice recognition - 한 번만 초기화
+        let recognition = null;
+        let isRecognizing = false;
+        let holdTimer = null;
+        let isHoldMode = false;
+        
+        function initRecognition() {
+            if (recognition) return; // 이미 초기화되었으면 재사용
+            
+            // HTTPS 체크 (localhost 제외)
+            const isSecureContext = window.isSecureContext || 
+                                   location.protocol === 'https:' || 
+                                   location.hostname === 'localhost' || 
+                                   location.hostname === '127.0.0.1';
+            
+            if (!isSecureContext) {
+                showToast('음성 인식은 보안 연결(HTTPS)에서만 사용 가능합니다', 'warning');
+                disableVoiceButton();
+                return;
+            }
+            
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showToast('이 브라우저는 음성 인식을 지원하지 않습니다', 'warning');
+                disableVoiceButton();
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'ko-KR';
+            recognition.continuous = true; // 계속 인식
+            recognition.interimResults = true; // 중간 결과도 표시
+            
+            // 이벤트 핸들러
+            recognition.onstart = function() {
+                isRecognizing = true;
+                const voiceBtn = document.getElementById('voiceBtn');
+                voiceBtn.innerHTML = '<i class="fas fa-circle text-xl animate-pulse"></i>';
+                voiceBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                voiceBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                showToast('음성 인식 시작...', 'success');
+            };
+            
+            recognition.onend = function() {
+                isRecognizing = false;
+                resetVoiceButton();
+            };
+            
+            recognition.onresult = function(event) {
+                const textarea = document.getElementById('memoContent');
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    }
+                }
+                
+                // 최종 결과를 텍스트 영역에 추가
+                if (finalTranscript) {
+                    const currentContent = textarea.value;
+                    textarea.value = currentContent + (currentContent ? ' ' : '') + finalTranscript;
+                }
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                isRecognizing = false;
+                resetVoiceButton();
+                
+                if (event.error === 'no-speech') {
+                    showToast('음성이 감지되지 않았습니다', 'error');
+                } else if (event.error === 'not-allowed') {
+                    showToast('마이크 권한이 필요합니다', 'error');
+                } else if (event.error !== 'aborted') {
+                    showToast('음성 인식 오류: ' + event.error, 'error');
+                }
+            };
+        }
+
+        function startVoiceRecognition() {
+            initRecognition(); // 음성 인식 초기화 (처음 한 번만)
+            
+            if (!recognition) return;
+
+            // 녹음 중이면 중지, 아니면 시작 (토글)
+            if (isRecognizing) {
+                recognition.stop();
+                showToast('음성 인식 중지', 'info');
+            } else {
+                try {
+                    recognition.start();
+                } catch (error) {
+                    console.error('Failed to start recognition:', error);
+                    showToast('음성 인식 시작 실패', 'error');
+                }
+            }
+        }
+        
+        function stopVoiceRecognition() {
+            if (recognition && isRecognizing) {
+                try {
+                    recognition.stop();
+                } catch (error) {
+                    console.error('Failed to stop recognition:', error);
+                }
+            }
+        }
+        
+        function resetVoiceButton() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            voiceBtn.innerHTML = '<i class="fas fa-microphone text-xl"></i>';
+            voiceBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+            voiceBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+        }
+        
+        function disableVoiceButton() {
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (!voiceBtn) return;
+            
+            voiceBtn.innerHTML = '<i class="fas fa-microphone-slash text-xl"></i>';
+            voiceBtn.classList.remove('bg-green-500', 'hover:bg-green-600', 'bg-red-500', 'hover:bg-red-600');
+            voiceBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+            voiceBtn.disabled = true;
+            voiceBtn.title = 'HTTPS 연결에서만 사용 가능';
+        }
+        
+        // 마이크 버튼 이벤트 설정
+        document.addEventListener('DOMContentLoaded', () => {
+            const voiceBtn = document.getElementById('voiceBtn');
+            if (!voiceBtn) return;
+            
+            // HTTPS 체크 - 페이지 로드 시
+            const isSecureContext = window.isSecureContext || 
+                                   location.protocol === 'https:' || 
+                                   location.hostname === 'localhost' || 
+                                   location.hostname === '127.0.0.1';
+            
+            if (!isSecureContext) {
+                disableVoiceButton();
+                return;
+            }
+            
+            // 클릭으로 토글 (계속 인식)
+            voiceBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                startVoiceRecognition(); // 토글 방식: 한 번 누르면 시작, 다시 누르면 중지
+            });
+        });
+
+        // Handle photo selection (images only)
+        function handleMediaSelect(event) {
+            const files = Array.from(event.target.files);
+            const totalPhotos = selectedPhotos.length + existingPhotoUrls.length;
+            
+            if (totalPhotos + files.length > 5) {
+                showToast('최대 5개까지만 업로드할 수 있습니다', 'warning');
+                return;
+            }
+
+            selectedPhotos.push(...files);
+            renderMediaPreview();
+        }
+
+        // Render photo preview (images and files)
+        function renderMediaPreview() {
+            const container = document.getElementById('mediaPreviewContainer');
+            
+            const existingHtml = existingPhotoUrls.map((url, index) => {
+                if (!url || typeof url !== 'string') return '';
+                
+                // URL에서 파일명 추출
+                const fileName = decodeURIComponent(url.split('/').pop().split('?')[0]);
+                const fileExt = fileName.split('.').pop().toLowerCase();
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(fileExt);
+                
+                if (isImage) {
+                    return `
+                    <div class="relative">
+                        <img src="${url}" class="w-full h-20 object-cover rounded-lg">
+                        <button type="button" onclick="removeExistingMedia(${index})"
+                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    `;
+                } else {
+                    // 파일 아이콘 표시
+                    const iconClass = 
+                        fileExt === 'pdf' ? 'fa-file-pdf text-red-500' :
+                        ['doc', 'docx'].includes(fileExt) ? 'fa-file-word text-blue-500' :
+                        ['xls', 'xlsx'].includes(fileExt) ? 'fa-file-excel text-green-500' :
+                        ['ppt', 'pptx'].includes(fileExt) ? 'fa-file-powerpoint text-orange-500' :
+                        fileExt === 'hwp' ? 'fa-file-alt text-blue-400' :
+                        fileExt === 'txt' ? 'fa-file-alt text-gray-500' :
+                        'fa-file text-gray-500';
+                    
+                    return `
+                    <div class="relative flex flex-col items-center p-2 bg-gray-50 rounded-lg border border-gray-200">
+                        <i class="fas ${iconClass} text-3xl mb-1"></i>
+                        <p class="text-xs text-gray-600 truncate max-w-[80px]" title="${fileName}">${fileName}</p>
+                        <button type="button" onclick="removeExistingMedia(${index})"
+                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    `;
+                }
+            }).join('');
+
+            const newHtml = selectedPhotos.map((file, index) => {
+                const fileName = file.name;
+                const fileExt = fileName.split('.').pop().toLowerCase();
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(fileExt);
+                
+                if (isImage) {
+                    const url = URL.createObjectURL(file);
+                    return `
+                        <div class="relative">
+                            <img src="${url}" class="w-full h-20 object-cover rounded-lg">
+                            <button type="button" onclick="removeNewMedia(${index})"
+                                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // 파일 아이콘 표시
+                    const iconClass = 
+                        fileExt === 'pdf' ? 'fa-file-pdf text-red-500' :
+                        ['doc', 'docx'].includes(fileExt) ? 'fa-file-word text-blue-500' :
+                        ['xls', 'xlsx'].includes(fileExt) ? 'fa-file-excel text-green-500' :
+                        ['ppt', 'pptx'].includes(fileExt) ? 'fa-file-powerpoint text-orange-500' :
+                        fileExt === 'hwp' ? 'fa-file-alt text-blue-400' :
+                        fileExt === 'txt' ? 'fa-file-alt text-gray-500' :
+                        'fa-file text-gray-500';
+                    
+                    return `
+                        <div class="relative flex flex-col items-center p-2 bg-gray-50 rounded-lg border border-gray-200">
+                            <i class="fas ${iconClass} text-3xl mb-1"></i>
+                            <p class="text-xs text-gray-600 truncate max-w-[80px]" title="${fileName}">${fileName}</p>
+                            <button type="button" onclick="removeNewMedia(${index})"
+                                    class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }).join('');
+
+            container.innerHTML = existingHtml + newHtml;
+        }
+
+        // Remove existing media
+        function removeExistingMedia(index) {
+            existingPhotoUrls.splice(index, 1);
+            renderMediaPreview();
+        }
+
+        // Remove new media
+        function removeNewMedia(index) {
+            selectedPhotos.splice(index, 1);
+            renderMediaPreview();
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('memoModal').classList.add('hidden');
+            document.getElementById('memoModal').classList.remove('flex');
+        }
+
+        // Show photo modal with progress bar
+        window.showPhotoModal = async function(event, url) {
+            if (event) {
+                event.stopPropagation();
+                event.preventDefault();
+            }
+            
+            // Show progress
+            showProgress('이미지 로드 중...');
+            updateProgress(10);
+            
+            try {
+                // Preload image
+                await new Promise((resolve, reject) => {
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        updateProgress(80);
+                        document.getElementById('photoModalImg').src = url;
+                        resolve();
+                    };
+                    tempImg.onerror = reject;
+                    tempImg.src = url;
+                });
+                
+                updateProgress(100);
+                
+                document.getElementById('photoModal').classList.remove('hidden');
+                document.getElementById('photoModal').classList.add('flex');
+                
+                // History API를 사용하여 뒤로가기 감지
+                history.pushState({ photoModal: true }, '');
+                
+                setTimeout(() => hideProgress(), 300);
+            } catch (error) {
+                console.error('이미지 로드 실패:', error);
+                hideProgress();
+                showToast('이미지를 불러오는데 실패했습니다', 'error');
+            }
+        };
+
+        // Download file with progress bar
+        window.downloadFile = async function(url, filename) {
+            showProgress('다운로드 중...');
+            updateProgress(10);
+            
+            try {
+                updateProgress(30);
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('다운로드 실패');
+                
+                updateProgress(70);
+                
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                updateProgress(90);
+                
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+                
+                updateProgress(100);
+                setTimeout(() => {
+                    hideProgress();
+                    showToast('다운로드 완료!', 'success');
+                }, 500);
+            } catch (error) {
+                console.error('다운로드 실패:', error);
+                hideProgress();
+                showToast('파일 다운로드에 실패했습니다', 'error');
+            }
+        };
+        
+        // Close photo modal
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.add('hidden');
+            document.getElementById('photoModal').classList.remove('flex');
+            
+            // History에서 모달 상태 제거
+            if (window.history.state && window.history.state.photoModal) {
+                history.back();
+            }
+        }
+        
+        // 뒤로가기 버튼 이벤트 처리
+        window.addEventListener('popstate', (event) => {
+            const photoModal = document.getElementById('photoModal');
+            if (!photoModal.classList.contains('hidden')) {
+                // 사진 모달이 열려있으면 닫기
+                event.preventDefault();
+                photoModal.classList.add('hidden');
+                photoModal.classList.remove('flex');
+            }
+        });
+
+        // Handle form submission
+        // 중복 제출 방지 플래그
+        let isSubmitting = false;
+        
+        document.getElementById('memoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 중복 제출 방지
+            if (isSubmitting) {
+                console.log('이미 저장 중입니다...');
+                return;
+            }
+            isSubmitting = true;
+
+            showLoading('메모 저장 중...', '사진을 업로드하고 있습니다');
+
+            const memoId = document.getElementById('memoId').value;
+            // 자동으로 현재 날짜/시간 생성 (YYYY-MM-DD HH:mm:ss 형식)
+            const now = new Date();
+            const noteDate = now.getFullYear() + '-' + 
+                           String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(now.getDate()).padStart(2, '0') + ' ' + 
+                           String(now.getHours()).padStart(2, '0') + ':' + 
+                           String(now.getMinutes()).padStart(2, '0') + ':' + 
+                           String(now.getSeconds()).padStart(2, '0');
+            const content = document.getElementById('memoContent').value;
+
+            try {
+                // Upload new media (photos and videos)
+                const uploadedUrls = await Promise.all(
+                    selectedPhotos.map(file => uploadMedia(file))
+                );
+
+                // Combine existing and new photo URLs
+                const allPhotoUrls = [...existingPhotoUrls, ...uploadedUrls];
+
+                const memoData = {
+                    note_date: noteDate,
+                    content: content,
+                    photo_urls: JSON.stringify(allPhotoUrls)
+                };
+
+                if (userType === 'instructor') {
+                    memoData.instructor_code = currentUser.code;
+                } else {
+                    memoData.student_id = currentUser.id;
+                }
+
+                let response;
+                if (memoId) {
+                    // Update
+                    response = await axios.put(`${API_BASE_URL}/api/class-notes/${memoId}`, memoData);
+                } else {
+                    // Create
+                    response = await axios.post(`${API_BASE_URL}/api/class-notes`, memoData);
+                }
+
+                if (response.data.success) {
+                    hideLoading();
+                    showToast(memoId ? '메모가 수정되었습니다.' : '메모가 저장되었습니다.', 'success');
+                    closeModal();
+                    await loadMemos();
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                hideLoading();
+                showToast('저장 중 오류가 발생했습니다', 'error');
+            } finally {
+                isSubmitting = false;
+            }
+        });
+
+        // Upload photo (images with compression, other files without compression)
+        async function uploadMedia(file) {
+            // 파일 확장자 확인
+            const fileName = file.name;
+            const fileExt = fileName.split('.').pop().toLowerCase();
+            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(fileExt);
+            
+            // 이미지가 아닌 파일은 압축 없이 직접 업로드
+            if (!isImage) {
+                const formData = new FormData();
+                formData.append('file', file, fileName); // 원본 파일명 유지
+                
+                try {
+                    const response = await axios.post(`${API_BASE_URL}/api/upload-image?category=teacher`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    return response.data.url;
+                } catch (error) {
+                    console.error('파일 업로드 실패:', fileName, error);
+                    throw error;
+                }
+            }
+            
+            // 이미지는 압축 후 업로드
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const img = new Image();
+                        img.onload = async () => {
+                            const canvas = document.createElement('canvas');
+                            const MAX_WIDTH = 800;
+                            const MAX_HEIGHT = 800;
+                            let width = img.width;
+                            let height = img.height;
+
+                            if (width > height) {
+                                if (width > MAX_WIDTH) {
+                                    height *= MAX_WIDTH / width;
+                                    width = MAX_WIDTH;
+                                }
+                            } else {
+                                if (height > MAX_HEIGHT) {
+                                    width *= MAX_HEIGHT / height;
+                                    height = MAX_HEIGHT;
+                                }
+                            }
+
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
+
+                            canvas.toBlob(async (blob) => {
+                                const formData = new FormData();
+                                formData.append('file', blob, fileName); // 원본 파일명 유지
+
+                                const response = await axios.post(`${API_BASE_URL}/api/upload-image?category=teacher`, formData, {
+                                    headers: { 'Content-Type': 'multipart/form-data' }
+                                });
+
+                                resolve(response.data.url);
+                            }, 'image/jpeg', 0.5);
+                        };
+                        img.onerror = () => {
+                            // 이미지 로드 실패 시 원본 파일 그대로 업로드
+                            reject(new Error('이미지 로드 실패'));
+                        };
+                        img.src = e.target.result;
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                reader.onerror = () => reject(new Error('파일 읽기 실패'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Delete memo
+        async function deleteMemo(memoId) {
+            if (!confirm('이 메모를 삭제하시겠습니까?')) return;
+
+            showLoading('메모 삭제 중...', '');
+
+            try {
+                const response = await axios.delete(`${API_BASE_URL}/api/class-notes/${memoId}`);
+                if (response.data.success) {
+                    hideLoading();
+                    showToast('메모가 삭제되었습니다', 'success');
+                    await loadMemos();
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                hideLoading();
+                showToast('삭제 중 오류가 발생했습니다', 'error');
+            }
+        }
+
+        // Go back
+        function goBack() {
+            // 학생은 뒤로가기 시 메뉴 페이지로 이동 (대시보드 없음)
+            if (userType === 'student') {
+                sessionStorage.setItem('returnToMenu', 'true');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // 강사는 기존 로직
+            const fromPage = sessionStorage.getItem('fromPage');
+            if (fromPage === 'menu') {
+                // 메뉴에서 온 경우 메뉴 페이지로 이동
+                sessionStorage.removeItem('fromPage');
+                window.location.href = 'index.html#menu';
+                // 메뉴 페이지로 전환
+                setTimeout(() => {
+                    if (window.location.hash === '#menu') {
+                        window.location.href = 'index.html';
+                        setTimeout(() => {
+                            const event = new CustomEvent('switchToMenu');
+                            window.dispatchEvent(event);
+                        }, 100);
+                    }
+                }, 100);
+            } else {
+                // 대시보드 또는 기타 페이지에서 온 경우
+                sessionStorage.removeItem('fromPage');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>관리자 가입 - 대한민국 계절 근로자 통합 관리</title>
+    <meta name="description" content="대한민국 계절 근로자 통합 관리 플랫폼 관리자 가입">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#127472;&#127479;</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 flex items-center justify-center p-4">
+    <div class="fixed top-4 right-4 z-50">
+        <select id="langSelector" onchange="changeLanguage(this.value)" class="px-3 py-2 bg-white/90 rounded-lg shadow-lg text-sm focus:outline-none cursor-pointer">
+            <option value="ko" selected>한국어</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    <div class="w-full max-w-lg my-8">
+        <div class="glass-card rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-center">
+                <div class="w-[200px] h-[200px] bg-white rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-user-shield text-7xl text-purple-600" id="regLogoIcon"></i>
+                    <img id="regLogoImg" src="" class="w-40 h-40 rounded-full object-contain hidden">
+                </div>
+                <h1 class="text-2xl font-bold text-white" data-i18n="title">관리자 가입 신청</h1>
+                <p class="text-purple-100 text-sm mt-1" data-i18n="subtitle">Administrator Registration</p>
+            </div>
+
+            <div class="p-6">
+                <!-- 안내 메시지 -->
+                <div class="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg text-sm text-purple-700">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <span data-i18n="infoMsg">가입 후 관리자 승인이 필요합니다. 초기 비밀번호는 생년월일입니다 (예: 1990-01-15).</span>
+                </div>
+
+                <form id="adminRegForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-user mr-1"></i> <span data-i18n="name">이름</span> <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="name" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition" placeholder="실명을 입력하세요" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-birthday-cake mr-1"></i> <span data-i18n="birthDate">생년월일</span> <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="birthDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-phone mr-1"></i> <span data-i18n="phone">전화번호</span> <span class="text-red-500">*</span>
+                        </label>
+                        <input type="tel" id="phone" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition" placeholder="010-0000-0000" oninput="formatPhone(this)" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-building mr-1"></i> <span data-i18n="organization">소속기관 (담당지역)</span> <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="organization" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition" placeholder="예: 충남 홍성군" required>
+                    </div>
+
+                    <div id="errorMessage" class="hidden p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm"></div>
+                    <div id="successMessage" class="hidden p-3 bg-green-100 border border-green-400 text-green-700 rounded-lg text-sm"></div>
+
+                    <button type="submit" id="registerBtn" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 rounded-lg hover:opacity-90 transition transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
+                        <i class="fas fa-user-plus mr-2"></i> <span data-i18n="register">가입 신청</span>
+                    </button>
+                </form>
+
+                <div class="mt-4 text-center">
+                    <p class="text-gray-600 text-sm">
+                        <span data-i18n="hasAccount">이미 가입하셨나요?</span>
+                        <a href="/kwv-login.html?tab=admin" class="text-purple-600 font-medium hover:underline" data-i18n="login">관리자 로그인</a>
+                    </p>
+                    <p class="text-gray-500 text-sm mt-2">
+                        <span data-i18n="isWorker">근로자이신가요?</span>
+                        <a href="/kwv-login.html" class="text-blue-600 font-medium hover:underline" data-i18n="workerLogin">근로자 로그인</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-6">
+            <p class="text-white/80 text-sm">&copy; 2026 Korea Working Visa</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/kwv';
+
+        const translations = {
+            ko: {
+                title: '관리자 가입 신청', subtitle: 'Administrator Registration',
+                infoMsg: '가입 후 관리자 승인이 필요합니다. 초기 비밀번호는 생년월일입니다 (예: 1990-01-15).',
+                name: '이름', birthDate: '생년월일', phone: '전화번호',
+                organization: '소속기관 (담당지역)', register: '가입 신청',
+                hasAccount: '이미 가입하셨나요?', login: '관리자 로그인',
+                isWorker: '외국인이신가요?', workerLogin: '외국인 로그인',
+                successMsg: '가입 신청이 완료되었습니다! 관리자 승인 후 로그인할 수 있습니다.'
+            },
+            en: {
+                title: 'Admin Registration', subtitle: 'Administrator Registration',
+                infoMsg: 'Approval is required after registration. Default password is your date of birth (e.g., 1990-01-15).',
+                name: 'Name', birthDate: 'Date of Birth', phone: 'Phone Number',
+                organization: 'Organization (Region)', register: 'Apply',
+                hasAccount: 'Already registered?', login: 'Admin Login',
+                isWorker: 'Are you a foreign worker?', workerLogin: 'Foreign Worker Login',
+                successMsg: 'Registration submitted! You can log in after admin approval.'
+            }
+        };
+
+        let currentLang = localStorage.getItem('kwv_language') || 'ko';
+        // 관리자 가입은 한국어/영어만
+        if (!['ko', 'en'].includes(currentLang)) currentLang = 'ko';
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('kwv_language', lang);
+            applyTranslations();
+        }
+
+        function applyTranslations() {
+            const t = translations[currentLang] || translations.ko;
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key]) el.textContent = t[key];
+            });
+            document.getElementById('langSelector').value = currentLang;
+        }
+
+        function formatPhone(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 3 && value.length <= 7) {
+                value = value.slice(0, 3) + '-' + value.slice(3);
+            } else if (value.length > 7) {
+                value = value.slice(0, 3) + '-' + value.slice(3, 7) + '-' + value.slice(7, 11);
+            }
+            input.value = value;
+        }
+
+        function showError(msg) {
+            document.getElementById('errorMessage').textContent = msg;
+            document.getElementById('errorMessage').classList.remove('hidden');
+            document.getElementById('successMessage').classList.add('hidden');
+        }
+
+        function showSuccess(msg) {
+            document.getElementById('successMessage').textContent = msg;
+            document.getElementById('successMessage').classList.remove('hidden');
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        document.getElementById('adminRegForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const t = translations[currentLang] || translations.ko;
+            const btn = document.getElementById('registerBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 처리 중...';
+
+            try {
+                const body = {
+                    name: document.getElementById('name').value.trim(),
+                    birth_date: document.getElementById('birthDate').value,
+                    phone: document.getElementById('phone').value.trim(),
+                    organization: document.getElementById('organization').value.trim()
+                };
+
+                if (!body.name || !body.birth_date || !body.phone || !body.organization) {
+                    throw new Error('모든 항목을 입력해주세요.');
+                }
+
+                const res = await fetch(`${API_BASE}/auth/admin-register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || 'Registration failed');
+
+                showSuccess(t.successMsg || '가입 신청이 완료되었습니다!');
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i> 신청 완료';
+
+                // 3초 후 로그인 페이지로 이동
+                setTimeout(() => {
+                    window.location.href = '/kwv-login.html?tab=admin';
+                }, 3000);
+            } catch (error) {
+                showError(error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus mr-2"></i> 가입 신청';
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            applyTranslations();
+
+            try {
+                const res = await fetch(`${API_BASE}/settings`);
+                if (res.ok) {
+                    const s = await res.json();
+                    if (s.system_title) document.title = s.system_title + ' - 관리자 가입';
+                    if (s.logo_url) {
+                        document.getElementById('regLogoIcon').classList.add('hidden');
+                        const img = document.getElementById('regLogoImg');
+                        img.src = s.logo_url; img.classList.remove('hidden');
+                    }
+                }
+            } catch(e) {}
+        });
+    </script>
+</body>
+</html>

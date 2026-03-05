@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>예진이 만나기 - 3D 음성 대화</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* RAG Toggle Styles */
+        .rag-toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .rag-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .switch input:checked + .slider {
+            background-color: #10b981;
+        }
+        
+        .switch input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+        
+        /* Source Display Styles */
+        .source-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #333;
+        }
+        
+        .source-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+        
+        .similarity-score {
+            background: #10b981;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-left: 6px;
+        }
+        
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .ui-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .ui-overlay > * {
+            pointer-events: auto;
+        }
+        
+        .chat-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chat-messages {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 10px;
+        }
+        
+        .message {
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            animation: fadeIn 0.3s;
+        }
+        
+        .message.user {
+            background: #667eea;
+            color: white;
+            text-align: right;
+            margin-left: 20%;
+        }
+        
+        .message.bot {
+            background: #f3f4f6;
+            color: #333;
+            text-align: left;
+            margin-right: 20%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .mic-button {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .mic-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.7);
+        }
+        
+        .mic-button.recording {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+        
+        .status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 3D Canvas -->
+    <div id="canvas-container">
+        <canvas id="threejs-canvas"></canvas>
+    </div>
+    
+    <!-- UI Overlay -->
+    <div class="ui-overlay">
+        <!-- 상태 표시 -->
+        <div class="status">
+            <i class="fas fa-circle text-green-500 mr-2"></i>
+            <span id="status-text">준비 완료</span>
+        </div>
+        
+        <!-- 컨트롤 버튼 -->
+        <div class="controls">
+            <button class="control-btn" onclick="toggleCamera()">
+                <i class="fas fa-camera"></i> 카메라 전환
+            </button>
+            <button class="control-btn" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i> 돌아가기
+            </button>
+        </div>
+        
+        <!-- 채팅 컨테이너 -->
+        <div class="chat-container">
+            <!-- RAG 토글 -->
+            <div class="rag-toggle-container">
+                <div class="rag-toggle-label">
+                    <i class="fas fa-database" style="font-size: 14px;"></i>
+                    <span>RAG 검색 사용</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="rag-mode-toggle-3d" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    안녕하세요! 저는 예진이예요! 🐰<br>
+                    마이크 버튼을 눌러서 말씀해주세요!
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <input type="text" 
+                       id="text-input" 
+                       placeholder="텍스트로 입력하거나..."
+                       class="flex-1 px-4 py-3 rounded-full border-2 border-gray-300 focus:border-purple-500 outline-none"
+                       onkeypress="if(event.key==='Enter') sendTextMessage()">
+                <button class="control-btn" onclick="sendTextMessage()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                <button id="mic-btn" class="mic-button" onclick="toggleRecording()">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Three.js -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // 전역 변수
+        let scene, camera, renderer, model, mixer, clock, controls;
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recognition = null;
+        let synth = window.speechSynthesis;
+        
+        // API 설정
+        const API_BASE_URL = window.location.origin.includes('localhost') 
+            ? 'http://localhost:8000' 
+            : '';
+        
+        // 3D 초기화
+        async function init3D() {
+            console.log('🚀 Initializing 3D Scene...');
+            
+            const canvas = document.getElementById('threejs-canvas');
+            scene = new THREE.Scene();
+            scene.background = null;
+            
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.5, 4);
+            
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: canvas, 
+                alpha: true, 
+                antialias: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            
+            // 컨트롤
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 2;
+            controls.maxDistance = 10;
+            controls.maxPolarAngle = Math.PI / 2;
+            
+            // 조명
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+            
+            const pointLight1 = new THREE.PointLight(0xff69b4, 1.5, 50);
+            pointLight1.position.set(-3, 3, 3);
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0xffb6c1, 1.5, 50);
+            pointLight2.position.set(3, 3, -3);
+            scene.add(pointLight2);
+            
+            // 바닥
+            const groundGeometry = new THREE.CircleGeometry(5, 32);
+            const groundMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0xeeeeee,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            
+            // GLB 모델 로드
+            const loader = new GLTFLoader();
+            try {
+                updateStatus('3D 모델 로딩 중...', true);
+                
+                const gltf = await new Promise((resolve, reject) => {
+                    loader.load('/aesong-bunny.glb', resolve, 
+                        (progress) => {
+                            const percent = (progress.loaded / progress.total * 100).toFixed(0);
+                            updateStatus(`로딩 중... ${percent}%`, true);
+                        }, reject);
+                });
+                
+                model = gltf.scene;
+                model.position.set(0, 0, 0);
+                model.scale.set(1.5, 1.5, 1.5);
+                
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        child.castShadow = true;
+                        child.receiveShadow = true;
+                    }
+                });
+                
+                scene.add(model);
+                
+                if (gltf.animations && gltf.animations.length > 0) {
+                    mixer = new THREE.AnimationMixer(model);
+                    gltf.animations.forEach((clip) => {
+                        mixer.clipAction(clip).play();
+                    });
+                }
+                
+                updateStatus('준비 완료', false);
+                console.log('✅ 3D Model loaded!');
+                
+            } catch (error) {
+                console.error('❌ Error loading model:', error);
+                updateStatus('모델 로딩 실패', false);
+            }
+            
+            clock = new THREE.Clock();
+            animate();
+            
+            window.addEventListener('resize', onWindowResize, false);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const delta = clock.getDelta();
+            
+            if (mixer) mixer.update(delta);
+            if (controls) controls.update();
+            
+            // 모델 약간 회전
+            if (model && !isRecording) {
+                model.rotation.y += 0.001;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // 음성 인식 초기화
+        function initSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ko-KR';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    console.log('🎤 Recognized:', transcript);
+                    addMessage(transcript, 'user');
+                    processMessage(transcript);
+                };
+                
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error:', event.error);
+                    updateStatus('음성 인식 오류', false);
+                };
+                
+                recognition.onend = () => {
+                    isRecording = false;
+                    document.getElementById('mic-btn').classList.remove('recording');
+                    updateStatus('준비 완료', false);
+                };
+                
+                console.log('✅ Speech Recognition initialized');
+            } else {
+                console.warn('⚠️ Speech Recognition not supported');
+            }
+        }
+        
+        // 음성 녹음/인식 토글
+        window.toggleRecording = () => {
+            if (!recognition) {
+                alert('음성 인식을 지원하지 않는 브라우저입니다.');
+                return;
+            }
+            
+            if (isRecording) {
+                recognition.stop();
+                isRecording = false;
+                document.getElementById('mic-btn').classList.remove('recording');
+                updateStatus('준비 완료', false);
+            } else {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('mic-btn').classList.add('recording');
+                updateStatus('듣는 중...', true);
+            }
+        };
+        
+        // 텍스트 메시지 전송
+        window.sendTextMessage = () => {
+            const input = document.getElementById('text-input');
+            const text = input.value.trim();
+            
+            if (text) {
+                addMessage(text, 'user');
+                processMessage(text);
+                input.value = '';
+            }
+        };
+        
+        // 메시지 추가
+        function addMessage(text, sender, sources = null) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            // 메시지 포맷팅
+            let formattedText = text;
+            
+            // 객관식 문제 포맷팅
+            formattedText = formattedText.replace(/([A-D])\)\s+([^\n]+)/g, '<span style="display: block; margin-left: 20px;">$1) $2</span>');
+            formattedText = formattedText.replace(/(정답:\s*\n*[^\n]+)/g, '<strong style="color: #10b981; display: block; margin-top: 8px;">$1</strong>');
+            formattedText = formattedText.replace(/(설명:|해설:)([^\n]+)/g, '<em style="color: #6b7280; display: block; margin-bottom: 10px;">$1$2</em>');
+            formattedText = formattedText.replace(/\n/g, '<br>');
+            
+            messageDiv.innerHTML = formattedText;
+            
+            // RAG 출처 표시
+            if (sources && sources.length > 0) {
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.style.marginTop = '10px';
+                sourcesDiv.innerHTML = '<div class="source-title">📚 참고 문서:</div>';
+                
+                sources.forEach((source, index) => {
+                    const sourceItem = document.createElement('div');
+                    sourceItem.className = 'source-item';
+                    const similarity = (source.similarity * 100).toFixed(1);
+                    sourceItem.innerHTML = `
+                        ${index + 1}. ${source.source}
+                        <span class="similarity-score">${similarity}% 유사</span>
+                    `;
+                    sourcesDiv.appendChild(sourceItem);
+                });
+                
+                messageDiv.appendChild(sourcesDiv);
+            }
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        
+        // 메시지 처리 (AI 응답)
+        async function processMessage(userMessage) {
+            updateStatus('생각하는 중...', true);
+            
+            try {
+                // RAG 토글 상태 확인
+                const ragToggle = document.getElementById('rag-mode-toggle-3d');
+                const useRAG = ragToggle ? ragToggle.checked : false;
+                
+                if (useRAG) {
+                    // RAG 모드: 문서 기반 답변
+                    console.log('🔍 RAG 모드로 질문:', userMessage);
+                    
+                    const ragTopK = parseInt(localStorage.getItem('rag_top_k') || '3');
+                    const groqApiKey = localStorage.getItem('groq_api_key') || '';
+                    
+                    const response = await fetch(`${API_BASE_URL}/api/rag/chat`, {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'X-GROQ-API-Key': groqApiKey
+                        },
+                        body: JSON.stringify({ 
+                            message: userMessage,
+                            k: ragTopK
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    const botMessage = data.answer || '죄송해요, 답변을 생성하지 못했어요.';
+                    const sources = data.sources || [];
+                    
+                    console.log('✅ RAG 응답:', { answer: botMessage, sources });
+                    
+                    addMessage(botMessage, 'bot', sources);
+                    speak(botMessage);
+                    
+                } else {
+                    // 일반 챗봇 모드
+                    const response = await fetch(`${API_BASE_URL}/api/aesong-chat`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: userMessage })
+                    });
+                    
+                    const data = await response.json();
+                    const botMessage = data.response || '죄송해요, 잘 못 들었어요.';
+                    
+                    addMessage(botMessage, 'bot');
+                    speak(botMessage);
+                }
+                
+                updateStatus('준비 완료', false);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                const errorMsg = '죄송해요, 지금은 대답하기 어려워요.';
+                addMessage(errorMsg, 'bot');
+                speak(errorMsg);
+                updateStatus('준비 완료', false);
+            }
+        }
+        
+        // TTS 음성 출력
+        function speak(text) {
+            if (synth.speaking) {
+                synth.cancel();
+            }
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ko-KR';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.2;
+            
+            // 모델 애니메이션 효과
+            utterance.onstart = () => {
+                if (model) {
+                    const interval = setInterval(() => {
+                        if (model && synth.speaking) {
+                            model.position.y = Math.sin(Date.now() * 0.01) * 0.05;
+                        }
+                    }, 50);
+                    
+                    utterance.onend = () => {
+                        clearInterval(interval);
+                        if (model) model.position.y = 0;
+                    };
+                }
+            };
+            
+            synth.speak(utterance);
+        }
+        
+        // 상태 업데이트
+        function updateStatus(text, loading) {
+            const statusText = document.getElementById('status-text');
+            if (loading) {
+                statusText.innerHTML = `<span class="loading"></span> ${text}`;
+            } else {
+                statusText.textContent = text;
+            }
+        }
+        
+        // 카메라 전환
+        window.toggleCamera = () => {
+            if (camera && model) {
+                camera.position.set(
+                    Math.random() * 4 - 2,
+                    Math.random() * 2 + 1,
+                    Math.random() * 4 + 2
+                );
+                camera.lookAt(model.position);
+            }
+        };
+        
+        // 돌아가기
+        window.goBack = () => {
+            if (confirm('대화를 종료하고 돌아가시겠습니까?')) {
+                window.location.href = '/';
+            }
+        };
+        
+        // 초기화
+        init3D();
+        initSpeechRecognition();
+    </script>
+</body>
+</html>

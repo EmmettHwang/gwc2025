@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>디버그 페이지</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #00ff00; }
+        pre { background: #000; padding: 10px; border: 1px solid #00ff00; margin: 10px 0; }
+        button { background: #00ff00; color: #000; padding: 10px 20px; border: none; cursor: pointer; margin: 5px; }
+        h2 { color: #ffff00; }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+</head>
+<body>
+    <h1>🔧 디버그 페이지</h1>
+    
+    <h2>1. localStorage 상태</h2>
+    <button onclick="checkLocalStorage()">확인</button>
+    <button onclick="clearAllCache()">전체 캐시 삭제</button>
+    <pre id="localStorage-result"></pre>
+    
+    <h2>2. API 연결 테스트</h2>
+    <button onclick="testAPI()">API 테스트</button>
+    <pre id="api-result"></pre>
+    
+    <h2>3. 로그인 테스트</h2>
+    <input type="text" id="name" placeholder="이름" value="황동영">
+    <input type="password" id="password" placeholder="비밀번호" value="kdt2025">
+    <button onclick="testLogin()">로그인 테스트</button>
+    <pre id="login-result"></pre>
+    
+    <h2>4. app.js 로드 확인</h2>
+    <button onclick="checkAppJS()">확인</button>
+    <pre id="appjs-result"></pre>
+    
+    <script>
+        const API_BASE_URL = 'https://8000-i3oloko346uog7d7oo8v5-3844e1b6.sandbox.novita.ai';
+        
+        function checkLocalStorage() {
+            const result = document.getElementById('localStorage-result');
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                data[key] = localStorage.getItem(key);
+            }
+            result.textContent = JSON.stringify(data, null, 2);
+        }
+        
+        function clearAllCache() {
+            localStorage.clear();
+            sessionStorage.clear();
+            alert('✅ 모든 캐시 삭제 완료');
+            checkLocalStorage();
+        }
+        
+        async function testAPI() {
+            const result = document.getElementById('api-result');
+            result.textContent = '테스트 중...';
+            
+            try {
+                const students = await axios.get(`${API_BASE_URL}/api/students`);
+                const instructors = await axios.get(`${API_BASE_URL}/api/instructors`);
+                
+                const hasCareerPath = students.data[0].career_path !== undefined;
+                
+                result.innerHTML = `<span class="success">✅ API 연결 성공!</span>\n\n` +
+                    `학생: ${students.data.length}명\n` +
+                    `강사: ${instructors.data.length}명\n` +
+                    `career_path 필드: ${hasCareerPath ? '있음 ✅' : '없음 ❌'}\n` +
+                    `첫 학생 career_path: ${students.data[0].career_path}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ 에러: ${error.message}</span>`;
+            }
+        }
+        
+        async function testLogin() {
+            const result = document.getElementById('login-result');
+            const name = document.getElementById('name').value;
+            const password = document.getElementById('password').value;
+            
+            result.textContent = '로그인 중...';
+            
+            try {
+                const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+                    name: name,
+                    password: password
+                });
+                
+                if (response.data.success) {
+                    localStorage.setItem('instructor', JSON.stringify(response.data.instructor));
+                    localStorage.setItem('logged_in', 'true');
+                    
+                    result.innerHTML = `<span class="success">✅ 로그인 성공!</span>\n\n` +
+                        `이름: ${response.data.instructor.name}\n` +
+                        `유형: ${response.data.instructor.instructor_type_name}`;
+                } else {
+                    result.innerHTML = `<span class="error">❌ ${response.data.message}</span>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ 에러: ${error.message}</span>`;
+            }
+        }
+        
+        function checkAppJS() {
+            const result = document.getElementById('appjs-result');
+            result.textContent = '확인 중...';
+            
+            if (typeof window.getCachedData === 'function') {
+                result.innerHTML = `<span class="success">✅ app.js 로드됨!</span>\n\n` +
+                    `getCachedData: 존재\n` +
+                    `API_BASE_URL: ${typeof API_BASE_URL !== 'undefined' ? API_BASE_URL : '없음'}`;
+            } else {
+                result.innerHTML = `<span class="error">❌ app.js가 로드되지 않음</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

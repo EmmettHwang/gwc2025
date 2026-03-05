@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta name="description" content="교육 지원 제도 안내">
+    <meta name="theme-color" content="#8b5cf6">
+
+    <title>교육지원제도 - 교육관리시스템</title>
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+
+    <script>
+        var __THEME_COLOR__ = null;
+        var __LOGO_URL__ = null;
+        try {
+            const savedTheme = localStorage.getItem('system_theme');
+            if (savedTheme) {
+                const theme = JSON.parse(savedTheme);
+                if (theme && theme.menubar) __THEME_COLOR__ = theme.menubar;
+            }
+            __LOGO_URL__ = localStorage.getItem('logo_url');
+            if (__LOGO_URL__) {
+                let faviconUrl = __LOGO_URL__;
+                if (__LOGO_URL__.startsWith('ftp://')) {
+                    faviconUrl = '/api/download-image?url=' + encodeURIComponent(__LOGO_URL__);
+                }
+                const favicon = document.querySelector('link[rel="icon"]');
+                if (favicon) favicon.href = faviconUrl;
+            }
+        } catch(e) {}
+    </script>
+
+    <style>
+        .support-card {
+            transition: all 0.3s ease;
+        }
+        .support-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-indigo-100 min-h-screen">
+    <!-- 헤더 -->
+    <header class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="/login.html" class="text-white hover:text-purple-100 transition-colors">
+                        <i class="fas fa-arrow-left text-2xl"></i>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-bold flex items-center">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>교육지원제도
+                        </h1>
+                        <p class="text-purple-100 text-sm mt-1">다양한 교육 지원 혜택을 확인하세요</p>
+                    </div>
+                </div>
+                <div class="inline-block bg-white rounded-lg overflow-hidden shadow-md" style="width: 120px; height: 48px;">
+                    <script>
+                        var logoSrc = __LOGO_URL__ || '/woosong-logo.png';
+                        if (logoSrc.startsWith('ftp://')) {
+                            logoSrc = '/api/download-image?url=' + encodeURIComponent(logoSrc);
+                        }
+                        document.write('<img id="header-logo" src="' + logoSrc + '" alt="로고" style="width: 100%; height: 100%; object-fit: fill;">');
+                    </script>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 소개 -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <div class="text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full mb-4">
+                    <i class="fas fa-gift text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">교육비 지원 안내</h2>
+                <p class="text-gray-600">본 교육과정은 다양한 정부 지원 제도를 통해 교육비 부담을 줄일 수 있습니다.</p>
+            </div>
+        </div>
+
+        <!-- 지원 제도 카드들 -->
+        <div class="space-y-6">
+            <!-- 국민내일배움카드 -->
+            <div class="support-card bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 p-4 text-white">
+                    <h3 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-id-card mr-3"></i>국민내일배움카드
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <p class="text-sm text-gray-600 mb-1">지원 금액</p>
+                            <p class="text-2xl font-bold text-blue-600">최대 500만원</p>
+                            <p class="text-xs text-gray-500">5년간 사용 가능</p>
+                        </div>
+                        <div class="bg-blue-50 rounded-xl p-4">
+                            <p class="text-sm text-gray-600 mb-1">자비 부담률</p>
+                            <p class="text-2xl font-bold text-blue-600">15~55%</p>
+                            <p class="text-xs text-gray-500">훈련과정에 따라 차등</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-gray-700">
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>대상:</strong> 구직자, 재직자, 자영업자 등</p>
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>발급:</strong> 고용센터 방문 또는 HRD-Net 온라인 신청</p>
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>사용:</strong> 직업훈련포털(HRD-Net)에서 훈련과정 수강</p>
+                    </div>
+                    <a href="https://www.hrd.go.kr" target="_blank" rel="noopener noreferrer"
+                       class="mt-4 inline-flex items-center text-blue-600 hover:text-blue-700 font-semibold">
+                        <i class="fas fa-external-link-alt mr-2"></i>HRD-Net 바로가기
+                    </a>
+                </div>
+            </div>
+
+            <!-- K-Digital Training -->
+            <div class="support-card bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-green-500 to-teal-500 p-4 text-white">
+                    <h3 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-laptop-code mr-3"></i>K-Digital Training (KDT)
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <p class="text-sm text-gray-600 mb-1">교육비</p>
+                            <p class="text-2xl font-bold text-green-600">전액 무료</p>
+                            <p class="text-xs text-gray-500">정부 100% 지원</p>
+                        </div>
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <p class="text-sm text-gray-600 mb-1">훈련장려금</p>
+                            <p class="text-2xl font-bold text-green-600">월 최저 60만원</p>
+                            <p class="text-xs text-gray-500">출석률 80% 이상 시</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-gray-700">
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>대상:</strong> 만 15세 이상 취업 희망자 (국민내일배움카드 발급자)</p>
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>분야:</strong> AI, 빅데이터, 클라우드, 바이오헬스 등 디지털 신기술</p>
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>기간:</strong> 6개월~12개월 집중 훈련</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 보건복지부 바이오헬스 -->
+            <div class="support-card bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-pink-500 to-rose-500 p-4 text-white">
+                    <h3 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-heartbeat mr-3"></i>바이오헬스 인재양성 (보건복지부)
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-pink-50 rounded-xl p-4">
+                            <p class="text-sm text-gray-600 mb-1">교육비</p>
+                            <p class="text-2xl font-bold text-pink-600">본인 부담 40만원</p>
+                            <p class="text-xs text-gray-500">한국보건산업진흥원 지원</p>
+                        </div>
+                        <div class="bg-pink-50 rounded-xl p-4">
+                            <p class="text-sm text-gray-600 mb-1">현장실습비</p>
+                            <p class="text-2xl font-bold text-pink-600">지원</p>
+                            <p class="text-xs text-gray-500">실습 참여 시 지급</p>
+                        </div>
+                        <div class="bg-pink-50 rounded-xl p-4">
+                            <p class="text-sm text-gray-600 mb-1">취업 연계</p>
+                            <p class="text-2xl font-bold text-pink-600">맞춤형 취업지원</p>
+                            <p class="text-xs text-gray-500">바이오헬스 기업 연계</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3 text-gray-700">
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>대상:</strong> 바이오헬스 분야 취업 희망자</p>
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>분야:</strong> 의약품, 의료기기, 디지털헬스케어 등</p>
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>특징:</strong> 산업체 연계 프로젝트 및 인턴십 기회</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 국민취업지원제도 -->
+            <div class="support-card bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-amber-500 to-orange-500 p-4 text-white">
+                    <h3 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-hands-helping mr-3"></i>국민취업지원제도
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <!-- Ⅰ유형 -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-amber-700 mb-3 flex items-center">
+                            <span class="bg-amber-500 text-white px-2 py-1 rounded mr-2 text-sm">Ⅰ유형</span>
+                            구직촉진수당 지급
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                            <div class="bg-amber-50 rounded-xl p-4">
+                                <p class="text-sm text-gray-600 mb-1">구직촉진수당</p>
+                                <p class="text-2xl font-bold text-amber-600">월 50만원 × 6개월</p>
+                                <p class="text-xs text-gray-500">최대 300만원 지급</p>
+                            </div>
+                            <div class="bg-amber-50 rounded-xl p-4">
+                                <p class="text-sm text-gray-600 mb-1">부양가족 추가수당</p>
+                                <p class="text-2xl font-bold text-amber-600">1인당 10만원</p>
+                                <p class="text-xs text-gray-500">최대 40만원 추가 (월 최대 90만원)</p>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><i class="fas fa-user text-amber-500 mr-2"></i><strong>대상:</strong> 중위소득 60% 이하 저소득 구직자</p>
+                            <p><i class="fas fa-star text-amber-500 mr-2"></i><strong>청년특례:</strong> 만 18~34세는 재산 5억 이하 시 소득 무관 참여 가능</p>
+                        </div>
+                    </div>
+
+                    <!-- Ⅱ유형 -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-bold text-orange-700 mb-3 flex items-center">
+                            <span class="bg-orange-500 text-white px-2 py-1 rounded mr-2 text-sm">Ⅱ유형</span>
+                            취업활동비용 지원
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                            <div class="bg-orange-50 rounded-xl p-4">
+                                <p class="text-sm text-gray-600 mb-1">취업활동비용</p>
+                                <p class="text-2xl font-bold text-orange-600">월 28.4만원</p>
+                                <p class="text-xs text-gray-500">최대 6개월 지원</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-xl p-4">
+                                <p class="text-sm text-gray-600 mb-1">직업훈련비</p>
+                                <p class="text-2xl font-bold text-orange-600">최대 215만원</p>
+                                <p class="text-xs text-gray-500">훈련과정 수강 시</p>
+                            </div>
+                            <div class="bg-orange-50 rounded-xl p-4">
+                                <p class="text-sm text-gray-600 mb-1">훈련참여수당</p>
+                                <p class="text-2xl font-bold text-orange-600">월 20만원</p>
+                                <p class="text-xs text-gray-500">최대 120만원</p>
+                            </div>
+                        </div>
+                        <div class="text-sm text-gray-600 space-y-1">
+                            <p><i class="fas fa-user text-orange-500 mr-2"></i><strong>대상:</strong> 중위소득 100% 이하 (청년 15~34세는 소득 무관)</p>
+                            <p><i class="fas fa-briefcase text-orange-500 mr-2"></i><strong>빈일자리 취업 시:</strong> 훈련참여수당 + 취업성공수당 40만원 추가</p>
+                        </div>
+                    </div>
+
+                    <!-- 공통 혜택 -->
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 mb-4">
+                        <h4 class="font-bold text-gray-800 mb-2"><i class="fas fa-gift text-amber-500 mr-2"></i>취업성공수당 (공통)</h4>
+                        <div class="flex flex-wrap gap-4 text-sm">
+                            <div class="flex items-center">
+                                <span class="bg-green-500 text-white px-2 py-1 rounded text-xs mr-2">6개월 근무</span>
+                                <span class="font-bold text-green-600">50만원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="bg-green-600 text-white px-2 py-1 rounded text-xs mr-2">12개월 근무</span>
+                                <span class="font-bold text-green-600">+100만원</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="bg-green-700 text-white px-2 py-1 rounded text-xs mr-2">총</span>
+                                <span class="font-bold text-green-700 text-lg">최대 150만원</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 text-gray-700">
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>신청대상:</strong> 만 15세~69세 구직자</p>
+                        <p><i class="fas fa-check-circle text-green-500 mr-2"></i><strong>신청방법:</strong> 거주지 관할 고용센터 방문 또는 Work24 온라인 신청</p>
+                        <p><i class="fas fa-info-circle text-amber-500 mr-2"></i>Ⅰ유형은 매월 2회 이상 구직활동 필수</p>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <a href="https://www.work24.go.kr" target="_blank" rel="noopener noreferrer"
+                           class="inline-flex items-center text-amber-600 hover:text-amber-700 font-semibold">
+                            <i class="fas fa-external-link-alt mr-2"></i>Work24 바로가기
+                        </a>
+                        <span class="inline-flex items-center text-orange-600 font-semibold">
+                            <i class="fas fa-phone mr-2"></i>대전 국민취업지원센터: 042-226-9114
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 신청 절차 -->
+            <div class="support-card bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 p-4 text-white">
+                    <h3 class="text-xl font-bold flex items-center">
+                        <i class="fas fa-clipboard-list mr-3"></i>신청 절차
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold mr-4 flex-shrink-0">1</div>
+                            <div>
+                                <p class="font-bold text-gray-800">국민내일배움카드 발급</p>
+                                <p class="text-sm text-gray-600">고용센터 방문 또는 HRD-Net 온라인 신청</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold mr-4 flex-shrink-0">2</div>
+                            <div>
+                                <p class="font-bold text-gray-800">훈련과정 검색 및 수강신청</p>
+                                <p class="text-sm text-gray-600">HRD-Net에서 원하는 과정 검색 후 신청</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center font-bold mr-4 flex-shrink-0">3</div>
+                            <div>
+                                <p class="font-bold text-gray-800">훈련기관 상담 및 등록</p>
+                                <p class="text-sm text-gray-600">훈련기관 방문하여 상담 후 최종 등록</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold mr-4 flex-shrink-0">4</div>
+                            <div>
+                                <p class="font-bold text-gray-800">훈련 시작!</p>
+                                <p class="text-sm text-gray-600">성실히 출석하고 훈련장려금 수령</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 문의 안내 -->
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-headset text-purple-500 mr-3"></i>문의 안내
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="font-semibold text-gray-800 mb-2"><i class="fas fa-phone text-green-500 mr-2"></i>고용노동부 고객센터</p>
+                        <p class="text-2xl font-bold text-blue-600">1350</p>
+                        <p class="text-sm text-gray-500">평일 09:00 ~ 18:00</p>
+                    </div>
+                    <div class="bg-gray-50 rounded-xl p-4">
+                        <p class="font-semibold text-gray-800 mb-2"><i class="fas fa-globe text-blue-500 mr-2"></i>HRD-Net</p>
+                        <a href="https://www.hrd.go.kr" target="_blank" rel="noopener noreferrer"
+                           class="text-lg font-bold text-blue-600 hover:underline">www.hrd.go.kr</a>
+                        <p class="text-sm text-gray-500">직업훈련포털</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 하단 네비게이션 -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-8">
+        <div class="container mx-auto px-4 flex flex-wrap justify-center gap-3">
+            <a href="/login.html" class="px-5 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-700 transition-colors text-sm">
+                <i class="fas fa-sign-in-alt mr-1"></i>로그인
+            </a>
+            <a href="/register.html" class="px-5 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm">
+                <i class="fas fa-user-plus mr-1"></i>신규수강신청
+            </a>
+            <a href="/course-intro.html" class="px-5 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm">
+                <i class="fas fa-info-circle mr-1"></i>과정 소개
+            </a>
+        </div>
+    </footer>
+</body>
+</html>

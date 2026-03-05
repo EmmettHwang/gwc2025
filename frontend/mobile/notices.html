@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>공지사항 - 바이오헬스교육관리</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+        input, textarea, select {
+            font-size: 16px !important;
+        }
+        .notice-card {
+            transition: all 0.3s ease;
+        }
+        .notice-card:active {
+            transform: scale(0.98);
+        }
+        .badge-new {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    
+        /* Toast animations */
+        @keyframes fadeInScale {
+            from {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeOutScale {
+            from {
+                transform: scale(1);
+                opacity: 1;
+            }
+            to {
+                transform: scale(0.7);
+                opacity: 0;
+            }
+        }
+        .toast-enter {
+            animation: fadeInScale 0.3s ease-out forwards;
+        }
+        .toast-exit {
+            animation: fadeOutScale 0.2s ease-in forwards;
+        }
+        
+        /* Pull to Refresh */
+        .ptr-indicator {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            transition: transform 0.3s ease;
+            z-index: 40;
+        }
+        .ptr-indicator.active {
+            transform: translateX(-50%) scale(1);
+        }
+        .ptr-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: ptr-spin 0.8s linear infinite;
+        }
+        @keyframes ptr-spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+        <!-- Pull to Refresh Indicator -->
+    <div id="ptrIndicator" class="ptr-indicator">
+        <div class="ptr-spinner"></div>
+    </div>
+
+<header class="bg-gradient-to-r from-purple-500 to-indigo-600 text-white sticky top-0 z-50 shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+            <button onclick="goBack()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                <i class="fas fa-arrow-left text-xl"></i>
+            </button>
+            <h1 class="text-xl font-bold">공지사항</h1>
+            <div id="createButton" class="hidden">
+                <button onclick="showCreateModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2 transition-all">
+                    <i class="fas fa-plus text-xl"></i>
+                </button>
+            </div>
+            <div id="placeholderButton" class="w-10"></div>
+        </div>
+    </header>
+
+    <!-- Filter Tabs - 제거됨 (데스크탑처럼 전체만 표시) -->
+
+    <!-- Notices List -->
+    <main class="container mx-auto px-4 pb-20">
+        <div id="noticesList" class="space-y-4">
+            <!-- Notices will be loaded here -->
+        </div>
+        <div id="emptyState" class="text-center py-20 hidden">
+            <i class="fas fa-bullhorn text-6xl text-gray-300 mb-4"></i>
+            <p class="text-gray-500">등록된 공지사항이 없습니다</p>
+        </div>
+    </main>
+
+    <!-- Create/Edit Modal -->
+    <div id="noticeModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-bold" id="modalTitle">새 공지사항</h2>
+                    <button onclick="closeModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="noticeForm" class="p-6 space-y-4">
+                <input type="hidden" id="noticeId">
+                
+                <!-- Title -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-heading mr-2 text-purple-500"></i>제목
+                    </label>
+                    <input type="text" id="noticeTitle" required
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                           placeholder="제목을 입력하세요">
+                </div>
+
+                <!-- Content -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <i class="fas fa-align-left mr-2 text-purple-500"></i>내용
+                    </label>
+                    <textarea id="noticeContent" rows="8" required
+                              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                              placeholder="공지사항 내용을 입력하세요..."></textarea>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex space-x-3 pt-4">
+                    <button type="button" onclick="closeModal()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-3 rounded-xl font-semibold transition-all">
+                        취소
+                    </button>
+                    <button type="submit"
+                            class="flex-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all">
+                        저장
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div id="detailModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 bg-gradient-to-r from-purple-500 to-indigo-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-bold" id="detailCategory"></h2>
+                    <button onclick="closeDetailModal()" class="text-white hover:bg-white hover:bg-opacity-20 rounded-lg p-2">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <h3 class="text-2xl font-bold text-gray-800 mb-4" id="detailTitle"></h3>
+                <div class="flex items-center text-sm text-gray-500 mb-4 space-x-4">
+                    <span><i class="fas fa-user mr-1"></i><span id="detailAuthor"></span></span>
+                    <span><i class="fas fa-calendar mr-1"></i><span id="detailDate"></span></span>
+                </div>
+                <div class="prose max-w-none">
+                    <p class="text-gray-700 whitespace-pre-wrap" id="detailContent"></p>
+                </div>
+                
+                <!-- Edit/Delete buttons for instructor -->
+                <div id="detailActions" class="mt-6 flex space-x-3 hidden">
+                    <button onclick="editNoticeFromDetail()" 
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-xl font-semibold transition-all">
+                        <i class="fas fa-edit mr-2"></i>수정
+                    </button>
+                    <button onclick="deleteNoticeFromDetail()" 
+                            class="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl font-semibold transition-all">
+                        <i class="fas fa-trash mr-2"></i>삭제
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[70] flex items-center justify-center">
+        <div class="bg-white rounded-2xl p-8 text-center shadow-2xl max-w-sm w-full mx-4">
+            <div class="relative w-20 h-20 mx-auto mb-4">
+                <div class="absolute inset-0 border-4 border-purple-200 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <p class="text-gray-700 font-semibold mb-2" id="loadingText">로딩 중...</p>
+            <p class="text-sm text-gray-500" id="loadingSubtext">잠시만 기다려주세요</p>
+        </div>
+    </div>
+    <!-- Toast Message Container -->
+    <div id="toastContainer" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[200] flex flex-col gap-3 pointer-events-none">
+        <!-- Toasts will be added here dynamically -->
+    </div>
+
+
+
+    <script>
+        const API_BASE_URL = '';
+        
+        // Pull to Refresh variables
+        let startY = 0;
+        let currentY = 0;
+        let isPulling = false;
+        let isRefreshing = false;
+        
+        // Initialize Pull to Refresh
+        function initPullToRefresh() {
+            const ptrIndicator = document.getElementById('ptrIndicator');
+            
+            document.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0 && !isRefreshing) {
+                    startY = e.touches[0].pageY;
+                    isPulling = true;
+                }
+            }, { passive: true });
+            
+            document.addEventListener('touchmove', (e) => {
+                if (!isPulling || isRefreshing) return;
+                
+                currentY = e.touches[0].pageY;
+                const pullDistance = currentY - startY;
+                
+                if (pullDistance > 0 && window.scrollY === 0) {
+                    if (pullDistance > 80) {
+                        ptrIndicator.classList.add('active');
+                    } else {
+                        ptrIndicator.classList.remove('active');
+                    }
+                }
+            }, { passive: true });
+            
+            document.addEventListener('touchend', async (e) => {
+                if (!isPulling || isRefreshing) return;
+                
+                const pullDistance = currentY - startY;
+                
+                if (pullDistance > 80 && window.scrollY === 0) {
+                    isRefreshing = true;
+                    ptrIndicator.classList.add('active');
+                    
+                    // Refresh data - call the main load function
+                    await loadNotices();
+                    showToast('데이터를 새로고침했습니다', 'success', 2000);
+                    
+                    // Hide indicator after short delay
+                    setTimeout(() => {
+                        ptrIndicator.classList.remove('active');
+                        isRefreshing = false;
+                    }, 500);
+                } else {
+                    ptrIndicator.classList.remove('active');
+                }
+                
+                isPulling = false;
+                startY = 0;
+                currentY = 0;
+            });
+        }
+        let currentUser = null;
+        let userType = null;
+        let allNotices = [];
+        let currentFilter = 'all';
+        let currentNoticeId = null;        // Show loading overlay
+        function showLoading(text = "로딩 중...", subtext = "잠시만 기다려주세요") {
+            document.getElementById("loadingText").textContent = text;
+            document.getElementById("loadingSubtext").textContent = subtext;
+            document.getElementById("loadingOverlay").classList.remove("hidden");
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            document.getElementById("loadingOverlay").classList.add("hidden");
+        }
+
+        // Toast Message System
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = 'toast-enter pointer-events-auto';
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+            
+            toast.innerHTML = `
+                <div class="${colors[type]} text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 min-w-[280px] max-w-[90vw]">
+                    <i class="fas ${icons[type]} text-2xl"></i>
+                    <span class="flex-1 font-medium">${message}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-white hover:text-gray-200 ml-2">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Auto remove after duration
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.classList.remove('toast-enter');
+                    toast.classList.add('toast-exit');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        }
+        // Initialize
+        async function init() {
+            const userStr = sessionStorage.getItem('user');
+            userType = sessionStorage.getItem('user_type');
+            
+            if (!userStr || !userType) {
+                alert('로그인이 필요합니다.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            currentUser = JSON.parse(userStr);
+            
+            // Pull to Refresh 초기화
+            initPullToRefresh();
+            
+            // Show create button for instructors
+            if (userType === 'instructor') {
+                document.getElementById('createButton').classList.remove('hidden');
+                document.getElementById('placeholderButton').style.display = 'none';
+            }
+
+            await loadNotices();
+        }
+
+        // Load notices
+        async function loadNotices() {
+            try {
+                showLoading("공지사항 불러오는 중...", "");
+                const response = await axios.get(`${API_BASE_URL}/api/notices`);
+                allNotices = response.data || [];
+                
+                console.log('✅ 공지사항 로드 완료:', allNotices.length, '건');
+                
+                // 활성 공지사항 필터링 (게시 기간 내)
+                const now = new Date();
+                const activeNotices = allNotices.filter(n => {
+                    const startDate = n.start_date ? new Date(n.start_date) : null;
+                    const endDate = n.end_date ? new Date(n.end_date) : null;
+                    
+                    if (!startDate && !endDate) return true;
+                    if (!startDate) return now <= endDate;
+                    if (!endDate) return now >= startDate;
+                    return now >= startDate && now <= endDate;
+                });
+                
+                console.log('✅ 활성 공지사항:', activeNotices.length, '건');
+                
+                renderNotices(activeNotices);
+                hideLoading();
+            } catch (error) {
+                console.error('Failed to load notices:', error);
+                hideLoading();
+                document.getElementById('emptyState').classList.remove('hidden');
+            }
+        }
+
+        // Render notices
+        function renderNotices(notices) {
+            const container = document.getElementById('noticesList');
+            const emptyState = document.getElementById('emptyState');
+
+            if (!notices || notices.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            
+            // Sort by date descending
+            notices.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+            container.innerHTML = notices.map(notice => {
+                const isNew = (new Date() - new Date(notice.created_at)) < 24 * 60 * 60 * 1000; // 24 hours
+
+                return `
+                    <div class="notice-card bg-white rounded-2xl shadow-md p-5 cursor-pointer hover:shadow-lg"
+                         onclick="showDetail(${notice.id})">
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="flex items-center space-x-2">
+                                ${isNew ? '<span class="badge-new px-2 py-1 bg-purple-500 text-white rounded-full text-xs font-bold">NEW</span>' : ''}
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">${notice.title}</h3>
+                        <p class="text-gray-600 text-sm line-clamp-2 mb-3">${notice.content}</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span><i class="fas fa-user mr-1"></i>${notice.created_by || '관리자'}</span>
+                            <span><i class="fas fa-calendar mr-1"></i>${new Date(notice.created_at).toLocaleDateString('ko-KR')}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter notices - 제거됨 (필터 기능 불필요)
+
+        // Show detail modal
+        function showDetail(noticeId) {
+            const notice = allNotices.find(n => n.id === noticeId);
+            if (!notice) return;
+
+            currentNoticeId = noticeId;
+
+            document.getElementById('detailCategory').textContent = '공지사항';
+            document.getElementById('detailTitle').textContent = notice.title;
+            document.getElementById('detailAuthor').textContent = notice.created_by || '관리자';
+            document.getElementById('detailDate').textContent = new Date(notice.created_at).toLocaleString('ko-KR');
+            document.getElementById('detailContent').textContent = notice.content;
+
+            // Show edit/delete buttons for instructors
+            if (userType === 'instructor') {
+                document.getElementById('detailActions').classList.remove('hidden');
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+            document.getElementById('detailModal').classList.add('flex');
+        }
+
+        // Close detail modal
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            document.getElementById('detailModal').classList.remove('flex');
+            currentNoticeId = null;
+        }
+
+        // Show create modal
+        function showCreateModal() {
+            document.getElementById('modalTitle').textContent = '새 공지사항';
+            document.getElementById('noticeForm').reset();
+            document.getElementById('noticeId').value = '';
+            document.getElementById('noticeModal').classList.remove('hidden');
+            document.getElementById('noticeModal').classList.add('flex');
+        }
+
+        // Edit notice from detail
+        function editNoticeFromDetail() {
+            const notice = allNotices.find(n => n.id === currentNoticeId);
+            if (!notice) return;
+
+            closeDetailModal();
+
+            document.getElementById('modalTitle').textContent = '공지사항 수정';
+            document.getElementById('noticeId').value = notice.id;
+            document.getElementById('noticeTitle').value = notice.title;
+            document.getElementById('noticeContent').value = notice.content;
+            
+            document.getElementById('noticeModal').classList.remove('hidden');
+            document.getElementById('noticeModal').classList.add('flex');
+        }
+
+        // Delete notice from detail
+        async function deleteNoticeFromDetail() {
+            if (!confirm('이 공지사항을 삭제하시겠습니까?')) return;
+
+            try {
+                const response = await axios.delete(`${API_BASE_URL}/api/notices/${currentNoticeId}`);
+                if (response.data.success) {
+                    showToast('공지사항이 삭제되었습니다', 'success');
+                    closeDetailModal();
+                    await loadNotices();
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showToast('삭제 중 오류가 발생했습니다', 'error');
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('noticeModal').classList.add('hidden');
+            document.getElementById('noticeModal').classList.remove('flex');
+        }
+
+        // Handle form submission
+        // 중복 제출 방지 플래그
+        let isSubmitting = false;
+        
+        document.getElementById('noticeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // 중복 제출 방지
+            if (isSubmitting) {
+                console.log('이미 저장 중입니다...');
+                return;
+            }
+            isSubmitting = true;
+
+            if (userType !== 'instructor') {
+                showToast('강사만 공지사항을 작성할 수 있습니다', 'warning');
+                return;
+            }
+
+            const noticeId = document.getElementById('noticeId').value;
+            const title = document.getElementById('noticeTitle').value;
+            const content = document.getElementById('noticeContent').value;
+
+            const noticeData = {
+                instructor_code: currentUser.code,
+                title: title,
+                content: content
+            };
+
+            try {
+                let response;
+                if (noticeId) {
+                    // Update
+                    response = await axios.put(`${API_BASE_URL}/api/notices/${noticeId}`, noticeData);
+                } else {
+                    // Create
+                    response = await axios.post(`${API_BASE_URL}/api/notices`, noticeData);
+                }
+
+                if (response.data.success) {
+                    showToast(noticeId ? '공지사항이 수정되었습니다.' : '공지사항이 등록되었습니다.', 'success');
+                    closeModal();
+                    await loadNotices();
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('저장 중 오류가 발생했습니다', 'error');
+            } finally {
+                isSubmitting = false;
+            }
+        });
+
+        // Go back
+        function goBack() {
+            // 항상 메뉴로 돌아가기
+            sessionStorage.setItem('returnToMenu', 'true');
+            window.location.href = 'index.html';
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>

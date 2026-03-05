@@ -1,0 +1,3519 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>학생 MyPage - 바이오헬스교육관리시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- 마크다운 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@11.1.0/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+    
+    <style>
+        /* 마크다운 미리보기 스타일 */
+        .prose {
+            max-width: none;
+        }
+        .prose h1 { font-size: 2em; font-weight: bold; margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose h2 { font-size: 1.5em; font-weight: bold; margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose h3 { font-size: 1.25em; font-weight: bold; margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose p { margin-top: 0.5em; margin-bottom: 0.5em; line-height: 1.6; }
+        .prose ul, .prose ol { margin-left: 1.5em; margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose li { margin-top: 0.25em; margin-bottom: 0.25em; }
+        .prose a { color: #3b82f6; text-decoration: underline; }
+        .prose a:hover { color: #2563eb; }
+        .prose code { background-color: #f3f4f6; padding: 0.2em 0.4em; border-radius: 0.25rem; font-size: 0.9em; }
+        .prose pre { background-color: #1f2937; color: #f3f4f6; padding: 1em; border-radius: 0.5rem; overflow-x: auto; margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose pre code { background-color: transparent; padding: 0; color: inherit; }
+        .prose blockquote { border-left: 4px solid #d1d5db; padding-left: 1em; color: #6b7280; margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose strong { font-weight: bold; }
+        .prose em { font-style: italic; }
+        .prose hr { border-top: 1px solid #e5e7eb; margin-top: 1em; margin-bottom: 1em; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 헤더 -->
+    <header class="bg-gradient-to-r from-green-600 to-teal-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-4 cursor-pointer hover:opacity-80 transition-opacity" onclick="window.goToHome()">
+                <i class="fas fa-user-graduate text-3xl"></i>
+                <div>
+                    <h1 class="text-2xl font-bold">학생 MyPage</h1>
+                    <p class="text-sm text-green-100">환영합니다, <span id="studentName"></span>님!</p>
+                </div>
+            </div>
+            <button onclick="window.logout()" class="bg-white text-green-600 hover:bg-green-50 px-4 py-2 rounded-lg font-semibold transition-all">
+                <i class="fas fa-sign-out-alt mr-2"></i>로그아웃
+            </button>
+        </div>
+    </header>
+
+    <!-- 탭 메뉴 -->
+    <div class="bg-white shadow-md sticky top-0 z-10">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex gap-2">
+                    <button onclick="showTab('profile')" 
+                            id="tab-profile"
+                            class="px-6 py-3 font-semibold transition-all border-b-2 border-transparent hover:border-green-500 hover:text-green-600">
+                        <i class="fas fa-user mr-2"></i>내 정보
+                    </button>
+                    <button onclick="showTab('notes')" 
+                            id="tab-notes"
+                            class="px-6 py-3 font-semibold transition-all border-b-2 border-green-500 text-green-600">
+                        <i class="fas fa-book-open mr-2"></i>SSIRN
+                    </button>
+                    <button onclick="showTab('notices')"
+                            id="tab-notices"
+                            class="px-6 py-3 font-semibold transition-all border-b-2 border-transparent hover:border-green-500 hover:text-green-600">
+                        <i class="fas fa-bullhorn mr-2"></i>공지사항
+                    </button>
+                    <button onclick="showTab('exam')"
+                            id="tab-exam"
+                            class="px-6 py-3 font-semibold transition-all border-b-2 border-transparent hover:border-green-500 hover:text-green-600">
+                        <i class="fas fa-laptop mr-2"></i>온라인시험/과제
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- SSIRN 섹션 -->
+            <div id="section-notes">
+            <!-- SSIRN 카드 -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold flex items-center">
+                                <i class="fas fa-book-open mr-3"></i>
+                                SSIRN
+                            </h2>
+                            <p class="text-blue-100 mt-2 text-sm">수업 내용을 기록하고 관리하세요</p>
+                        </div>
+                        <button onclick="showNewNoteModal()" 
+                                class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 font-semibold">
+                            <i class="fas fa-plus mr-2"></i>새 메모
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="p-6">
+                    <!-- 검색 및 필터 -->
+                    <div class="mb-6 flex gap-2">
+                        <div class="flex-1">
+                            <input type="text" id="note-search" 
+                                   placeholder="내용 검색..." 
+                                   class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                   onkeyup="searchNotes()">
+                        </div>
+                        <input type="date" id="note-date-filter" 
+                               class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                               onchange="searchNotes()">
+                        <button onclick="clearNoteFilters()" 
+                                class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- 메모 개수 -->
+                    <div class="mb-4 text-sm text-gray-600">
+                        총 <span id="notes-count" class="font-bold text-blue-600">0</span>개의 메모
+                    </div>
+                    
+                    <!-- 메모 그리드 -->
+                    <div id="notes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- 메모 카드들이 여기에 동적으로 추가됩니다 -->
+                    </div>
+                    
+                    <!-- 빈 상태 -->
+                    <div id="notes-empty" class="hidden text-center py-12">
+                        <i class="fas fa-inbox text-6xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">작성된 메모가 없습니다</p>
+                        <button onclick="showNewNoteModal()" 
+                                class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                            <i class="fas fa-plus mr-2"></i>첫 메모 작성하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <!-- SSIRN 섹션 끝 -->
+            
+            <!-- 프로필 섹션 -->
+            <div id="section-profile" class="hidden">
+            <!-- 프로필 카드 -->
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+                <!-- 프로필 헤더 -->
+                <div class="bg-gradient-to-r from-green-600 to-teal-600 p-8 text-white text-center">
+                    <div class="inline-block relative">
+                        <img id="student-photo" 
+                             src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27%3E%3Crect fill=%27%23e5e7eb%27 width=%27200%27 height=%27200%27/%3E%3Ctext fill=%27%239ca3af%27 font-family=%27Arial%27 font-size=%2714%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dominant-baseline=%27middle%27%3ENo Photo%3C/text%3E%3C/svg%3E" 
+                             alt="프로필 사진" 
+                             class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg mx-auto"
+                             onerror="this.style.backgroundColor='#e5e7eb'">
+                        <button onclick="document.getElementById('student-photo-input').click()" 
+                                class="absolute bottom-0 right-0 bg-white text-green-600 rounded-full p-2 shadow-lg hover:bg-green-50">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <input type="file" id="student-photo-input" accept="image/*" class="hidden" onchange="uploadStudentPhoto(event)">
+                    <p class="text-sm text-green-100 mt-3">클릭하여 프로필 사진 변경</p>
+                    
+                    <!-- 프로그래스바 -->
+                    <div id="student-upload-progress" class="hidden mt-4 max-w-md mx-auto">
+                        <div class="w-full bg-green-200 rounded-full h-2.5">
+                            <div id="student-progress-bar" class="bg-white h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                        <p id="student-progress-text" class="text-sm text-white mt-2 text-center">업로드 중... 0%</p>
+                    </div>
+                </div>
+
+                <!-- 프로필 정보 -->
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <i class="fas fa-id-card mr-3 text-green-600"></i>
+                        내 정보
+                    </h2>
+                    
+                    <form id="student-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- 이름 -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    <i class="fas fa-user mr-2 text-blue-500"></i>이름
+                                </label>
+                                <input type="text" id="student-name" 
+                                       class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 bg-gray-50" readonly>
+                            </div>
+                            
+                            <!-- 생년월일 -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    <i class="fas fa-birthday-cake mr-2 text-pink-500"></i>생년월일
+                                </label>
+                                <input type="text" id="student-birth-date" 
+                                       class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                            </div>
+                            
+                            <!-- 성별 -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    <i class="fas fa-venus-mars mr-2 text-purple-500"></i>성별
+                                </label>
+                                <select id="student-gender" 
+                                        class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                                    <option value="">선택</option>
+                                    <option value="남">남</option>
+                                    <option value="여">여</option>
+                                </select>
+                            </div>
+                            
+                            <!-- 연락처 -->
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">
+                                    <i class="fas fa-phone mr-2 text-yellow-500"></i>연락처
+                                </label>
+                                <input type="tel" id="student-phone" 
+                                       class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                            </div>
+                        </div>
+                        
+                        <!-- 이메일 -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                <i class="fas fa-envelope mr-2 text-red-500"></i>이메일
+                            </label>
+                            <input type="email" id="student-email" 
+                                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        
+                        <!-- 주소 -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                <i class="fas fa-map-marker-alt mr-2 text-orange-500"></i>주소
+                            </label>
+                            <input type="text" id="student-address" 
+                                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500">
+                        </div>
+                        
+                        <!-- 관심분야 -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                <i class="fas fa-heart mr-2 text-pink-500"></i>관심분야
+                            </label>
+                            <input type="text" id="student-interests" 
+                                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                   placeholder="관심 있는 분야를 입력하세요">
+                        </div>
+                        
+                        <!-- 학력 -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                <i class="fas fa-graduation-cap mr-2 text-indigo-500"></i>학력
+                            </label>
+                            <input type="text" id="student-education" 
+                                   class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                   placeholder="최종 학교/학년(졸업)">
+                        </div>
+                        
+                        <!-- 자기소개 -->
+                        <div>
+                            <label class="block text-gray-700 font-semibold mb-2">
+                                <i class="fas fa-comment-dots mr-2 text-teal-500"></i>자기소개
+                            </label>
+                            <textarea id="student-introduction" rows="4"
+                                      class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500"
+                                      placeholder="자기소개를 입력하세요 (200자 내외)"></textarea>
+                        </div>
+                        
+                        <!-- 파일 첨부 -->
+                        <div class="border-t pt-6">
+                            <h4 class="text-lg font-bold text-gray-800 mb-4">
+                                <i class="fas fa-paperclip mr-2 text-green-500"></i>사진 및 파일 첨부 (그림파일, PDF, HWP, PPT, Excel, Word, TXT 등)
+                            </h4>
+                            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <button type="button" onclick="document.getElementById('student-file-input').click()" 
+                                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">
+                                        <i class="fas fa-folder-open mr-2"></i>파일 선택
+                                    </button>
+                                    <button type="button" onclick="document.getElementById('student-camera-input').click()" 
+                                            class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm">
+                                        <i class="fas fa-camera mr-2"></i>사진 촬영
+                                    </button>
+                                </div>
+                                <input type="file" id="student-file-input" accept="image/*,.pdf,.ppt,.pptx,.xls,.xlsx,.doc,.docx,.txt,.hwp" multiple 
+                                       onchange="uploadStudentFiles(event)" class="hidden">
+                                <input type="file" id="student-camera-input" accept="image/*"  
+                                       onchange="uploadStudentFiles(event)" class="hidden">
+                                <div id="student-file-upload-progress" class="hidden mb-3">
+                                    <div class="bg-blue-50 border border-blue-200 rounded p-3">
+                                        <p class="text-sm text-blue-800 mb-2">
+                                            <i class="fas fa-cloud-upload-alt mr-2"></i>
+                                            서버에 업로드 후 자동 저장됩니다. 잠시만 기다리세요...
+                                        </p>
+                                        <div class="w-full bg-blue-200 rounded-full h-2">
+                                            <div id="student-file-progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="student-file-list" class="flex flex-col gap-2 mt-2"></div>
+                                <p class="text-xs text-gray-500 mt-2">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    첨부 파일: <span id="student-file-count">0</span>/20
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- 저장 버튼 -->
+                        <div class="flex gap-3 pt-4">
+                            <button type="button" onclick="saveStudentProfile()" 
+                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
+                                <i class="fas fa-save mr-2"></i>저장
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 과정 정보 카드 -->
+            <div class="bg-white rounded-2xl shadow-xl p-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-book-open mr-3 text-green-600"></i>
+                    수강 과정 정보
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
+                        <i class="fas fa-chalkboard-teacher text-2xl text-green-600"></i>
+                        <div>
+                            <p class="text-sm text-gray-600">과정명</p>
+                            <p class="font-semibold text-gray-800" id="course-name">-</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 p-4 bg-blue-50 rounded-lg">
+                        <i class="fas fa-calendar-alt text-2xl text-blue-600"></i>
+                        <div>
+                            <p class="text-sm text-gray-600">교육기간</p>
+                            <p class="font-semibold text-gray-800" id="course-period">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <!-- 프로필 섹션 끝 -->
+            
+            <!-- 공지사항 섹션 -->
+            <div id="section-notices" class="hidden">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+                    <div class="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white">
+                        <h2 class="text-2xl font-bold flex items-center">
+                            <i class="fas fa-bullhorn mr-3"></i>
+                            공지사항
+                        </h2>
+                        <p class="text-purple-100 mt-2 text-sm">중요한 공지사항을 확인하세요</p>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div id="student-notices-list" class="space-y-4">
+                            <!-- 공지사항 목록이 여기에 동적으로 추가됩니다 -->
+                        </div>
+                        <div id="student-notices-empty" class="hidden text-center py-12 text-gray-500">
+                            <i class="fas fa-inbox text-6xl mb-4"></i>
+                            <p>게시된 공지사항이 없습니다</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 공지사항 섹션 끝 -->
+
+            <!-- 온라인시험/과제 섹션 -->
+            <div id="section-exam" class="hidden">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+                    <div class="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
+                        <h2 class="text-2xl font-bold flex items-center">
+                            <i class="fas fa-laptop mr-3"></i>
+                            온라인시험/과제
+                        </h2>
+                        <p class="text-blue-100 mt-2 text-sm">진행 중인 시험과 과제에 참여하세요</p>
+                    </div>
+
+                    <div class="p-6">
+                        <div id="student-exam-list" class="space-y-4">
+                            <!-- 시험/과제 목록이 여기에 동적으로 추가됩니다 -->
+                        </div>
+                        <div id="student-exam-empty" class="hidden text-center py-12 text-gray-500">
+                            <i class="fas fa-clipboard-list text-6xl mb-4"></i>
+                            <p>참여 가능한 시험/과제가 없습니다</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 온라인시험/과제 섹션 끝 -->
+        </div>
+    </main>
+
+    <!-- SSIRN 작성/편집 모달 -->
+    <div id="note-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white rounded-t-2xl">
+                <h3 class="text-2xl font-bold flex items-center">
+                    <i class="fas fa-pen-fancy mr-3"></i>
+                    <span id="modal-title">무형식주의 메모작성</span>
+                </h3>
+            </div>
+            
+            <div class="p-6">
+                <input type="hidden" id="edit-note-id">
+                
+                <!-- 날짜 및 시간 -->
+                <div class="mb-4">
+                    <label class="block text-gray-700 font-semibold mb-2">
+                        <i class="fas fa-calendar mr-2 text-blue-500"></i>날짜 및 시간
+                    </label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="date" id="modal-note-date" 
+                               class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <input type="time" id="modal-note-time" 
+                               class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <!-- 내용 -->
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-gray-700 font-semibold">
+                            <i class="fas fa-pen mr-2 text-green-500"></i>내용
+                        </label>
+                        <button type="button" onclick="toggleModalPreview()" 
+                                class="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded">
+                            <i class="fas fa-eye mr-1"></i><span id="modal-preview-toggle-text">미리보기</span>
+                        </button>
+                    </div>
+                    
+                    <!-- 에디터 -->
+                    <div id="modal-editor-container">
+                        <textarea id="modal-note-content" rows="12"
+                                  class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                                  placeholder="# 오늘 배운 내용&#10;&#10;## 주요 개념&#10;- 개념 1&#10;- 개념 2&#10;&#10;[참고 자료](https://example.com)"></textarea>
+                    </div>
+                    
+                    <!-- 미리보기 -->
+                    <div id="modal-preview-container" class="hidden border rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+                        <div id="modal-markdown-preview" class="prose max-w-none"></div>
+                    </div>
+                </div>
+                
+                <!-- 파일 첨부 -->
+                <div class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <label class="block text-gray-700 font-semibold mb-3">
+                        <i class="fas fa-paperclip mr-2 text-purple-500"></i>파일 첨부
+                    </label>
+                    
+                    <div class="grid grid-cols-2 gap-3 mb-3">
+                        <!-- 사진 촬영 버튼 -->
+                        <button type="button" onclick="document.getElementById('note-camera-input').click()"
+                                class="flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            <i class="fas fa-camera text-xl"></i>
+                            <span class="font-medium">사진 촬영</span>
+                        </button>
+                        
+                        <!-- 파일 선택 버튼 -->
+                        <button type="button" onclick="document.getElementById('note-file-input').click()"
+                                class="flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-folder-open text-xl"></i>
+                            <span class="font-medium">파일 선택</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Hidden file inputs -->
+                    <input type="file" id="note-camera-input" accept="image/*" capture="environment" 
+                           multiple class="hidden" onchange="handleNoteFiles(this.files)">
+                    <input type="file" id="note-file-input" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" 
+                           multiple class="hidden" onchange="handleNoteFiles(this.files)">
+                    
+                    <!-- 첨부된 파일 목록 -->
+                    <div id="note-file-list" class="space-y-2">
+                        <!-- 파일 목록이 여기에 동적으로 추가됩니다 -->
+                    </div>
+                </div>
+                
+                <!-- 상담 신청 -->
+                <div class="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <label class="flex items-start cursor-pointer">
+                        <input type="checkbox" id="request-counseling" 
+                               class="mt-1 mr-3 w-5 h-5 text-yellow-600 rounded focus:ring-yellow-500"
+                               onchange="toggleCounselingDetails(this.checked)">
+                        <div class="flex-1">
+                            <span class="font-semibold text-gray-800">
+                                <i class="fas fa-hand-paper mr-2 text-yellow-600"></i>상담 신청하기
+                            </span>
+                            <p class="text-sm text-gray-600 mt-1">선생님과 상담이 필요하시면 체크해주세요</p>
+                        </div>
+                    </label>
+                    
+                    <!-- 상담 상세 정보 (선택사항) -->
+                    <div id="counseling-details" class="hidden mt-4 space-y-3 pl-8">
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-sm text-gray-700 mb-1">희망 날짜 (선택)</label>
+                                <input type="date" id="counseling-date" 
+                                       class="w-full px-3 py-2 border rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-700 mb-1">희망 시간 (선택)</label>
+                                <input type="time" id="counseling-time" 
+                                       class="w-full px-3 py-2 border rounded-lg text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm text-gray-700 mb-1">희망 선생님 (선택)</label>
+                            <select id="preferred-instructor" 
+                                    class="w-full px-3 py-2 border rounded-lg text-sm">
+                                <option value="">선택하지 않음</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 상담 내용 입력 (음성인식 지원) -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm text-gray-700">상담 내용 (선택)</label>
+                                <button type="button" id="voice-recognition-btn" 
+                                        onclick="toggleVoiceRecognition()"
+                                        class="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 text-xs transition-colors">
+                                    <i class="fas fa-microphone"></i>
+                                    <span id="voice-btn-text">음성 인식</span>
+                                </button>
+                            </div>
+                            <textarea id="counseling-content" rows="4"
+                                      class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-yellow-500"
+                                      placeholder="상담하고 싶은 내용을 입력하거나 음성으로 말씀하세요..."></textarea>
+                            <p id="voice-status" class="text-xs text-gray-500 mt-1 hidden">
+                                <i class="fas fa-circle animate-pulse text-red-500 mr-1"></i>
+                                <span>듣고 있습니다...</span>
+                            </p>
+                        </div>
+                        
+                        <!-- 사진 첨부 -->
+                        <div>
+                            <label class="block text-sm text-gray-700 mb-2">사진 첨부 (선택)</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="document.getElementById('counseling-camera-input').click()"
+                                        class="flex items-center justify-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm">
+                                    <i class="fas fa-camera"></i>
+                                    <span>사진 촬영</span>
+                                </button>
+                                <button type="button" onclick="document.getElementById('counseling-file-input').click()"
+                                        class="flex items-center justify-center gap-2 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm">
+                                    <i class="fas fa-image"></i>
+                                    <span>갤러리</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Hidden file inputs -->
+                            <input type="file" id="counseling-camera-input" accept="image/*" capture="environment" 
+                                   multiple class="hidden" onchange="handleCounselingFiles(this.files)">
+                            <input type="file" id="counseling-file-input" accept="image/*" 
+                                   multiple class="hidden" onchange="handleCounselingFiles(this.files)">
+                            
+                            <!-- 첨부된 사진 목록 -->
+                            <div id="counseling-file-list" class="mt-2 space-y-2">
+                                <!-- 파일 목록이 여기에 동적으로 추가됩니다 -->
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            정보를 입력하지 않으면 담당 선생님이 적절한 시간에 연락드립니다
+                        </p>
+                    </div>
+                    
+                    <p class="text-xs text-gray-500 mt-2">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        마크다운 문법 사용 가능 | 링크는 새 창에서 열립니다
+                    </p>
+                </div>
+                
+                <!-- 버튼 -->
+                <div class="flex gap-2">
+                    <button type="button" onclick="saveNoteFromModal()" 
+                            class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold">
+                        <i class="fas fa-save mr-2"></i>저장
+                    </button>
+                    <button type="button" onclick="closeNoteModal()" 
+                            class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 font-semibold">
+                        <i class="fas fa-times mr-2"></i>취소
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 이미지 미리보기 모달 -->
+    <div id="image-preview-modal" class="fixed inset-0 bg-black bg-opacity-95 z-[60] hidden items-center justify-center p-4">
+        <button onclick="closeImagePreview()" class="absolute top-4 right-4 text-white text-3xl hover:text-gray-300 z-10">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            <img id="preview-image" src="" alt="Preview" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl">
+        </div>
+        <p id="preview-filename" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-4 py-2 rounded-lg"></p>
+    </div>
+
+    <!-- SSIRN 상세보기 모달 -->
+    <div id="note-detail-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white rounded-t-2xl">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-2xl font-bold flex items-center mb-2">
+                            <i class="fas fa-book-open mr-3"></i>
+                            SSIRN
+                        </h3>
+                        <p class="text-blue-100 text-sm" id="detail-note-date"></p>
+                    </div>
+                    <button onclick="closeDetailModal()" class="text-white hover:text-gray-200">
+                        <i class="fas fa-times text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-8">
+                <div class="prose max-w-none text-lg" id="detail-note-content" style="min-height: 300px;">
+                    <!-- 렌더링된 마크다운 내용 -->
+                </div>
+                
+                <div class="flex justify-center border-t pt-6 mt-8">
+                    <button type="button" onclick="closeDetailModal()" 
+                            class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold text-lg">
+                        <i class="fas fa-times mr-2"></i>닫기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 커스텀 알림 모달 -->
+    <div id="custom-alert" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="alert-box rounded-lg p-4 shadow-lg max-w-md">
+            <div class="flex items-center gap-3">
+                <div class="alert-icon flex-shrink-0">
+                    <i class="fas fa-check-circle text-green-600 text-2xl"></i>
+                </div>
+                <p id="alert-message" class="text-gray-800 font-medium"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 커스텀 확인 모달 -->
+    <div id="custom-confirm" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4">
+            <div class="mb-4">
+                <div class="flex items-start gap-3">
+                    <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mt-1"></i>
+                    <p id="confirm-message" class="text-gray-800 whitespace-pre-line"></p>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button id="confirm-cancel" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-semibold">
+                    <i class="fas fa-times mr-2"></i>취소
+                </button>
+                <button id="confirm-ok" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold">
+                    <i class="fas fa-check mr-2"></i>확인
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 프로그레스바 모달 -->
+    <div id="progress-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl p-6 max-w-md mx-4 w-full">
+            <div class="mb-4">
+                <div class="flex items-center gap-3 mb-3">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-2xl"></i>
+                    <p id="progress-message" class="text-gray-800 font-semibold">저장 중...</p>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div id="progress-bar" class="bg-blue-500 h-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="progress-detail" class="text-xs text-gray-500 mt-2">메모를 저장하고 있습니다...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>
+    <script>
+        // 버전 정보
+        const APP_VERSION = 'v2.0.95';
+        console.log(`%c🚀 Student Page ${APP_VERSION} 로드됨`, 'color: #10b981; font-weight: bold; font-size: 14px;');
+
+        const API_BASE_URL = '';
+        
+        // ==================== Axios 인터셉터 (404 에러 조용히 처리) ====================
+        axios.interceptors.response.use(
+            response => response,
+            error => {
+                // 404 에러를 콘솔에만 경고로 표시하고 조용히 처리
+                if (error.response && error.response.status === 404) {
+                    console.warn('⚠️ 리소스를 찾을 수 없습니다:', error.config.url);
+                    // 에러를 반환하지만 알림은 표시하지 않음
+                    return Promise.reject(error);
+                }
+                return Promise.reject(error);
+            }
+        );
+        
+        // ==================== 커스텀 알림/확인 모달 ====================
+        let alertTimer = null;
+        
+        window.showAlert = function(message, type = 'success') {
+            const alertModal = document.getElementById('custom-alert');
+            const alertMessage = document.getElementById('alert-message');
+            const alertIcon = alertModal.querySelector('.alert-icon');
+            
+            alertMessage.textContent = message;
+            
+            const alertBox = alertModal.querySelector('.alert-box');
+            alertBox.className = 'alert-box rounded-lg p-4 shadow-lg max-w-md';
+            
+            if (type === 'success') {
+                alertBox.classList.add('bg-green-50', 'border', 'border-green-200');
+                alertMessage.classList.add('text-green-800');
+                if (alertIcon) {
+                    alertIcon.innerHTML = '<i class="fas fa-check-circle text-green-600 text-2xl"></i>';
+                }
+            } else if (type === 'error') {
+                alertBox.classList.add('bg-red-50', 'border', 'border-red-200');
+                alertMessage.classList.add('text-red-800');
+                if (alertIcon) {
+                    alertIcon.innerHTML = '<i class="fas fa-exclamation-circle text-red-600 text-2xl"></i>';
+                }
+            } else if (type === 'warning') {
+                alertBox.classList.add('bg-yellow-50', 'border', 'border-yellow-200');
+                alertMessage.classList.add('text-yellow-800');
+                if (alertIcon) {
+                    alertIcon.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-600 text-2xl"></i>';
+                }
+            } else if (type === 'info') {
+                alertBox.classList.add('bg-blue-50', 'border', 'border-blue-200');
+                alertMessage.classList.add('text-blue-800');
+                if (alertIcon) {
+                    alertIcon.innerHTML = '<i class="fas fa-info-circle text-blue-600 text-2xl"></i>';
+                }
+            }
+            
+            alertModal.classList.remove('hidden');
+            
+            if (alertTimer) clearTimeout(alertTimer);
+            alertTimer = setTimeout(() => {
+                alertModal.classList.add('hidden');
+            }, 3000);
+            
+            alertModal.onclick = () => {
+                alertModal.classList.add('hidden');
+                if (alertTimer) clearTimeout(alertTimer);
+            };
+        };
+        
+        window.showConfirm = function(message) {
+            return new Promise((resolve) => {
+                const confirmModal = document.getElementById('custom-confirm');
+                const confirmMessage = document.getElementById('confirm-message');
+                const cancelBtn = document.getElementById('confirm-cancel');
+                const okBtn = document.getElementById('confirm-ok');
+
+                confirmMessage.innerHTML = message; // HTML 태그 렌더링 허용
+                confirmModal.classList.remove('hidden');
+                
+                const cleanup = () => {
+                    confirmModal.classList.add('hidden');
+                    cancelBtn.onclick = null;
+                    okBtn.onclick = null;
+                };
+                
+                cancelBtn.onclick = () => {
+                    cleanup();
+                    resolve(false);
+                };
+                
+                okBtn.onclick = () => {
+                    cleanup();
+                    resolve(true);
+                };
+            });
+        };
+        
+        // showConfirmModal 별칭 추가
+        window.showConfirmModal = window.showConfirm;
+        
+        // showCustomAlert 별칭 추가  
+        window.showCustomAlert = window.showAlert;
+        
+        // ==================== 프로그레스바 ====================
+        window.showProgress = function(message = '저장 중...', detail = '', progress = 0) {
+            const modal = document.getElementById('progress-modal');
+            const messageEl = document.getElementById('progress-message');
+            const detailEl = document.getElementById('progress-detail');
+            const barEl = document.getElementById('progress-bar');
+            
+            messageEl.textContent = message;
+            detailEl.textContent = detail;
+            barEl.style.width = progress + '%';
+            
+            modal.classList.remove('hidden');
+        };
+        
+        window.updateProgress = function(progress, detail = '') {
+            const detailEl = document.getElementById('progress-detail');
+            const barEl = document.getElementById('progress-bar');
+            
+            barEl.style.width = progress + '%';
+            if (detail) {
+                detailEl.textContent = detail;
+            }
+        };
+        
+        window.hideProgress = function() {
+            const modal = document.getElementById('progress-modal');
+            modal.classList.add('hidden');
+            
+            // 리셋
+            setTimeout(() => {
+                document.getElementById('progress-bar').style.width = '0%';
+            }, 300);
+        };
+        
+        // ==================== 로딩 모달 ====================
+        window.showLoading = function(message = '로딩 중...') {
+            let loadingModal = document.getElementById('loading-modal');
+            
+            if (!loadingModal) {
+                loadingModal = document.createElement('div');
+                loadingModal.id = 'loading-modal';
+                loadingModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]';
+                loadingModal.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4">
+                        <div class="flex flex-col items-center">
+                            <div class="relative">
+                                <div class="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                            </div>
+                            <p id="loading-message" class="mt-4 text-gray-700 font-semibold text-center"></p>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(loadingModal);
+            }
+            
+            document.getElementById('loading-message').textContent = message;
+            loadingModal.classList.remove('hidden');
+        };
+        
+        window.hideLoading = function() {
+            const loadingModal = document.getElementById('loading-modal');
+            if (loadingModal) {
+                loadingModal.classList.add('hidden');
+            }
+        };
+        
+        // URL에서 파일명 추출 (타임스탬프 패턴 제거)
+        window.getFilenameFromUrl = function(url) {
+            if (!url) return 'unknown';
+            try {
+                // 1. URL#원본파일명 형식에서 원본 파일명 추출
+                if (url.includes('#')) {
+                    const parts = url.split('#');
+                    if (parts.length > 1 && parts[1]) {
+                        return decodeURIComponent(parts[1]);
+                    }
+                }
+                
+                // 2. FTP URL에서 파일명 추출
+                const parts = url.split('/');
+                let filename = parts[parts.length - 1];
+                
+                // 3. 쿼리 파라미터 제거
+                if (filename.includes('?')) {
+                    filename = filename.split('?')[0];
+                }
+                
+                // 4. 디코딩
+                filename = decodeURIComponent(filename);
+                
+                // 5. 타임스탬프_UUID_ 패턴 제거
+                const timestampPattern = /^\d{8}_\d{6}_[a-f0-9]{8}_(.+)$/;
+                const match = filename.match(timestampPattern);
+                if (match && match[1]) {
+                    return match[1];
+                }
+                
+                return filename;
+            } catch (e) {
+                return 'unknown';
+            }
+        };
+        
+        // URL에서 # 이후 제거 (실제 파일URL만 추출)
+        window.getCleanUrl = function(url) {
+            if (!url) return '';
+            return url.split('#')[0];
+        };
+        
+        // ==================== SSIRN 관련 함수 ====================
+        
+        // FTP URL을 HTTP 프록시 URL로 변환
+        function convertFtpUrl(url) {
+            if (!url || typeof url !== 'string') return url;
+            if (url.startsWith('ftp://')) {
+                return `${API_BASE_URL}/api/proxy-image?url=${encodeURIComponent(url)}`;
+            }
+            return url;
+        }
+        
+        let allNotes = [];
+        let currentNoteId = null;
+        
+        // 마크다운 렌더러 설정
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
+        
+        // 마크다운을 HTML로 렌더링 (링크는 새 창에서 열기)
+        window.renderMarkdown = function(markdown) {
+            const html = marked.parse(markdown || '');
+            const clean = DOMPurify.sanitize(html);
+            
+            const div = document.createElement('div');
+            div.innerHTML = clean;
+            div.querySelectorAll('a').forEach(link => {
+                link.setAttribute('target', '_blank');
+                link.setAttribute('rel', 'noopener noreferrer');
+            });
+            
+            return div.innerHTML;
+        };
+        
+        // 모든 메모 불러오기
+        window.loadAllNotes = async function() {
+            const student = JSON.parse(sessionStorage.getItem('student'));
+            if (!student) {
+                console.error('❌ 학생 정보가 없습니다.');
+                return;
+            }
+            
+            console.log('📋 학생 정보:', student);
+            console.log('🔍 학생 ID:', student.id);
+            
+            try {
+                // 프로그레스바 표시
+                window.showLoading('SSIRN 메모를 불러오는 중...');
+                
+                // 학생 ID로 필터링하여 조회
+                const url = `${API_BASE_URL}/api/class-notes?student_id=${student.id}`;
+                console.log('🌐 API 요청:', url);
+                const response = await axios.get(url);
+                const fetchedNotes = response.data || [];
+                console.log('📥 서버에서 받은 메모:', fetchedNotes);
+                
+                // 유효한 메모만 필터링 (id가 있고, student_id가 현재 학생과 일치하는 것만)
+                allNotes = fetchedNotes.filter(note => {
+                    const isValid = note && note.id && note.student_id === student.id;
+                    console.log(`메모 ID ${note?.id}: student_id=${note?.student_id}, 현재 학생=${student.id}, 유효=${isValid}`);
+                    return isValid;
+                });
+                
+                console.log(`✅ 총 ${fetchedNotes.length}개 메모 중 ${allNotes.length}개 유효한 메모 로드됨`);
+                console.log('📝 필터링된 메모:', allNotes);
+                
+                renderNotesGrid(allNotes);
+                
+                // 프로그레스바 숨김
+                window.hideLoading();
+            } catch (error) {
+                console.error('메모 불러오기 실패:', error);
+                window.hideLoading();
+                
+                // 404 에러는 조용히 무시 (존재하지 않는 메모)
+                if (error.response && error.response.status === 404) {
+                    console.warn('⚠️ 일부 메모를 찾을 수 없습니다. 계속 진행합니다.');
+                    allNotes = [];
+                    renderNotesGrid(allNotes);
+                } else {
+                    window.showAlert('메모를 불러오는데 실패했습니다', 'error');
+                }
+            }
+        };
+        
+        // 메모 그리드 렌더링
+        window.renderNotesGrid = function(notes) {
+            console.log('🎨 renderNotesGrid 호출됨, 메모 개수:', notes.length);
+            
+            const grid = document.getElementById('notes-grid');
+            const empty = document.getElementById('notes-empty');
+            const countSpan = document.getElementById('notes-count');
+            
+            console.log('DOM 요소:', { grid, empty, countSpan });
+            
+            if (!grid || !empty || !countSpan) {
+                console.error('❌ DOM 요소를 찾을 수 없습니다!');
+                return;
+            }
+            
+            countSpan.textContent = notes.length;
+            
+            if (notes.length === 0) {
+                console.log('⚠️ 메모가 없음 - 빈 상태 표시');
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+            
+            console.log('✅ 메모 있음 - 그리드 렌더링 시작');
+            empty.classList.add('hidden');
+            
+            grid.innerHTML = notes.map(note => {
+                const preview = note.content.substring(0, 100) + (note.content.length > 100 ? '...' : '');
+                const dateObj = new Date(note.note_date);
+                const dateStr = dateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                
+                // 첨부파일 처리 (개선된 파싱)
+                let attachmentsHTML = '';
+                if (note.photo_urls) {
+                    try {
+                        let fileUrls = [];
+                        
+                        // JSON 배열 형태 파싱 시도
+                        if (typeof note.photo_urls === 'string') {
+                            // "[]" 같은 빈 배열 문자열 제거
+                            const cleanedUrls = note.photo_urls.replace(/\[\]/g, '').trim();
+                            
+                            if (cleanedUrls.startsWith('[') && cleanedUrls.endsWith(']')) {
+                                // JSON 배열 파싱
+                                try {
+                                    fileUrls = JSON.parse(cleanedUrls);
+                                } catch (e) {
+                                    // JSON 파싱 실패 시 쉼표로 분리
+                                    fileUrls = cleanedUrls.slice(1, -1).split(',').map(url => url.trim().replace(/^"|"$/g, ''));
+                                }
+                            } else {
+                                // 쉼표로 분리된 URL
+                                fileUrls = cleanedUrls.split(',').map(url => url.trim());
+                            }
+                        } else if (Array.isArray(note.photo_urls)) {
+                            fileUrls = note.photo_urls;
+                        }
+                        
+                        // 유효한 URL만 필터링 (빈 문자열, "[]", 너무 짧은 URL 제외)
+                        fileUrls = fileUrls.filter(url => {
+                            if (!url || url === '[]' || url.length < 10) return false;
+                            // ftp:// 또는 http:// 로 시작하는 URL만
+                            return url.startsWith('ftp://') || url.startsWith('http://') || url.startsWith('https://');
+                        });
+                        
+                        if (fileUrls.length > 0) {
+                            let validFileCount = 0;
+                            let filesHTML = '';
+                            
+                            fileUrls.forEach(url => {
+                                const urlLower = url.toLowerCase();
+                                const fileName = decodeURIComponent(url.split('/').pop());
+                                const ext = fileName.split('.').pop().toUpperCase();
+                                
+                                // 알려진 파일 확장자만 표시
+                                const knownExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'hwp'];
+                                if (!knownExtensions.includes(ext.toLowerCase())) {
+                                    console.warn('알 수 없는 파일 형식:', fileName);
+                                    return; // 알 수 없는 파일 건너뛰기
+                                }
+                                
+                                validFileCount++;
+                                
+                                // FTP URL을 HTTP로 변환
+                                const convertedUrl = convertFtpUrl(url);
+                                
+                                // 이미지 파일 확인
+                                if (urlLower.match(/\.(jpg|jpeg|png|gif|webp|bmp)$/i)) {
+                                    filesHTML += `
+                                        <div class="flex flex-col items-center">
+                                            <div class="relative group">
+                                                <img src="${convertedUrl}" 
+                                                     class="w-20 h-20 object-cover rounded-lg border-2 border-gray-200 cursor-pointer hover:opacity-80 hover:scale-105 hover:border-blue-400 transition-all"
+                                                     onclick="showImagePreview('${convertedUrl}', '${fileName}')"
+                                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect fill=%22%23ddd%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2550%25%22 y=%2550%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2212%22%3E이미지%3C/text%3E%3C/svg%3E';"
+                                                     title="${fileName} (클릭하여 크게 보기)">
+                                                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 rounded-lg transition-all flex items-center justify-center pointer-events-none">
+                                                    <i class="fas fa-search-plus text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg"></i>
+                                                </div>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1 max-w-[80px] truncate" title="${fileName}">${fileName}</p>
+                                        </div>
+                                    `;
+                                } else {
+                                    // 기타 파일 - 다운로드 버튼 (파일명 + 확장자 표시)
+                                    const iconClass = 
+                                        urlLower.endsWith('.pdf') ? 'fa-file-pdf text-red-500' :
+                                        urlLower.match(/\.(doc|docx)$/i) ? 'fa-file-word text-blue-500' :
+                                        urlLower.match(/\.(xls|xlsx)$/i) ? 'fa-file-excel text-green-500' :
+                                        urlLower.match(/\.(ppt|pptx)$/i) ? 'fa-file-powerpoint text-orange-500' :
+                                        urlLower.endsWith('.hwp') ? 'fa-file-alt text-blue-400' :
+                                        'fa-file text-gray-500';
+                                    
+                                    filesHTML += `
+                                        <a href="${convertedUrl}" 
+                                           onclick="event.preventDefault(); event.stopPropagation(); downloadFile('${convertedUrl}', '${fileName}'); return false;"
+                                           class="flex flex-col items-center gap-2 px-3 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 text-xs transition-colors min-w-[100px] max-w-[140px] cursor-pointer"
+                                           title="${fileName}">
+                                            <i class="fas ${iconClass} text-2xl"></i>
+                                            <span class="text-center break-all line-clamp-2">${fileName}</span>
+                                            <span class="px-2 py-1 bg-gray-200 rounded text-xs font-semibold">${ext}</span>
+                                        </a>
+                                    `;
+                                }
+                            });
+                            
+                            if (validFileCount > 0) {
+                                attachmentsHTML = '<div class="mt-3 border-t pt-3">';
+                                attachmentsHTML += '<p class="text-xs text-gray-600 mb-2 font-semibold"><i class="fas fa-paperclip mr-1"></i>첨부파일 (' + validFileCount + '개)</p>';
+                                attachmentsHTML += '<div class="flex flex-wrap gap-3">';
+                                attachmentsHTML += filesHTML;
+                                attachmentsHTML += '</div></div>';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('첨부파일 파싱 오류:', error, note.photo_urls);
+                    }
+                }
+                
+                return `
+                    <div class="border rounded-lg p-4 hover:shadow-lg transition-shadow bg-white relative">
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="cursor-pointer" onclick="showNoteDetail(${note.id})">
+                                <h4 class="font-bold text-gray-800 flex items-center">
+                                    <i class="fas fa-calendar-day mr-2 text-blue-500"></i>
+                                    ${dateStr}
+                                </h4>
+                                <p class="text-xs text-gray-500 mt-1 ml-6">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    ${timeStr}
+                                </p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="event.stopPropagation(); editNote(${note.id})" 
+                                        class="text-blue-500 hover:text-blue-700 transition-colors p-1"
+                                        title="수정">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); deleteNote(${note.id})" 
+                                        class="text-red-500 hover:text-red-700 transition-colors p-1"
+                                        title="삭제">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 text-sm line-clamp-3 cursor-pointer" onclick="showNoteDetail(${note.id})">${preview}</p>
+                        ${attachmentsHTML}
+                        <div class="mt-2 text-xs text-gray-400">
+                            <i class="fas fa-history mr-1"></i>
+                            작성: ${new Date(note.created_at).toLocaleString('ko-KR')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            console.log('✅ 그리드 HTML 생성 완료, 길이:', grid.innerHTML.length);
+            console.log('📊 렌더링된 메모:', notes.map(n => ({ id: n.id, date: n.note_date, preview: n.content.substring(0, 20) })));
+        };
+        
+        // 메모 검색
+        window.searchNotes = function() {
+            const searchText = document.getElementById('note-search').value.toLowerCase();
+            const dateFilter = document.getElementById('note-date-filter').value;
+            
+            let filtered = allNotes;
+            
+            if (searchText) {
+                filtered = filtered.filter(note => 
+                    note.content.toLowerCase().includes(searchText)
+                );
+            }
+            
+            if (dateFilter) {
+                filtered = filtered.filter(note => 
+                    note.note_date === dateFilter
+                );
+            }
+            
+            renderNotesGrid(filtered);
+        };
+        
+        // 필터 초기화
+        window.clearNoteFilters = function() {
+            document.getElementById('note-search').value = '';
+            document.getElementById('note-date-filter').value = '';
+            renderNotesGrid(allNotes);
+        };
+        
+        // 새 메모 모달 열기
+        window.showNewNoteModal = function() {
+            document.getElementById('modal-title').textContent = '무형식주의 메모작성';
+            document.getElementById('edit-note-id').value = '';
+            const now = new Date();
+            document.getElementById('modal-note-date').value = now.toISOString().split('T')[0];
+            document.getElementById('modal-note-time').value = now.toTimeString().slice(0, 5); // HH:MM
+            document.getElementById('modal-note-content').value = '';
+            
+            // 상담 신청 초기화
+            document.getElementById('request-counseling').checked = false;
+            document.getElementById('counseling-date').value = '';
+            document.getElementById('counseling-time').value = '';
+            document.getElementById('preferred-instructor').value = '';
+            document.getElementById('counseling-details').classList.add('hidden');
+            
+            document.getElementById('note-modal').classList.remove('hidden');
+        };
+        
+        // 메모 편집
+        window.editNote = async function(noteId) {
+            const note = allNotes.find(n => n.id === noteId);
+            if (!note) {
+                window.showCustomAlert('메모를 찾을 수 없습니다. 목록을 새로고침합니다.', 'warning');
+                loadAllNotes();
+                return;
+            }
+            
+            document.getElementById('modal-title').textContent = '수업 메모 수정';
+            document.getElementById('edit-note-id').value = note.id;
+            
+            // 날짜와 시간 포맷 변환
+            const noteDate = new Date(note.note_date);
+            document.getElementById('modal-note-date').value = noteDate.toISOString().split('T')[0];
+            document.getElementById('modal-note-time').value = noteDate.toTimeString().slice(0, 5); // HH:MM
+            document.getElementById('modal-note-content').value = note.content || '';
+            
+            // 상담 신청 초기화 (수정 시에는 상담 신청 불가)
+            document.getElementById('request-counseling').checked = false;
+            document.getElementById('counseling-details').classList.add('hidden');
+            
+            document.getElementById('note-modal').classList.remove('hidden');
+        };
+        
+        // 파일 첨부 처리
+        let noteAttachedFiles = [];
+        
+        window.handleNoteFiles = function(files) {
+            const fileList = document.getElementById('note-file-list');
+            
+            Array.from(files).forEach((file, index) => {
+                // 파일 크기 체크 (100MB)
+                if (file.size > 100 * 1024 * 1024) {
+                    window.showAlert(`파일이 너무 큽니다: ${file.name} (최대 100MB)`, 'error');
+                    return;
+                }
+                
+                // 파일 목록에 추가
+                noteAttachedFiles.push(file);
+                
+                // UI에 파일 표시
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between p-3 bg-white border border-gray-300 rounded-lg';
+                fileItem.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fas ${file.type.startsWith('image/') ? 'fa-image text-blue-500' : 'fa-file text-gray-500'} text-xl"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">${file.name}</p>
+                            <p class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                    </div>
+                    <button onclick="removeNoteFile(${noteAttachedFiles.length - 1})" 
+                            class="text-red-500 hover:text-red-700 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        };
+        
+        window.removeNoteFile = function(index) {
+            noteAttachedFiles.splice(index, 1);
+            const fileList = document.getElementById('note-file-list');
+            fileList.innerHTML = '';
+            
+            // 남은 파일들 다시 렌더링
+            noteAttachedFiles.forEach((file, idx) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between p-3 bg-white border border-gray-300 rounded-lg';
+                fileItem.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <i class="fas ${file.type.startsWith('image/') ? 'fa-image text-blue-500' : 'fa-file text-gray-500'} text-xl"></i>
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">${file.name}</p>
+                            <p class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                    </div>
+                    <button onclick="removeNoteFile(${idx})" 
+                            class="text-red-500 hover:text-red-700 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        };
+        
+        // 파일 업로드
+        async function uploadNoteFiles(noteId) {
+            try {
+                const totalFiles = noteAttachedFiles.length;
+                for (let i = 0; i < totalFiles; i++) {
+                    const file = noteAttachedFiles[i];
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('note_id', noteId);
+                    
+                    // 진행률 계산 (60% ~ 90% 구간)
+                    const fileProgress = 60 + Math.floor((i / totalFiles) * 30);
+                    window.updateProgress(fileProgress, `파일 업로드 중... (${i + 1}/${totalFiles}) ${file.name}`);
+                    
+                    await axios.post(`${API_BASE_URL}/api/upload-note-file`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+                }
+                
+                // 업로드 완료 후 파일 목록 초기화
+                noteAttachedFiles = [];
+                document.getElementById('note-file-list').innerHTML = '';
+            } catch (error) {
+                console.error('파일 업로드 실패:', error);
+                throw error; // 에러를 상위로 전달
+            }
+        }
+        
+        // 모달에서 저장
+        window.saveNoteFromModal = async function() {
+            const student = JSON.parse(sessionStorage.getItem('student'));
+            if (!student) return;
+            
+            const noteId = document.getElementById('edit-note-id').value;
+            const noteDateValue = document.getElementById('modal-note-date').value;
+            const noteTimeValue = document.getElementById('modal-note-time').value || '00:00';
+            let content = document.getElementById('modal-note-content').value;
+            
+            if (!noteDateValue) {
+                window.showAlert('날짜를 선택하세요', 'error');
+                return;
+            }
+            
+            // 날짜와 시간을 합쳐서 ISO 형식으로
+            const noteDate = `${noteDateValue}T${noteTimeValue}:00`;
+            
+            // 상담 신청 체크 여부 확인
+            const requestCounseling = document.getElementById('request-counseling').checked;
+            
+            // 내용이 없는데 상담 신청을 한 경우
+            if (!content.trim() && requestCounseling) {
+                content = '상담신청';
+            }
+            
+            // 내용이 없고 상담 신청도 안한 경우
+            if (!content.trim()) {
+                window.showAlert('내용을 입력하거나 상담 신청을 체크하세요', 'error');
+                return;
+            }
+            
+            try {
+                // 프로그레스바 시작
+                window.showProgress('메모 저장 중...', '메모를 저장하고 있습니다...', 20);
+                
+                const data = {
+                    student_id: student.id,
+                    note_date: noteDate,
+                    content: content
+                };
+                
+                // ID가 있으면 수정, 없으면 새로 생성
+                if (noteId) {
+                    data.id = parseInt(noteId);
+                }
+                
+                const response = await axios.post(`${API_BASE_URL}/api/class-notes`, data);
+                
+                if (response.data.success) {
+                    const savedNoteId = response.data.id || noteId;
+                    
+                    // 진행률 업데이트
+                    window.updateProgress(50, '메모 저장 완료!');
+                    
+                    // 파일이 있으면 업로드
+                    if (noteAttachedFiles.length > 0 && savedNoteId) {
+                        window.updateProgress(60, `파일 업로드 중... (${noteAttachedFiles.length}개)`);
+                        await uploadNoteFiles(savedNoteId);
+                        window.updateProgress(90, '파일 업로드 완료!');
+                    } else {
+                        window.updateProgress(90, '마무리 중...');
+                    }
+                    
+                    if (requestCounseling) {
+                        // 상담 신청 등록
+                        await createCounselingRequest(student, noteDate, content);
+                    }
+                    
+                    window.updateProgress(100, '모든 작업 완료!');
+                    
+                    // 잠깐 100% 보여주기
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    window.hideProgress();
+                    window.showAlert('✅ SSIRN메모가 저장되었습니다', 'success');
+                    closeNoteModal();
+                    loadAllNotes();
+                }
+            } catch (error) {
+                console.error('메모 저장 실패:', error);
+                window.hideProgress();
+                window.showAlert('❌ 저장에 실패했습니다', 'error');
+            }
+        };
+        
+        // 상담 신청 등록
+        async function createCounselingRequest(student, noteDate, noteContent) {
+            try {
+                const counselingDate = document.getElementById('counseling-date').value || noteDate;
+                const counselingTime = document.getElementById('counseling-time').value;
+                const preferredInstructorCode = document.getElementById('preferred-instructor').value;
+                const userCounselingContent = document.getElementById('counseling-content').value;
+                
+                // 상담 내용 구성
+                let counselingContent = '';
+                
+                // 사용자가 입력한 상담 내용 우선
+                if (userCounselingContent && userCounselingContent.trim()) {
+                    counselingContent = userCounselingContent.trim();
+                } else if (noteContent && noteContent.trim()) {
+                    // 메모 내용이 있으면 포함
+                    counselingContent = `[학생 메모에서 상담 신청]\n\n`;
+                    counselingContent += `메모 내용:\n${noteContent.substring(0, 200)}${noteContent.length > 200 ? '...' : ''}\n\n`;
+                } else {
+                    counselingContent = `상담신청\n\n`;
+                }
+                
+                if (counselingTime) {
+                    counselingContent += `\n\n희망 시간: ${counselingTime}`;
+                }
+                if (preferredInstructorCode) {
+                    // 선생님 이름 찾기
+                    const instructorSelect = document.getElementById('preferred-instructor');
+                    const selectedOption = instructorSelect.options[instructorSelect.selectedIndex];
+                    const instructorName = selectedOption.text;
+                    counselingContent += `\n희망 선생님: ${instructorName}`;
+                }
+                
+                // 먼저 상담일지 생성
+                const counselingData = {
+                    student_id: student.id,
+                    instructor_code: preferredInstructorCode || null,
+                    consultation_date: counselingDate,
+                    consultation_type: '학생요청',
+                    content: counselingContent,
+                    status: '예정',
+                    photo_urls: '[]'
+                };
+                
+                const response = await axios.post(`${API_BASE_URL}/api/counselings`, counselingData);
+                console.log('✅ 상담 신청 등록 완료');
+                
+                // 파일이 있으면 업로드
+                if (counselingAttachedFiles.length > 0 && response.data.id) {
+                    await uploadCounselingFiles(response.data.id);
+                }
+                
+                // 파일 목록 초기화
+                counselingAttachedFiles = [];
+                document.getElementById('counseling-file-list').innerHTML = '';
+                
+            } catch (error) {
+                console.error('상담 신청 등록 실패:', error);
+                // 에러가 나도 메모 저장은 성공했으므로 사용자에게 알리지 않음
+            }
+        }
+        
+        // 상담 파일 업로드
+        async function uploadCounselingFiles(counselingId) {
+            try {
+                for (const file of counselingAttachedFiles) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('category', 'guidance'); // 상담일지 카테고리
+                    
+                    const uploadResponse = await axios.post(`${API_BASE_URL}/api/upload-image`, formData, {
+                        headers: {
+                            'Content-Type': 'multipart/form-data'
+                        }
+                    });
+                    
+                    if (uploadResponse.data.success) {
+                        // 상담일지에 사진 URL 추가
+                        await axios.post(`${API_BASE_URL}/api/counselings/${counselingId}/add-photo`, {
+                            photo_url: uploadResponse.data.url
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('상담 파일 업로드 실패:', error);
+            }
+        }
+        
+        // 상담 상세 정보 토글
+        window.toggleCounselingDetails = function(show) {
+            const detailsDiv = document.getElementById('counseling-details');
+            if (show) {
+                detailsDiv.classList.remove('hidden');
+            } else {
+                detailsDiv.classList.add('hidden');
+            }
+        };
+        
+        // 상담 파일 첨부 처리
+        let counselingAttachedFiles = [];
+        
+        window.handleCounselingFiles = function(files) {
+            const fileList = document.getElementById('counseling-file-list');
+            
+            Array.from(files).forEach((file) => {
+                // 파일 크기 체크 (100MB)
+                if (file.size > 100 * 1024 * 1024) {
+                    window.showAlert(`파일이 너무 큽니다: ${file.name} (최대 100MB)`, 'error');
+                    return;
+                }
+                
+                // 파일 목록에 추가
+                counselingAttachedFiles.push(file);
+                
+                // UI에 파일 표시
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between p-2 bg-white border border-gray-300 rounded-lg';
+                fileItem.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-image text-blue-500"></i>
+                        <div>
+                            <p class="text-xs font-medium text-gray-800">${file.name}</p>
+                            <p class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                    </div>
+                    <button onclick="removeCounselingFile(${counselingAttachedFiles.length - 1})" 
+                            class="text-red-500 hover:text-red-700 transition-colors text-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        };
+        
+        window.removeCounselingFile = function(index) {
+            counselingAttachedFiles.splice(index, 1);
+            const fileList = document.getElementById('counseling-file-list');
+            fileList.innerHTML = '';
+            
+            // 남은 파일들 다시 렌더링
+            counselingAttachedFiles.forEach((file, idx) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'flex items-center justify-between p-2 bg-white border border-gray-300 rounded-lg';
+                fileItem.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-image text-blue-500"></i>
+                        <div>
+                            <p class="text-xs font-medium text-gray-800">${file.name}</p>
+                            <p class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                    </div>
+                    <button onclick="removeCounselingFile(${idx})" 
+                            class="text-red-500 hover:text-red-700 transition-colors text-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        };
+        
+        // 음성 인식
+        let recognition = null;
+        let isRecognizing = false;
+        
+        window.toggleVoiceRecognition = function() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                window.showAlert('이 브라우저는 음성 인식을 지원하지 않습니다', 'error');
+                return;
+            }
+            
+            if (isRecognizing) {
+                stopVoiceRecognition();
+            } else {
+                startVoiceRecognition();
+            }
+        };
+        
+        function startVoiceRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            
+            recognition.lang = 'ko-KR';
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            
+            const textarea = document.getElementById('counseling-content');
+            const voiceBtn = document.getElementById('voice-recognition-btn');
+            const voiceBtnText = document.getElementById('voice-btn-text');
+            const voiceStatus = document.getElementById('voice-status');
+            
+            let finalTranscript = textarea.value;
+            
+            recognition.onstart = function() {
+                isRecognizing = true;
+                voiceBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                voiceBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+                voiceBtnText.textContent = '중지';
+                voiceStatus.classList.remove('hidden');
+            };
+            
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                textarea.value = finalTranscript + interimTranscript;
+                textarea.scrollTop = textarea.scrollHeight;
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('음성 인식 오류:', event.error);
+                if (event.error !== 'no-speech') {
+                    window.showAlert('음성 인식 오류: ' + event.error, 'error');
+                }
+                stopVoiceRecognition();
+            };
+            
+            recognition.onend = function() {
+                if (isRecognizing) {
+                    // 자동으로 재시작 (continuous 효과)
+                    recognition.start();
+                }
+            };
+            
+            try {
+                recognition.start();
+            } catch (error) {
+                console.error('음성 인식 시작 실패:', error);
+                window.showAlert('음성 인식을 시작할 수 없습니다', 'error');
+            }
+        }
+        
+        function stopVoiceRecognition() {
+            if (recognition) {
+                isRecognizing = false;
+                recognition.stop();
+                
+                const voiceBtn = document.getElementById('voice-recognition-btn');
+                const voiceBtnText = document.getElementById('voice-btn-text');
+                const voiceStatus = document.getElementById('voice-status');
+                
+                voiceBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                voiceBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                voiceBtnText.textContent = '음성 인식';
+                voiceStatus.classList.add('hidden');
+            }
+        }
+        
+        // 메모 삭제
+        window.deleteNote = async function(noteId) {
+            if (!noteId) {
+                window.showCustomAlert('삭제할 메모를 찾을 수 없습니다.', 'error');
+                return;
+            }
+            
+            // 커스텀 확인 모달 표시
+            const confirmed = await window.showConfirmModal(
+                '메모 삭제',
+                '이 메모를 삭제하시겠습니까?',
+                '삭제',
+                '취소'
+            );
+            
+            if (!confirmed) return;
+            
+            try {
+                const response = await axios.delete(`${API_BASE_URL}/api/class-notes/${noteId}`);
+                
+                if (response.data.success) {
+                    window.showCustomAlert('✅ 메모가 삭제되었습니다', 'success');
+                    loadAllNotes();
+                }
+            } catch (error) {
+                console.error('메모 삭제 실패:', error);
+                window.showCustomAlert('❌ 삭제에 실패했습니다', 'error');
+            }
+        };
+        
+        // 상세보기 모달
+        window.showNoteDetail = function(noteId) {
+            const note = allNotes.find(n => n.id === noteId);
+            if (!note) {
+                window.showAlert('메모를 찾을 수 없습니다. 목록을 새로고침합니다.', 'warning');
+                loadAllNotes();
+                return;
+            }
+            
+            currentNoteId = noteId;
+            
+            const dateObj = new Date(note.note_date);
+            const dateStr = dateObj.toLocaleDateString('ko-KR', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                weekday: 'long'
+            });
+            const timeStr = dateObj.toLocaleTimeString('ko-KR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            document.getElementById('detail-note-date').textContent = `${dateStr} ${timeStr}`;
+            document.getElementById('detail-note-content').innerHTML = renderMarkdown(note.content);
+            document.getElementById('note-detail-modal').classList.remove('hidden');
+        };
+        
+        // 상세보기에서 수정
+        window.editNoteFromDetail = function() {
+            closeDetailModal();
+            editNote(currentNoteId);
+        };
+        
+        // 상세보기에서 삭제
+        window.deleteNoteFromDetail = async function() {
+            closeDetailModal();
+            await deleteNote(currentNoteId);
+        };
+        
+        // 모달 닫기
+        window.closeNoteModal = function() {
+            document.getElementById('note-modal').classList.add('hidden');
+            document.getElementById('modal-editor-container').classList.remove('hidden');
+            document.getElementById('modal-preview-container').classList.add('hidden');
+            document.getElementById('modal-preview-toggle-text').textContent = '미리보기';
+            
+            // 파일 목록 초기화
+            noteAttachedFiles = [];
+            document.getElementById('note-file-list').innerHTML = '';
+            document.getElementById('note-camera-input').value = '';
+            document.getElementById('note-file-input').value = '';
+            
+            // 상담 관련 초기화
+            counselingAttachedFiles = [];
+            document.getElementById('counseling-file-list').innerHTML = '';
+            document.getElementById('counseling-camera-input').value = '';
+            document.getElementById('counseling-file-input').value = '';
+            document.getElementById('counseling-content').value = '';
+            
+            // 음성 인식 중지
+            if (isRecognizing) {
+                stopVoiceRecognition();
+            }
+        };
+        
+        window.closeDetailModal = function() {
+            document.getElementById('note-detail-modal').classList.add('hidden');
+            currentNoteId = null;
+        };
+        
+        // 이미지 미리보기 모달
+        window.showImagePreview = async function(url, filename) {
+            // 프로그래스바 표시
+            window.showLoading('이미지를 불러오는 중...');
+            window.updateProgress(10, '이미지 로드 중...');
+            
+            try {
+                const modal = document.getElementById('image-preview-modal');
+                const img = document.getElementById('preview-image');
+                const filenameEl = document.getElementById('preview-filename');
+                
+                // 이미지 프리로드
+                await new Promise((resolve, reject) => {
+                    const tempImg = new Image();
+                    tempImg.onload = () => {
+                        window.updateProgress(80, '이미지 로드 완료');
+                        img.src = url;
+                        filenameEl.textContent = filename || '';
+                        resolve();
+                    };
+                    tempImg.onerror = reject;
+                    tempImg.src = url;
+                });
+                
+                window.updateProgress(100, '완료!');
+                
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                setTimeout(() => window.hideLoading(), 300);
+            } catch (error) {
+                console.error('이미지 로드 실패:', error);
+                window.hideLoading();
+                window.showAlert('이미지를 불러오는데 실패했습니다', 'error');
+            }
+        };
+        
+        window.closeImagePreview = function() {
+            const modal = document.getElementById('image-preview-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+        
+        // 파일 다운로드 함수
+        window.downloadFile = async function(url, filename) {
+            window.showLoading('파일 다운로드 중...');
+            window.updateProgress(10, '다운로드 준비 중...');
+            
+            try {
+                window.updateProgress(30, '파일 다운로드 중...');
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('다운로드 실패');
+                
+                window.updateProgress(70, '파일 저장 중...');
+                
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                window.updateProgress(90, '거의 완료...');
+                
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+                
+                window.updateProgress(100, '다운로드 완료!');
+                setTimeout(() => {
+                    window.hideLoading();
+                    window.showAlert('다운로드가 완료되었습니다', 'success');
+                }, 500);
+            } catch (error) {
+                console.error('다운로드 실패:', error);
+                window.hideLoading();
+                window.showAlert('파일 다운로드에 실패했습니다', 'error');
+            }
+        };
+        
+        // ESC 키로 이미지 미리보기 닫기
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('image-preview-modal');
+                if (modal && !modal.classList.contains('hidden')) {
+                    closeImagePreview();
+                }
+            }
+        });
+        
+        // 모달 미리보기 토글
+        window.toggleModalPreview = function() {
+            const editorContainer = document.getElementById('modal-editor-container');
+            const previewContainer = document.getElementById('modal-preview-container');
+            const toggleText = document.getElementById('modal-preview-toggle-text');
+            const textarea = document.getElementById('modal-note-content');
+            const preview = document.getElementById('modal-markdown-preview');
+            
+            if (previewContainer.classList.contains('hidden')) {
+                preview.innerHTML = renderMarkdown(textarea.value);
+                editorContainer.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+                toggleText.textContent = '편집';
+            } else {
+                editorContainer.classList.remove('hidden');
+                previewContainer.classList.add('hidden');
+                toggleText.textContent = '미리보기';
+            }
+        };
+        
+        // ==================== 탭 전환 ====================
+        
+        window.showTab = function(tabName) {
+            // 모든 탭 버튼 비활성화
+            document.getElementById('tab-profile').classList.remove('border-green-500', 'text-green-600');
+            document.getElementById('tab-notes').classList.remove('border-green-500', 'text-green-600');
+            document.getElementById('tab-notices').classList.remove('border-green-500', 'text-green-600');
+            document.getElementById('tab-exam').classList.remove('border-green-500', 'text-green-600');
+
+            // 모든 섹션 숨기기
+            document.getElementById('section-profile').classList.add('hidden');
+            document.getElementById('section-notes').classList.add('hidden');
+            document.getElementById('section-notices').classList.add('hidden');
+            document.getElementById('section-exam').classList.add('hidden');
+
+            // 선택된 탭 활성화
+            if (tabName === 'profile') {
+                document.getElementById('tab-profile').classList.add('border-green-500', 'text-green-600');
+                document.getElementById('section-profile').classList.remove('hidden');
+            } else if (tabName === 'notes') {
+                document.getElementById('tab-notes').classList.add('border-green-500', 'text-green-600');
+                document.getElementById('section-notes').classList.remove('hidden');
+            } else if (tabName === 'notices') {
+                document.getElementById('tab-notices').classList.add('border-green-500', 'text-green-600');
+                document.getElementById('section-notices').classList.remove('hidden');
+                loadStudentNotices();
+            } else if (tabName === 'exam') {
+                document.getElementById('tab-exam').classList.add('border-green-500', 'text-green-600');
+                document.getElementById('section-exam').classList.remove('hidden');
+                loadStudentExams();
+            }
+        };
+        
+        // 학생용 공지사항 로드
+        window.loadStudentNotices = async function() {
+            try {
+                // 프로그레스바 표시
+                window.showLoading('공지사항을 불러오는 중...');
+
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                if (!student) {
+                    window.hideLoading();
+                    return;
+                }
+
+                // 학생용 공지사항 API 사용 (전체 + 해당 과정 + 수강 교과목)
+                const response = await axios.get(`${API_BASE_URL}/api/notices/student/${student.id}`);
+                const notices = response.data;
+
+                // 프로그레스바 숨김
+                window.hideLoading();
+
+                const listDiv = document.getElementById('student-notices-list');
+                const emptyDiv = document.getElementById('student-notices-empty');
+
+                if (!notices || notices.length === 0) {
+                    listDiv.innerHTML = '';
+                    emptyDiv.classList.remove('hidden');
+                    return;
+                }
+
+                // 공지 유형별 스타일
+                const typeStyles = {
+                    'all': { border: 'border-blue-500', bg: 'bg-blue-50', icon: 'fa-globe', color: 'text-blue-600', label: '전체' },
+                    'course': { border: 'border-green-500', bg: 'bg-green-50', icon: 'fa-users', color: 'text-green-600', label: '과정' },
+                    'subject': { border: 'border-purple-500', bg: 'bg-purple-50', icon: 'fa-book', color: 'text-purple-600', label: '교과목' }
+                };
+
+                emptyDiv.classList.add('hidden');
+                listDiv.innerHTML = notices.map(notice => {
+                    const rawHtml = marked.parse(notice.content);
+                    const cleanHtml = DOMPurify.sanitize(rawHtml);
+                    const finalHtml = cleanHtml.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+                    const style = typeStyles[notice.notice_type || 'all'];
+
+                    return `
+                        <div class="border-l-4 ${style.border} ${style.bg} p-4 rounded-r-lg">
+                            <div class="flex items-start gap-3">
+                                <div class="${style.color} text-2xl">
+                                    <i class="fas ${style.icon}"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2 flex-wrap">
+                                        <span class="px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.color}">
+                                            ${style.label}${notice.target_name ? `: ${notice.target_name}` : ''}
+                                        </span>
+                                        <h3 class="text-lg font-bold text-gray-800">${notice.title}</h3>
+                                    </div>
+                                    <div class="text-sm text-gray-600 mb-3">
+                                        <i class="fas fa-calendar mr-1"></i>
+                                        ${notice.start_date} ~ ${notice.end_date}
+                                    </div>
+                                    <div class="prose max-w-none text-gray-700">
+                                        ${finalHtml}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('공지사항 로드 실패:', error);
+                window.hideLoading();
+                document.getElementById('student-notices-list').innerHTML = `
+                    <div class="text-center py-8 text-red-600">
+                        <i class="fas fa-exclamation-triangle text-4xl mb-2"></i>
+                        <p>공지사항을 불러오는데 실패했습니다</p>
+                    </div>
+                `;
+            }
+        };
+        
+        // 강사 목록 로드
+        let instructorsList = [];
+        
+        async function loadInstructors() {
+            try {
+                const response = await axios.get(`${API_BASE_URL}/api/instructors`);
+                instructorsList = response.data;
+                
+                // 드롭다운에 강사 목록 추가
+                const instructorSelect = document.getElementById('preferred-instructor');
+                if (instructorSelect) {
+                    instructorSelect.innerHTML = '<option value="">선택하지 않음</option>';
+                    
+                    instructorsList.forEach(instructor => {
+                        const option = document.createElement('option');
+                        option.value = instructor.code;
+                        option.textContent = `${instructor.name} - ${instructor.instructor_type_name || instructor.instructor_type}`;
+                        instructorSelect.appendChild(option);
+                    });
+                }
+                
+                console.log('✅ 강사 목록 로드 완료:', instructorsList.length);
+            } catch (error) {
+                console.error('강사 목록 로드 실패:', error);
+            }
+        }
+
+        // ==================== 온라인 시험 ====================
+        let examPollingInterval = null;
+        let examStatusCheckInterval = null;  // 시험 강제종료 감지용
+        let currentExamId = null;
+        let examAnswers = {};
+
+        // ==================== 시험 대기실 알림 ====================
+        let notifiedExamIds = new Set(); // 이미 알림한 시험 ID 저장
+        let examNotificationInterval = null;
+
+        function startExamNotificationPolling() {
+            // 즉시 한번 체크
+            checkExamNotifications();
+
+            // 30초마다 폴링
+            examNotificationInterval = setInterval(checkExamNotifications, 30000);
+        }
+
+        async function checkExamNotifications() {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                if (!student) return;
+
+                const response = await axios.get(`${API_BASE_URL}/api/online-exams?course_code=${student.course_code}`);
+                const exams = response.data.exams || [];
+
+                // 대기중인 시험 필터링
+                const waitingExams = exams.filter(e => e.status === 'waiting');
+
+                for (const exam of waitingExams) {
+                    // 아직 알림하지 않은 시험만 알림
+                    if (!notifiedExamIds.has(exam.id)) {
+                        notifiedExamIds.add(exam.id);
+                        showExamNotification(exam);
+                    }
+                }
+            } catch (error) {
+                console.error('시험 알림 확인 실패:', error);
+            }
+        }
+
+        function showExamNotification(exam) {
+            // 브라우저 알림 권한 요청 및 표시
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('📝 시험 대기실 오픈!', {
+                    body: `${exam.title} 시험 대기실이 열렸습니다. 입장해주세요!`,
+                    icon: '/favicon.ico',
+                    tag: `exam-${exam.id}`
+                });
+            } else if ('Notification' in window && Notification.permission !== 'denied') {
+                Notification.requestPermission();
+            }
+
+            // 화면 알림 (커스텀 모달)
+            showExamAlertModal(exam);
+        }
+
+        function showExamAlertModal(exam) {
+            // 기존 알림 모달이 있으면 제거
+            const existingModal = document.getElementById('exam-notification-modal');
+            if (existingModal) existingModal.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'exam-notification-modal';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 overflow-hidden animate-bounce-in">
+                    <div class="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white text-center">
+                        <i class="fas fa-bell text-5xl mb-3 animate-pulse"></i>
+                        <h2 class="text-2xl font-bold">시험 대기실 오픈!</h2>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-3 text-center">${exam.title}</h3>
+                        <div class="flex justify-center gap-6 text-gray-600 mb-4">
+                            <span><i class="fas fa-clock mr-2 text-blue-500"></i>시험시간: ${exam.duration}분</span>
+                            <span><i class="fas fa-list mr-2 text-green-500"></i>${exam.total_questions || '?'}문항</span>
+                        </div>
+
+                        <!-- 시험 안내사항 -->
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                            <h4 class="font-bold text-blue-800 mb-2"><i class="fas fa-info-circle mr-2"></i>시험 안내사항</h4>
+                            <div class="text-sm text-blue-700 space-y-1">
+                                ${exam.description ? `<p class="whitespace-pre-line">${exam.description}</p>` : `
+                                <ul class="list-disc list-inside space-y-1">
+                                    <li>시험 시간 내에 모든 문제를 풀어주세요.</li>
+                                    <li>제출 후에는 수정이 불가능합니다.</li>
+                                    <li>시험 중 페이지를 벗어나지 마세요.</li>
+                                    <li>부정행위 적발 시 0점 처리됩니다.</li>
+                                </ul>
+                                `}
+                            </div>
+                        </div>
+
+                        <p class="text-orange-600 font-medium mb-4 text-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>지금 바로 대기실에 입장해주세요!
+                        </p>
+                        <div class="flex gap-3 justify-center">
+                            <button onclick="this.closest('#exam-notification-modal').remove()"
+                                    class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg font-medium">
+                                나중에
+                            </button>
+                            <button onclick="goToExamWaiting(${exam.id})"
+                                    class="px-6 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-lg font-medium">
+                                <i class="fas fa-sign-in-alt mr-2"></i>입장하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // 알림음 재생 (선택적)
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleVsFN5/g7MVhBgA8oOjsv1kGBDyg6ey/WQYEPJ/o7L9ZBQQ8n+jrv1kFBDyf6Ou+WQYEPZ/n6r1ZBQQ9nufqvVkFBD2e5um8WAUEQJ7m6LtXBARAn+XnulYEBEOe5ea5VQQEQ57k5bhUBARDnuTluFQDBESe4+O3UwMERJ7j47dSAwREn+Pit1IDBEWf4eG2UQMERY/g4LZRAQVF');
+                audio.volume = 0.5;
+                audio.play().catch(() => {});
+            } catch (e) {}
+        }
+
+        window.goToExamWaiting = function(examId) {
+            // 알림 모달 닫기
+            const modal = document.getElementById('exam-notification-modal');
+            if (modal) modal.remove();
+
+            // 시험 탭으로 이동
+            showTab('exam');
+
+            // 대기실 입장
+            setTimeout(() => enterExam(examId), 300);
+        };
+
+        // 시험 섹션 원래 구조로 복원
+        window.restoreExamSection = function() {
+            // 모든 타이머/폴링 정리
+            if (examPollingInterval) {
+                clearInterval(examPollingInterval);
+                examPollingInterval = null;
+            }
+            if (examStatusCheckInterval) {
+                clearInterval(examStatusCheckInterval);
+                examStatusCheckInterval = null;
+            }
+
+            const section = document.getElementById('section-exam');
+            section.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden mb-6">
+                    <div class="bg-gradient-to-r from-blue-600 to-cyan-600 p-6 text-white">
+                        <h2 class="text-2xl font-bold flex items-center">
+                            <i class="fas fa-laptop mr-3"></i>
+                            온라인시험/과제
+                        </h2>
+                        <p class="text-blue-100 mt-2 text-sm">진행 중인 시험과 과제에 참여하세요</p>
+                    </div>
+                    <div class="p-6">
+                        <div id="student-exam-list" class="space-y-4"></div>
+                        <div id="student-exam-empty" class="hidden text-center py-12 text-gray-500">
+                            <i class="fas fa-clipboard-list text-6xl mb-4"></i>
+                            <p>참여 가능한 시험/과제가 없습니다</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            loadStudentExams();
+        };
+
+        window.loadStudentExams = async function() {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                if (!student) return;
+
+                const response = await axios.get(`${API_BASE_URL}/api/online-exams?course_code=${student.course_code}`);
+                const exams = response.data.exams || [];
+
+                // 대기중/진행중 시험 또는 진행중 과제 필터링
+                const activeExams = exams.filter(e => {
+                    if (e.exam_type === 'assignment') {
+                        // 과제: 진행중인 것만 (마감 전)
+                        return e.status === 'ongoing';
+                    }
+                    // 시험/퀴즈: 대기중 또는 진행중
+                    return ['waiting', 'ongoing'].includes(e.status);
+                });
+
+                const listDiv = document.getElementById('student-exam-list');
+                const emptyDiv = document.getElementById('student-exam-empty');
+
+                if (activeExams.length === 0) {
+                    listDiv.innerHTML = '';
+                    emptyDiv.classList.remove('hidden');
+                    return;
+                }
+
+                emptyDiv.classList.add('hidden');
+
+                // 과제 제출 상태를 가져오기 위해 비동기 처리
+                const examCards = await Promise.all(activeExams.map(async (exam) => {
+                    if (exam.exam_type === 'assignment') {
+                        // 과제 카드 렌더링
+                        let submissionStatus = null;
+                        try {
+                            const statusRes = await axios.get(`${API_BASE_URL}/api/online-exams/${exam.id}/assignment-status?student_id=${student.id}`);
+                            submissionStatus = statusRes.data;
+                        } catch (e) {
+                            // 제출 정보 없음
+                        }
+
+                        const deadline = exam.deadline ? new Date(exam.deadline) : null;
+                        const now = new Date();
+                        const isOverdue = deadline && deadline < now;
+                        const deadlineStr = deadline ? deadline.toLocaleString('ko-KR', {
+                            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        }) : '기한 없음';
+
+                        let statusLabel, statusColor, buttonText, buttonColor, buttonAction;
+                        if (isOverdue) {
+                            statusLabel = '마감됨';
+                            statusColor = 'bg-gray-100 text-gray-600';
+                            buttonText = submissionStatus?.submitted ? '제출완료' : '미제출';
+                            buttonColor = 'bg-gray-400 cursor-not-allowed';
+                            buttonAction = '';
+                        } else if (submissionStatus?.submitted) {
+                            statusLabel = '제출완료';
+                            statusColor = 'bg-green-100 text-green-700';
+                            buttonText = '수정하기';
+                            buttonColor = 'bg-blue-500 hover:bg-blue-600';
+                            buttonAction = `onclick="showAssignmentSubmit(${exam.id})"`;
+                        } else {
+                            statusLabel = '진행중';
+                            statusColor = 'bg-orange-100 text-orange-700';
+                            buttonText = '과제 제출';
+                            buttonColor = 'bg-orange-500 hover:bg-orange-600';
+                            buttonAction = `onclick="showAssignmentSubmit(${exam.id})"`;
+                        }
+
+                        return `
+                            <div class="border-2 border-orange-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-orange-50">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="px-2 py-0.5 bg-orange-500 text-white text-xs rounded font-medium">과제</span>
+                                            <h3 class="font-bold text-lg text-gray-800">${exam.title}</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-500 mt-1">
+                                            <i class="fas fa-calendar-alt mr-1"></i>마감: ${deadlineStr}
+                                            ${submissionStatus?.submitted ? `<span class="mx-2">|</span><i class="fas fa-check-circle text-green-500 mr-1"></i>제출: ${new Date(submissionStatus.submitted_at).toLocaleString('ko-KR', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}` : ''}
+                                        </p>
+                                        ${exam.description ? `<p class="text-sm text-gray-600 mt-2">${exam.description}</p>` : ''}
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusColor}">${statusLabel}</span>
+                                        <button ${buttonAction} class="block mt-3 px-4 py-2 ${buttonColor} text-white rounded-lg font-medium" ${isOverdue && !submissionStatus?.submitted ? 'disabled' : ''}>
+                                            <i class="fas ${submissionStatus?.submitted ? 'fa-edit' : 'fa-upload'} mr-1"></i>${buttonText}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // 시험/퀴즈 카드 렌더링 (기존 로직)
+                        const typeLabel = exam.exam_type === 'quiz' ? '퀴즈' : '시험';
+                        const typeColor = exam.exam_type === 'quiz' ? 'bg-purple-500' : 'bg-blue-500';
+                        const statusLabel = exam.status === 'waiting' ? '대기중' : '진행중';
+                        const statusColor = exam.status === 'waiting' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
+                        const buttonText = exam.status === 'waiting' ? '대기실 입장' : '시험 응시';
+                        const buttonColor = exam.status === 'waiting' ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-500 hover:bg-green-600';
+
+                        return `
+                            <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="px-2 py-0.5 ${typeColor} text-white text-xs rounded font-medium">${typeLabel}</span>
+                                            <h3 class="font-bold text-lg text-gray-800">${exam.title}</h3>
+                                        </div>
+                                        <p class="text-sm text-gray-500 mt-1">
+                                            <i class="fas fa-question-circle mr-1"></i>${exam.total_questions || 0}문항
+                                            <span class="mx-2">|</span>
+                                            <i class="fas fa-clock mr-1"></i>${exam.duration}분
+                                        </p>
+                                        ${exam.description ? `<p class="text-sm text-gray-600 mt-2">${exam.description}</p>` : ''}
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="px-3 py-1 rounded-full text-sm font-medium ${statusColor}">${statusLabel}</span>
+                                        <button onclick="enterExam(${exam.id})" class="block mt-3 px-4 py-2 ${buttonColor} text-white rounded-lg font-medium">
+                                            <i class="fas fa-sign-in-alt mr-1"></i>${buttonText}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }));
+
+                listDiv.innerHTML = examCards.join('');
+            } catch (error) {
+                console.error('시험/과제 목록 로드 실패:', error);
+            }
+        };
+
+        // 과제 제출 화면 표시
+        window.showAssignmentSubmit = async function(examId) {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                if (!student) {
+                    window.showAlert('로그인이 필요합니다.', 'error');
+                    return;
+                }
+
+                // 과제 정보 가져오기
+                const examRes = await axios.get(`${API_BASE_URL}/api/online-exams?course_code=${student.course_code}`);
+                const exam = (examRes.data.exams || []).find(e => e.id === examId);
+
+                if (!exam) {
+                    window.showAlert('과제를 찾을 수 없습니다.', 'error');
+                    return;
+                }
+
+                // 기존 제출 상태 확인
+                let submissionStatus = null;
+                try {
+                    const statusRes = await axios.get(`${API_BASE_URL}/api/online-exams/${examId}/assignment-status?student_id=${student.id}`);
+                    submissionStatus = statusRes.data;
+                } catch (e) {
+                    // 제출 정보 없음
+                }
+
+                const deadline = exam.deadline ? new Date(exam.deadline) : null;
+                const deadlineStr = deadline ? deadline.toLocaleString('ko-KR', {
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                }) : '기한 없음';
+
+                const section = document.getElementById('section-exam');
+                section.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                        <!-- 과제 헤더 -->
+                        <div class="bg-gradient-to-r from-orange-500 to-amber-500 p-6 text-white">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="px-2 py-1 bg-white bg-opacity-20 rounded text-sm">과제</span>
+                                    </div>
+                                    <h2 class="text-2xl font-bold">${exam.title}</h2>
+                                    ${exam.description ? `<p class="text-orange-100 mt-2">${exam.description}</p>` : ''}
+                                </div>
+                                <button onclick="restoreExamSection()" class="px-4 py-2 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg">
+                                    <i class="fas fa-arrow-left mr-2"></i>목록으로
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 과제 정보 -->
+                        <div class="p-6 border-b bg-orange-50">
+                            <div class="flex flex-wrap gap-6 text-sm">
+                                <div>
+                                    <span class="text-gray-500"><i class="fas fa-calendar-alt mr-1"></i>마감일</span>
+                                    <p class="font-bold text-gray-800">${deadlineStr}</p>
+                                </div>
+                                ${submissionStatus?.submitted ? `
+                                <div>
+                                    <span class="text-gray-500"><i class="fas fa-check-circle mr-1 text-green-500"></i>제출일시</span>
+                                    <p class="font-bold text-gray-800">${new Date(submissionStatus.submitted_at).toLocaleString('ko-KR')}</p>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- 제출 양식 -->
+                        <div class="p-6">
+                            ${submissionStatus?.submitted ? `
+                            <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                                <h4 class="font-bold text-green-800 mb-2"><i class="fas fa-check-circle mr-2"></i>기존 제출 내역</h4>
+                                ${submissionStatus.file_name ? `
+                                <p class="text-sm text-gray-600 mb-2">
+                                    <i class="fas fa-file mr-2"></i>첨부파일:
+                                    <a href="${API_BASE_URL}/api/assignments/download/${encodeURIComponent(submissionStatus.file_name)}"
+                                       class="text-blue-600 hover:underline" target="_blank">${submissionStatus.file_name}</a>
+                                </p>
+                                ` : ''}
+                                ${submissionStatus.answer_text ? `
+                                <div class="mt-2">
+                                    <p class="text-sm text-gray-600 mb-1"><i class="fas fa-comment mr-2"></i>답변 내용:</p>
+                                    <p class="text-gray-700 bg-white p-3 rounded border">${submissionStatus.answer_text}</p>
+                                </div>
+                                ` : ''}
+                                <p class="text-sm text-orange-600 mt-3"><i class="fas fa-info-circle mr-1"></i>마감 전까지 다시 제출하여 수정할 수 있습니다.</p>
+                            </div>
+                            ` : ''}
+
+                            <form id="assignment-form" enctype="multipart/form-data">
+                                <input type="hidden" id="assignment-exam-id" value="${examId}">
+
+                                <!-- 파일 첨부 -->
+                                <div class="mb-6">
+                                    <label class="block font-bold text-gray-700 mb-2">
+                                        <i class="fas fa-paperclip mr-2"></i>파일 첨부
+                                    </label>
+                                    <div id="assignment-drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-orange-400 transition-colors cursor-pointer"
+                                         onclick="document.getElementById('assignment-file').click()">
+                                        <input type="file" id="assignment-file" class="hidden" onchange="updateAssignmentFileName(this)">
+                                        <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3" id="assignment-upload-icon"></i>
+                                        <p class="text-gray-600 font-medium" id="assignment-file-label">클릭 또는 파일을 여기에 드롭하세요</p>
+                                        <p class="text-sm text-gray-400 mt-1">최대 50MB</p>
+                                    </div>
+                                </div>
+
+                                <!-- 텍스트 답변 -->
+                                <div class="mb-6">
+                                    <label class="block font-bold text-gray-700 mb-2">
+                                        <i class="fas fa-pen mr-2"></i>답변 내용 (선택사항)
+                                    </label>
+                                    <textarea id="assignment-text" rows="6"
+                                              class="w-full border-2 border-gray-200 rounded-lg p-4 focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                              placeholder="추가 설명이나 답변을 작성하세요...">${submissionStatus?.answer_text || ''}</textarea>
+                                </div>
+
+                                <!-- 제출 버튼 -->
+                                <div class="text-center">
+                                    <button type="button" onclick="submitAssignment(${examId})"
+                                            class="px-8 py-3 bg-orange-500 hover:bg-orange-600 text-white text-lg font-bold rounded-lg shadow-lg">
+                                        <i class="fas fa-paper-plane mr-2"></i>${submissionStatus?.submitted ? '다시 제출' : '과제 제출'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                `;
+
+                // 드래그앤드롭 설정
+                setTimeout(() => window.setupAssignmentDropZone(), 100);
+            } catch (error) {
+                console.error('과제 화면 로드 실패:', error);
+                window.showAlert('과제 정보를 불러오는데 실패했습니다.', 'error');
+            }
+        };
+
+        // 파일명 표시 업데이트
+        window.updateAssignmentFileName = function(input) {
+            const label = document.getElementById('assignment-file-label');
+            const icon = document.getElementById('assignment-upload-icon');
+            const dropZone = document.getElementById('assignment-drop-zone');
+            if (input.files && input.files[0]) {
+                label.textContent = input.files[0].name;
+                label.classList.add('text-orange-600', 'font-bold');
+                if (icon) icon.className = 'fas fa-file-check text-4xl text-green-500 mb-3';
+                if (dropZone) dropZone.classList.add('border-green-400', 'bg-green-50');
+            } else {
+                label.textContent = '클릭 또는 파일을 여기에 드롭하세요';
+                label.classList.remove('text-orange-600', 'font-bold');
+                if (icon) icon.className = 'fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3';
+                if (dropZone) dropZone.classList.remove('border-green-400', 'bg-green-50');
+            }
+        };
+
+        // 드래그앤드롭 이벤트 설정
+        window.setupAssignmentDropZone = function() {
+            const dropZone = document.getElementById('assignment-drop-zone');
+            const fileInput = document.getElementById('assignment-file');
+            if (!dropZone || !fileInput) return;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.add('border-orange-500', 'bg-orange-50');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, () => {
+                    dropZone.classList.remove('border-orange-500', 'bg-orange-50');
+                });
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    updateAssignmentFileName(fileInput);
+                }
+            });
+        };
+
+        // 과제 제출
+        window.submitAssignment = async function(examId) {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                const fileInput = document.getElementById('assignment-file');
+                const textInput = document.getElementById('assignment-text');
+
+                const file = fileInput?.files?.[0];
+                const answerText = textInput?.value?.trim();
+
+                if (!file && !answerText) {
+                    window.showAlert('파일을 첨부하거나 답변을 작성해주세요.', 'warning');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('student_id', student.id);
+                if (file) {
+                    formData.append('file', file);
+                }
+                if (answerText) {
+                    formData.append('answer_text', answerText);
+                }
+
+                const response = await axios.post(
+                    `${API_BASE_URL}/api/online-exams/${examId}/submit-assignment`,
+                    formData,
+                    { headers: { 'Content-Type': 'multipart/form-data' } }
+                );
+
+                if (response.data.success) {
+                    window.showAlert(response.data.message || '과제가 제출되었습니다.', 'success');
+                    setTimeout(() => {
+                        restoreExamSection();
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('과제 제출 실패:', error);
+                const errorMsg = error.response?.data?.detail || '과제 제출에 실패했습니다.';
+                window.showAlert(errorMsg, 'error');
+            }
+        };
+
+        window.enterExam = async function(examId) {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                if (!student) {
+                    window.showAlert('로그인이 필요합니다.', 'error');
+                    return;
+                }
+
+                const response = await axios.post(`${API_BASE_URL}/api/online-exams/${examId}/enter`, {
+                    student_id: student.id
+                });
+
+                if (response.data.success) {
+                    currentExamId = examId;
+
+                    // 기존 답안이 있으면 복원
+                    if (response.data.previous_answers) {
+                        examAnswers = response.data.previous_answers;
+                        window.showAlert('이전 답안이 복원되었습니다. 수정 후 다시 제출하세요.', 'info');
+                    }
+
+                    if (response.data.exam_status === 'ongoing') {
+                        // 시험 진행 중 - 바로 시험 화면으로
+                        showExamScreen(examId, response.data.previous_answers);
+                    } else {
+                        // 대기 중 - 대기실 화면으로
+                        showWaitingRoom(examId);
+                    }
+                }
+            } catch (error) {
+                console.error('시험 입장 실패:', error);
+                window.showAlert(error.response?.data?.detail || '시험 입장에 실패했습니다.', 'error');
+            }
+        };
+
+        function showWaitingRoom(examId) {
+            const section = document.getElementById('section-exam');
+            section.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <div class="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white text-center">
+                        <i class="fas fa-hourglass-half text-6xl mb-4 animate-pulse"></i>
+                        <h2 class="text-2xl font-bold">시험 대기실</h2>
+                        <p class="text-yellow-100 mt-2">강사가 시험을 시작할 때까지 기다려주세요</p>
+                    </div>
+                    <div class="p-8 text-center">
+                        <div class="animate-spin inline-block w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full mb-4"></div>
+                        <p class="text-gray-600 text-lg">대기 중...</p>
+                        <p class="text-gray-400 text-sm mt-2">시험이 시작되면 자동으로 시험 화면으로 이동합니다.</p>
+                    </div>
+                </div>
+            `;
+
+            // 3초마다 시험 상태 확인
+            if (examPollingInterval) clearInterval(examPollingInterval);
+            examPollingInterval = setInterval(() => checkExamStatus(examId), 3000);
+        }
+
+        async function checkExamStatus(examId) {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                const response = await axios.get(`${API_BASE_URL}/api/online-exams/${examId}/status?student_id=${student.id}`);
+
+                if (response.data.exam_status === 'ongoing') {
+                    // 시험 시작됨
+                    if (examPollingInterval) {
+                        clearInterval(examPollingInterval);
+                        examPollingInterval = null;
+                    }
+                    showExamScreen(examId);
+                } else if (response.data.exam_status === 'ended') {
+                    // 시험 종료됨
+                    if (examPollingInterval) {
+                        clearInterval(examPollingInterval);
+                        examPollingInterval = null;
+                    }
+                    window.showAlert('시험이 종료되었습니다.', 'info');
+                    showTab('exam');
+                }
+            } catch (error) {
+                console.error('시험 상태 확인 실패:', error);
+            }
+        }
+
+        async function showExamScreen(examId, previousAnswers = null) {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                const response = await axios.get(`${API_BASE_URL}/api/online-exams/${examId}/questions?student_id=${student.id}`);
+                const { exam, questions } = response.data;
+
+                // 기존 답안이 있으면 복원, 없으면 초기화
+                if (previousAnswers && Object.keys(previousAnswers).length > 0) {
+                    examAnswers = previousAnswers;
+                } else {
+                    examAnswers = {};
+                }
+
+                const section = document.getElementById('section-exam');
+                section.innerHTML = `
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                        <!-- 시험 헤더 -->
+                        <div class="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white sticky top-0 z-10">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-xl font-bold">${exam.title}</h2>
+                                    <p class="text-blue-100 text-sm">${questions.length}문항 ${previousAnswers ? '(재응시)' : ''}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-3xl font-mono font-bold" id="exam-timer">--:--</div>
+                                    <p class="text-blue-100 text-sm">남은 시간</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 문제 목록 -->
+                        <div class="p-6">
+                            <div id="exam-questions" class="space-y-6">
+                                ${questions.map((q, idx) => renderQuestion(q, idx)).join('')}
+                            </div>
+
+                            <!-- 제출 버튼 -->
+                            <div class="mt-8 text-center">
+                                <button onclick="submitExam(${examId})" class="px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-lg font-bold rounded-lg shadow-lg">
+                                    <i class="fas fa-paper-plane mr-2"></i>답안 제출
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // 기존 답안이 있으면 라디오 버튼 체크
+                if (previousAnswers && Object.keys(previousAnswers).length > 0) {
+                    Object.entries(previousAnswers).forEach(([qid, answer]) => {
+                        const radio = document.querySelector(`input[name="q_${qid}"][value="${answer}"]`);
+                        if (radio) {
+                            radio.checked = true;
+                        }
+                    });
+                }
+
+                // 타이머 시작
+                startExamTimer(examId, exam.ended_at);
+
+            } catch (error) {
+                console.error('시험 문제 로드 실패:', error);
+                window.showAlert(error.response?.data?.detail || '시험 문제를 불러오는데 실패했습니다.', 'error');
+            }
+        }
+
+        function renderQuestion(question, index) {
+            let options = question.options || [];
+            let questionText = question.question_text || '';
+
+            // 서술형 문제에서 모범답안, 채점기준, 해설 부분 제거 (학생에게 보이면 안됨)
+            questionText = questionText.replace(/\s*(모범답안|채점기준|해설|정답|답안)[:：].*/gi, '').trim();
+
+            // A), B), C), D) 또는 1), 2), 3), 4) 접두어 제거
+            const cleanOption = (opt) => opt.replace(/^[A-D1-4]\)\s*/, '').trim();
+
+            // options가 없거나 비어있으면 question_text에서 추출
+            if ((!options || options.length === 0) && questionText) {
+                const optionMatches = questionText.match(/[1-4A-D]\)\s*[^1-4A-D)]+/g);
+                if (optionMatches && optionMatches.length >= 2) {
+                    options = optionMatches.map(match => match.replace(/^[1-4A-D]\)\s*/, '').trim());
+                    // question_text에서 선택지 부분 제거
+                    const qMatch = questionText.match(/^(.+?)\s*(?=[1-4A-D]\))/);
+                    if (qMatch) {
+                        questionText = qMatch[1].trim();
+                    }
+                }
+            }
+
+            if (question.question_type === 'multiple_choice' && options.length > 0) {
+                return `
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm mb-6 overflow-hidden">
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 border-b">
+                            <div class="flex items-start gap-4">
+                                <span class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 shadow">${index + 1}</span>
+                                <p class="text-gray-800 font-medium text-lg leading-relaxed pt-1">${questionText}</p>
+                            </div>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            ${options.map((opt, i) => `
+                                <label class="flex items-center p-4 border-2 border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-400 cursor-pointer transition-all bg-white group">
+                                    <input type="radio" name="q_${question.question_id}" value="${i + 1}"
+                                           onchange="saveAnswer(${question.question_id}, '${i + 1}')"
+                                           class="w-5 h-5 text-blue-600 focus:ring-blue-500">
+                                    <span class="ml-4 text-gray-700 group-hover:text-blue-700">
+                                        <span class="inline-block w-7 h-7 bg-gray-100 group-hover:bg-blue-100 rounded-full text-center leading-7 font-medium mr-2">${i + 1}</span>
+                                        ${cleanOption(opt)}
+                                    </span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // 주관식
+                return `
+                    <div class="bg-white border border-gray-200 rounded-xl shadow-sm mb-6 overflow-hidden">
+                        <div class="bg-gradient-to-r from-green-50 to-teal-50 p-5 border-b">
+                            <div class="flex items-start gap-4">
+                                <span class="bg-green-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 shadow">${index + 1}</span>
+                                <p class="text-gray-800 font-medium text-lg leading-relaxed pt-1">${questionText}</p>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <input type="text" id="answer_${question.question_id}"
+                                   onchange="saveAnswer(${question.question_id}, this.value)"
+                                   class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg"
+                                   placeholder="답을 입력하세요">
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        window.saveAnswer = function(questionId, answer) {
+            examAnswers[questionId] = answer;
+            console.log('답안 저장:', questionId, answer);
+        };
+
+        function startExamTimer(examId, endedAt) {
+            const endTime = new Date(endedAt).getTime();
+
+            function updateTimer() {
+                const now = Date.now();
+                const remaining = Math.max(0, Math.floor((endTime - now) / 1000));
+
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+
+                const timerEl = document.getElementById('exam-timer');
+                if (timerEl) {
+                    timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+                    // 1분 이하면 빨간색
+                    if (remaining <= 60) {
+                        timerEl.classList.add('text-red-300', 'animate-pulse');
+                    }
+                }
+
+                if (remaining <= 0) {
+                    // 시간 종료 - 자동 제출
+                    clearInterval(examPollingInterval);
+                    autoSubmitExam(examId);
+                }
+            }
+
+            updateTimer();
+            if (examPollingInterval) clearInterval(examPollingInterval);
+            examPollingInterval = setInterval(updateTimer, 1000);
+
+            // 시험 강제종료 감지: 5초마다 시험 상태 확인
+            if (examStatusCheckInterval) clearInterval(examStatusCheckInterval);
+            examStatusCheckInterval = setInterval(() => checkExamForceEnded(examId), 5000);
+        }
+
+        // 시험 강제종료 감지 함수
+        async function checkExamForceEnded(examId) {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                const response = await axios.get(`${API_BASE_URL}/api/online-exams/${examId}/status?student_id=${student.id}`);
+
+                if (response.data.exam_status === 'ended') {
+                    // 강사가 시험을 종료함
+                    if (examPollingInterval) {
+                        clearInterval(examPollingInterval);
+                        examPollingInterval = null;
+                    }
+                    if (examStatusCheckInterval) {
+                        clearInterval(examStatusCheckInterval);
+                        examStatusCheckInterval = null;
+                    }
+                    window.showAlert('강사가 시험을 종료했습니다. 목록으로 이동합니다.', 'info');
+                    setTimeout(() => {
+                        restoreExamSection();
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('시험 상태 확인 실패:', error);
+            }
+        }
+
+        async function autoSubmitExam(examId) {
+            window.showAlert('시험 시간이 종료되어 자동 제출됩니다.', 'info');
+            await submitExamAnswers(examId);
+        }
+
+        window.submitExam = async function(examId) {
+            const answeredCount = Object.keys(examAnswers).length;
+            const confirmed = await window.showConfirm(`${answeredCount}개의 답안을 제출하시겠습니까?<br>제출 후에는 수정할 수 없습니다.`, '답안 제출');
+            if (confirmed) {
+                await submitExamAnswers(examId);
+            }
+        };
+
+        async function submitExamAnswers(examId) {
+            try {
+                const student = JSON.parse(sessionStorage.getItem('student'));
+
+                const response = await axios.post(`${API_BASE_URL}/api/online-exams/${examId}/submit`, {
+                    student_id: student.id,
+                    answers: examAnswers
+                });
+
+                if (response.data.success) {
+                    if (examPollingInterval) {
+                        clearInterval(examPollingInterval);
+                        examPollingInterval = null;
+                    }
+                    if (examStatusCheckInterval) {
+                        clearInterval(examStatusCheckInterval);
+                        examStatusCheckInterval = null;
+                    }
+
+                    // 제출 완료 화면
+                    const section = document.getElementById('section-exam');
+                    section.innerHTML = `
+                        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                            <div class="bg-gradient-to-r from-green-500 to-teal-500 p-8 text-white text-center">
+                                <i class="fas fa-check-circle text-8xl mb-4"></i>
+                                <h2 class="text-3xl font-bold">답안 제출 완료!</h2>
+                                <p class="text-green-100 mt-2">수고하셨습니다.</p>
+                            </div>
+                            <div class="p-8 text-center">
+                                <p class="text-gray-600 text-lg mb-6">채점이 완료되면 결과를 확인하실 수 있습니다.</p>
+                                <button onclick="restoreExamSection()" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium">
+                                    <i class="fas fa-list mr-2"></i>시험 목록으로
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('답안 제출 실패:', error);
+                const errorDetail = error.response?.data?.detail || '';
+
+                // 시험이 강제 종료된 경우 목록으로 이동
+                if (errorDetail.includes('종료') || error.response?.status === 400) {
+                    if (examPollingInterval) {
+                        clearInterval(examPollingInterval);
+                        examPollingInterval = null;
+                    }
+                    window.showAlert('시험이 종료되었습니다. 목록으로 이동합니다.', 'info');
+                    setTimeout(() => {
+                        restoreExamSection();
+                    }, 1500);
+                } else {
+                    window.showAlert(errorDetail || '답안 제출에 실패했습니다.', 'error');
+                }
+            }
+        }
+
+        // 페이지 로드 시 학생 정보 표시
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 기본적으로 수업메모 탭 표시
+            showTab('notes');
+            // 메모 목록 불러오기
+            setTimeout(() => {
+                loadAllNotes();
+            }, 500);
+            // 강사 목록 불러오기
+            loadInstructors();
+            
+            let student = JSON.parse(sessionStorage.getItem('student'));
+            if (!student) {
+                window.showAlert('로그인이 필요합니다.', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 1000);
+                return;
+            }
+            
+            // 서버에서 최신 학생 정보 가져오기
+            try {
+                const response = await axios.get(`${API_BASE_URL}/api/students/${student.id}`);
+                if (response.data) {
+                    // 최신 정보로 업데이트
+                    student = response.data;
+                    
+                    // localStorage도 업데이트 (비밀번호 제외)
+                    const storedStudent = JSON.parse(sessionStorage.getItem('student'));
+                    const updatedData = {
+                        ...student,
+                        password: storedStudent.password
+                    };
+                    sessionStorage.setItem('student', JSON.stringify(updatedData));
+                }
+            } catch (error) {
+                console.error('최신 학생 정보 로드 실패:', error);
+            }
+            
+            // 헤더에 이름 표시
+            document.getElementById('studentName').textContent = student.name;
+            
+            // 폼에 정보 채우기
+            document.getElementById('student-name').value = student.name || '';
+            document.getElementById('student-birth-date').value = student.birth_date || '';
+            document.getElementById('student-gender').value = student.gender || '';
+            document.getElementById('student-phone').value = student.phone || '';
+            document.getElementById('student-email').value = student.email || '';
+            document.getElementById('student-address').value = student.address || '';
+            document.getElementById('student-interests').value = student.interests || '';
+            document.getElementById('student-education').value = student.education || '';
+            document.getElementById('student-introduction').value = student.introduction || '';
+            
+            // 프로필 사진
+            if (student.profile_photo) {
+                document.getElementById('student-photo').src = API_BASE_URL + '/api/thumbnail?url=' + encodeURIComponent(student.profile_photo);
+            }
+            
+            // 첨부 파일 목록
+            if (student.attachments) {
+                try {
+                    const attachments = JSON.parse(student.attachments);
+                    if (attachments && attachments.length > 0) {
+                        // 파일 미리보기 표시
+                        updateStudentFilePreview(attachments);
+                        // 파일 개수 업데이트
+                        const fileCountSpan = document.getElementById('student-file-count');
+                        if (fileCountSpan) {
+                            fileCountSpan.textContent = attachments.length;
+                        }
+                    }
+                } catch (e) {
+                    console.error('첨부 파일 로드 실패:', e);
+                }
+            }
+            
+            // 과정 정보
+            document.getElementById('course-name').textContent = student.course_name || '미배정';
+            if (student.start_date && student.end_date) {
+                document.getElementById('course-period').textContent = `${student.start_date} ~ ${student.end_date}`;
+            } else if (student.start_date) {
+                document.getElementById('course-period').textContent = `${student.start_date} ~`;
+            } else {
+                document.getElementById('course-period').textContent = '미정';
+            }
+
+            // 시험 대기실 알림 폴링 시작
+            startExamNotificationPolling();
+        });
+        
+        // 프로필 사진 업로드
+        window.uploadStudentPhoto = async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const progressContainer = document.getElementById('student-upload-progress');
+            const progressBar = document.getElementById('student-progress-bar');
+            const progressText = document.getElementById('student-progress-text');
+            
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = '업로드 중... 0%';
+            
+            try {
+                const response = await axios.post(`${API_BASE_URL}/api/upload-image?category=student`, formData, {
+                    onUploadProgress: (progressEvent) => {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        progressBar.style.width = percentCompleted + '%';
+                        progressText.textContent = `업로드 중... ${percentCompleted}%`;
+                    }
+                });
+                
+                const photoUrl = response.data.url;
+                document.getElementById('student-photo').src = API_BASE_URL + '/api/thumbnail?url=' + encodeURIComponent(photoUrl);
+                
+                progressBar.style.width = '100%';
+                progressText.textContent = '✅ 업로드 완료!';
+                
+                // 자동 저장
+                const student = JSON.parse(sessionStorage.getItem('student'));
+                if (student && student.id) {
+                    await saveStudentProfileSilent(photoUrl);
+                    window.showAlert('✅ 프로필 사진이 업로드되고 자동 저장되었습니다!', 'success');
+                } else {
+                    window.showAlert('✅ 프로필 사진이 업로드되었습니다!', 'success');
+                }
+                
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                }, 2000);
+            } catch (error) {
+                console.error('사진 업로드 실패:', error);
+                progressText.textContent = '❌ 업로드 실패';
+                window.showAlert('❌ 사진 업로드에 실패했습니다: ' + error.message, 'error');
+                
+                setTimeout(() => {
+                    progressContainer.classList.add('hidden');
+                }, 2000);
+            }
+        };
+        
+        // 파일 아이콘 반환
+        function getFileIcon(extension) {
+            const iconMap = {
+                'pdf': 'fas fa-file-pdf',
+                'doc': 'fas fa-file-word',
+                'docx': 'fas fa-file-word',
+                'xls': 'fas fa-file-excel',
+                'xlsx': 'fas fa-file-excel',
+                'ppt': 'fas fa-file-powerpoint',
+                'pptx': 'fas fa-file-powerpoint',
+                'txt': 'fas fa-file-alt',
+                'hwp': 'fas fa-file-alt',
+                'zip': 'fas fa-file-archive',
+                'rar': 'fas fa-file-archive'
+            };
+            return iconMap[extension] || 'fas fa-file';
+        }
+        
+        // 파일 업로드 (첨부 파일 - 최대 20개)
+        window.uploadStudentFiles = async function(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            
+            const student = JSON.parse(sessionStorage.getItem('student'));
+            const progressDiv = document.getElementById('student-file-upload-progress');
+            const progressBar = document.getElementById('student-file-progress-bar');
+            
+            try {
+                // 기존 첨부 파일 가져오기
+                let attachments = [];
+                if (student.attachments) {
+                    try {
+                        attachments = JSON.parse(student.attachments);
+                    } catch (e) {
+                        attachments = [];
+                    }
+                }
+                
+                // 파일 개수 제한 체크 (최대 20개)
+                const remainingSlots = 20 - attachments.length;
+                if (remainingSlots <= 0) {
+                    window.showAlert('⚠️ 첨부 파일은 최대 20개까지만 업로드할 수 있습니다.', 'warning');
+                    event.target.value = '';
+                    return;
+                }
+                
+                if (files.length > remainingSlots) {
+                    window.showAlert(`⚠️ ${remainingSlots}개의 파일만 업로드할 수 있습니다. (현재: ${attachments.length}/20)`, 'warning');
+                    event.target.value = '';
+                    return;
+                }
+                
+                progressDiv.classList.remove('hidden');
+                progressBar.style.width = '0%';
+                
+                // 파일 업로드
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    const response = await axios.post(`${API_BASE_URL}/api/upload-image?category=student`, formData, {
+                        onUploadProgress: (progressEvent) => {
+                            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                            progressBar.style.width = percentCompleted + '%';
+                        }
+                    });
+                    
+                    // URL과 원본 파일명을 함께 저장 (URL#원본파일명 형식)
+                    const urlWithOriginalName = response.data.original_filename 
+                        ? `${response.data.url}#${encodeURIComponent(response.data.original_filename)}`
+                        : response.data.url;
+                    attachments.push(urlWithOriginalName);
+                }
+                
+                // 미리보기 업데이트
+                updateStudentFilePreview(attachments);
+                
+                // 프로필 사진 URL 가져오기
+                const profilePhoto = document.getElementById('student-photo').src.includes('/api/thumbnail')
+                    ? new URLSearchParams(document.getElementById('student-photo').src.split('?')[1]).get('url')
+                    : student.profile_photo;
+                
+                // 자동 저장 - JSON 데이터 사용
+                const updateData = {
+                    name: student.name,
+                    birth_date: document.getElementById('student-birth-date').value || '',
+                    gender: document.getElementById('student-gender').value || '',
+                    phone: document.getElementById('student-phone').value || '',
+                    email: document.getElementById('student-email').value || '',
+                    address: document.getElementById('student-address').value || '',
+                    interests: document.getElementById('student-interests').value || '',
+                    education: document.getElementById('student-education').value || '',
+                    introduction: document.getElementById('student-introduction').value || '',
+                    campus: student.campus || '',
+                    course_code: student.course_code || '',
+                    notes: student.notes || '',
+                    career_path: student.career_path || '4. 미정',
+                    profile_photo: profilePhoto,
+                    attachments: JSON.stringify(attachments)
+                };
+                
+                await axios.put(`${API_BASE_URL}/api/students/${student.id}`, updateData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // 로컬스토리지 업데이트
+                student.attachments = JSON.stringify(attachments);
+                sessionStorage.setItem('student', JSON.stringify(student));
+                
+                // 파일 개수 업데이트
+                const fileCountSpan = document.getElementById('student-file-count');
+                if (fileCountSpan) {
+                    fileCountSpan.textContent = attachments.length;
+                }
+                
+                progressBar.style.width = '100%';
+                window.showAlert(`✅ ${files.length}개 파일이 업로드되고 자동 저장되었습니다! (${attachments.length}/20)`, 'success');
+                
+                setTimeout(() => {
+                    progressDiv.classList.add('hidden');
+                }, 2000);
+                
+            } catch (error) {
+                console.error('파일 업로드 실패:', error);
+                progressDiv.classList.add('hidden');
+                window.showAlert('❌ 파일 업로드에 실패했습니다: ' + error.message, 'error');
+            }
+            
+            // 파일 input 초기화
+            event.target.value = '';
+        };
+        
+        // 파일 미리보기 업데이트
+        function updateStudentFilePreview(photoUrls) {
+            const previewDiv = document.getElementById('student-file-list');
+            if (!previewDiv) return;
+            
+            previewDiv.innerHTML = '';
+            
+            photoUrls.forEach((url, index) => {
+                const fileExt = url.split('.').pop().toLowerCase();
+                const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExt);
+                
+                const fileDiv = document.createElement('div');
+                fileDiv.className = 'flex items-center gap-3 p-3 bg-white rounded border hover:shadow-md transition';
+                
+                if (isImage) {
+                    fileDiv.innerHTML = `
+                        <img src="${API_BASE_URL}/api/thumbnail?url=${encodeURIComponent(url)}" 
+                             alt="파일 ${index + 1}" 
+                             class="w-16 h-16 object-cover rounded border cursor-pointer hover:opacity-80 transition"
+                             onclick="window.showImagePreview('${url.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${window.getFilenameFromUrl(url).replace(/'/g, "\\'").replace(/"/g, '&quot;')}')"
+                             title="클릭하여 크게 보기"
+                             onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2764%27 height=%2764%27%3E%3Crect fill=%27%23f0f0f0%27 width=%2764%27 height=%2764%27/%3E%3Ctext fill=%27%23999%27 font-family=%27sans-serif%27 font-size=%2712%27 x=%2750%25%27 y=%2750%25%27 text-anchor=%27middle%27 dy=%27.3em%27%3EError%3C/text%3E%3C/svg%3E'">
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-800 font-medium truncate" title="${window.getFilenameFromUrl(url)}">${window.getFilenameFromUrl(url)}</p>
+                            <button type="button" 
+                                    onclick="window.showImagePreview('${url.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${window.getFilenameFromUrl(url).replace(/'/g, "\\'").replace(/"/g, '&quot;')}')"
+                                    class="text-xs text-blue-500 hover:underline hover:text-blue-700">
+                                <i class="fas fa-eye mr-1"></i>미리보기
+                            </button>
+                            <span class="text-gray-300 mx-1">|</span>
+                            <button type="button" 
+                                    onclick="window.downloadFile('${url.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${window.getFilenameFromUrl(url).replace(/'/g, "\\'").replace(/"/g, '&quot;')}')"
+                                    class="text-xs text-green-500 hover:underline hover:text-green-700">
+                                <i class="fas fa-download mr-1"></i>다운로드
+                            </button>
+                        </div>
+                        <button type="button" 
+                                onclick="removeStudentFile(${index})" 
+                                class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times-circle text-xl"></i>
+                        </button>
+                    `;
+                } else {
+                    const icon = getFileIcon(fileExt);
+                    fileDiv.innerHTML = `
+                        <div class="w-16 h-16 flex items-center justify-center bg-gray-100 rounded border cursor-pointer hover:bg-gray-200 transition"
+                             onclick="window.downloadFile('${url.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${window.getFilenameFromUrl(url).replace(/'/g, "\\'").replace(/"/g, '&quot;')}')"
+                             title="클릭하여 다운로드">
+                            <i class="${icon} text-3xl text-gray-500"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm text-gray-800 font-medium truncate" title="${window.getFilenameFromUrl(url)}">${window.getFilenameFromUrl(url)}</p>
+                            <button type="button" 
+                                    onclick="window.downloadFile('${url.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${window.getFilenameFromUrl(url).replace(/'/g, "\\'").replace(/"/g, '&quot;')}')"
+                                    class="text-xs text-green-500 hover:underline hover:text-green-700">
+                                <i class="fas fa-download mr-1"></i>다운로드
+                            </button>
+                        </div>
+                        <button type="button" 
+                                onclick="removeStudentFile(${index})" 
+                                class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-times-circle text-xl"></i>
+                        </button>
+                    `;
+                }
+                
+                previewDiv.appendChild(fileDiv);
+            });
+        }
+        
+        // 파일 삭제
+        window.removeStudentFile = async function(index) {
+            const confirmed = await window.showConfirm('⚠️ 이 파일을 삭제하시겠습니까?\n\n삭제된 파일은 복구할 수 없습니다.');
+            if (!confirmed) return;
+            
+            const student = JSON.parse(sessionStorage.getItem('student'));
+            
+            // 기존 attachments 가져오기
+            let attachments = [];
+            if (student.attachments) {
+                try {
+                    attachments = JSON.parse(student.attachments);
+                } catch (e) {
+                    attachments = [];
+                }
+            }
+            
+            attachments.splice(index, 1);
+            
+            // 미리보기 업데이트
+            updateStudentFilePreview(attachments);
+            
+            // 자동 저장 - JSON 데이터 사용
+            try {
+                // 프로필 사진 URL 가져오기
+                const profilePhoto = document.getElementById('student-photo').src.includes('/api/thumbnail')
+                    ? new URLSearchParams(document.getElementById('student-photo').src.split('?')[1]).get('url')
+                    : student.profile_photo;
+                
+                const updateData = {
+                    name: student.name,
+                    birth_date: document.getElementById('student-birth-date').value || '',
+                    gender: document.getElementById('student-gender').value || '',
+                    phone: document.getElementById('student-phone').value || '',
+                    email: document.getElementById('student-email').value || '',
+                    address: document.getElementById('student-address').value || '',
+                    interests: document.getElementById('student-interests').value || '',
+                    education: document.getElementById('student-education').value || '',
+                    introduction: document.getElementById('student-introduction').value || '',
+                    campus: student.campus || '',
+                    course_code: student.course_code || '',
+                    notes: student.notes || '',
+                    career_path: student.career_path || '4. 미정',
+                    profile_photo: profilePhoto,
+                    attachments: JSON.stringify(attachments)
+                };
+                
+                await axios.put(`${API_BASE_URL}/api/students/${student.id}`, updateData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // 로컬스토리지 업데이트
+                student.attachments = JSON.stringify(attachments);
+                sessionStorage.setItem('student', JSON.stringify(student));
+                
+                // 파일 개수 업데이트
+                const fileCountSpan = document.getElementById('student-file-count');
+                if (fileCountSpan) {
+                    fileCountSpan.textContent = attachments.length;
+                }
+                
+                // 캐시 삭제
+                localStorage.removeItem('cache_students');
+                
+                window.showAlert(`✅ 파일이 삭제되고 자동 저장되었습니다! (${attachments.length}/20)`, 'success');
+            } catch (error) {
+                console.error('파일 삭제 실패:', error);
+                window.showAlert('❌ 파일 삭제에 실패했습니다: ' + error.message, 'error');
+            }
+        };
+        
+        // 프로필 사진 자동 저장 (Silent)
+        async function saveStudentProfileSilent(profilePhotoUrl) {
+            const student = JSON.parse(sessionStorage.getItem('student'));
+            
+            // 첨부 파일 가져오기
+            let attachments = [];
+            if (student.attachments) {
+                try {
+                    attachments = JSON.parse(student.attachments);
+                } catch (e) {
+                    attachments = [];
+                }
+            }
+            
+            // JSON 데이터 준비
+            const updateData = {
+                name: student.name,
+                birth_date: document.getElementById('student-birth-date').value || '',
+                gender: document.getElementById('student-gender').value || '',
+                phone: document.getElementById('student-phone').value || '',
+                email: document.getElementById('student-email').value || '',
+                address: document.getElementById('student-address').value || '',
+                interests: document.getElementById('student-interests').value || '',
+                education: document.getElementById('student-education').value || '',
+                introduction: document.getElementById('student-introduction').value || '',
+                campus: student.campus || '',
+                course_code: student.course_code || '',
+                notes: student.notes || '',
+                career_path: student.career_path || '4. 미정',
+                profile_photo: profilePhotoUrl,
+                attachments: JSON.stringify(attachments)
+            };
+            
+            try {
+                await axios.put(`${API_BASE_URL}/api/students/${student.id}`, updateData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // 로컬 스토리지 업데이트
+                student.profile_photo = profilePhotoUrl;
+                sessionStorage.setItem('student', JSON.stringify(student));
+                
+                // 캐시 삭제
+                localStorage.removeItem('cache_students');
+            } catch (error) {
+                console.error('자동 저장 실패:', error);
+                throw error;
+            }
+        }
+        
+        // 학생 정보 저장
+        window.saveStudentProfile = async function() {
+            const student = JSON.parse(sessionStorage.getItem('student'));
+            
+            // 프로필 사진 URL
+            const photoImg = document.getElementById('student-photo');
+            let profilePhoto = student.profile_photo;
+            if (photoImg.src.includes('/api/thumbnail')) {
+                const urlParam = new URLSearchParams(photoImg.src.split('?')[1]);
+                const ftpUrl = urlParam.get('url');
+                if (ftpUrl) {
+                    profilePhoto = ftpUrl;
+                }
+            }
+            
+            // 첨부 파일 가져오기
+            let attachments = [];
+            if (student.attachments) {
+                try {
+                    attachments = JSON.parse(student.attachments);
+                } catch (e) {
+                    attachments = [];
+                }
+            }
+            
+            // JSON 데이터 준비
+            const updateData = {
+                name: document.getElementById('student-name').value,
+                birth_date: document.getElementById('student-birth-date').value || '',
+                gender: document.getElementById('student-gender').value || '',
+                phone: document.getElementById('student-phone').value || '',
+                email: document.getElementById('student-email').value || '',
+                address: document.getElementById('student-address').value || '',
+                interests: document.getElementById('student-interests').value || '',
+                education: document.getElementById('student-education').value || '',
+                introduction: document.getElementById('student-introduction').value || '',
+                campus: student.campus || '',
+                course_code: student.course_code || '',
+                notes: student.notes || '',
+                career_path: student.career_path || '4. 미정',
+                profile_photo: profilePhoto,
+                attachments: JSON.stringify(attachments)
+            };
+            
+            try {
+                await axios.put(`${API_BASE_URL}/api/students/${student.id}`, updateData, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // 로컬 스토리지 업데이트
+                student.birth_date = document.getElementById('student-birth-date').value;
+                student.gender = document.getElementById('student-gender').value;
+                student.phone = document.getElementById('student-phone').value;
+                student.email = document.getElementById('student-email').value;
+                student.address = document.getElementById('student-address').value;
+                student.interests = document.getElementById('student-interests').value;
+                student.education = document.getElementById('student-education').value;
+                student.introduction = document.getElementById('student-introduction').value;
+                sessionStorage.setItem('student', JSON.stringify(student));
+                
+                // 캐시 삭제
+                localStorage.removeItem('cache_students');
+                
+                window.showAlert('✅ 정보가 저장되었습니다!', 'success');
+            } catch (error) {
+                console.error('저장 실패:', error);
+                window.showAlert('저장에 실패했습니다: ' + (error.response?.data?.detail || error.message), 'error');
+            }
+        };
+
+        // 홈(초기화면)으로 이동
+        window.goToHome = function() {
+            // 모든 타이머/인터벌 정리
+            if (examPollingInterval) {
+                clearInterval(examPollingInterval);
+                examPollingInterval = null;
+            }
+            if (examStatusCheckInterval) {
+                clearInterval(examStatusCheckInterval);
+                examStatusCheckInterval = null;
+            }
+            // 기본 탭(SSIRN)으로 이동
+            showTab('notes');
+        };
+
+        // 로그아웃
+        window.logout = function() {
+            // 커스텀 확인 모달
+            const student = JSON.parse(sessionStorage.getItem('student') || '{}');
+            const studentName = student.name || '학생';
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center">
+                    <div class="mb-6">
+                        <i class="fas fa-sign-out-alt text-6xl text-green-600 mb-4"></i>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-2">로그아웃</h3>
+                        <p class="text-gray-600 mb-1">${studentName}님,</p>
+                        <p class="text-gray-600">로그아웃 하시겠습니까?</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="logout-cancel" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-times mr-2"></i>취소
+                        </button>
+                        <button id="logout-confirm" class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-all">
+                            <i class="fas fa-check mr-2"></i>확인
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            document.getElementById('logout-cancel').onclick = () => modal.remove();
+            document.getElementById('logout-confirm').onclick = () => {
+                sessionStorage.removeItem('student');
+                sessionStorage.removeItem('user_type');
+                sessionStorage.removeItem('logged_in');
+                window.location.href = '/login.html';
+            };
+        };
+    </script>
+</body>
+</html>
